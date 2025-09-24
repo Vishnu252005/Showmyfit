@@ -1,0 +1,40 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  theme: {
+    extend: {
+      colors: {
+        cream: '#F5F3F0',
+        warm: {
+          50: '#FAF9F7',
+          100: '#F5F3F0',
+          200: '#E8E4DE',
+          300: '#D4CFC6',
+          400: '#B8B0A3',
+          500: '#9C8F7E',
+          600: '#8A7B68',
+          700: '#6B5D4F',
+          800: '#4A3F35',
+          900: '#2D251E'
+        },
+        sage: {
+          50: '#F7F8F7',
+          100: '#E8EBE8',
+          200: '#D1D7D1',
+          300: '#A8B5A8',
+          400: '#7A8A7A',
+          500: '#5A6B5A',
+          600: '#4A5A4A',
+          700: '#3A473A',
+          800: '#2A342A',
+          900: '#1A211A'
+        }
+      },
+      fontFamily: {
+        'serif': ['Playfair Display', 'serif'],
+        'sans': ['Inter', 'sans-serif']
+      }
+    },
+  },
+  plugins: [],
+};
