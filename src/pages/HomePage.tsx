@@ -46,38 +46,54 @@ const HomePage: React.FC = () => {
             Connect with local stores, find your ideal fit, and express your unique style.
           </p>
 
-          {/* Search Section */}
+          {/* Enhanced Search Section */}
           <div className="max-w-2xl mx-auto mb-8 animate-slide-up">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-warm-400 w-5 h-5" />
+            <div className="relative group">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-warm-400 w-5 h-5 group-focus-within:text-warm-600 transition-colors" />
               <input
                 type="text"
                 placeholder="Search for the perfect fit..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-4 border-2 border-warm-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-warm-400 focus:border-transparent text-lg shadow-lg"
+                className="w-full pl-12 pr-20 py-4 border-2 border-warm-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-warm-400 focus:border-transparent text-lg shadow-lg hover:shadow-xl transition-all duration-300"
               />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-16 top-1/2 transform -translate-y-1/2 text-warm-400 hover:text-warm-600 transition-colors"
+                >
+                  ✕
+                </button>
+              )}
               <Button 
                 variant="primary" 
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 px-6 py-2"
-                onClick={() => setSearchQuery('')}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 px-6 py-2 hover:scale-105 transition-transform"
               >
                 Search
               </Button>
             </div>
           </div>
 
-          {/* Quick Stats */}
+          {/* Enhanced Quick Stats */}
           <div className="grid grid-cols-3 gap-4 max-w-md mx-auto animate-fade-in">
-            <div className="bg-white rounded-xl p-4 shadow-md hover-lift">
+            <div className="bg-white rounded-xl p-4 shadow-md hover-lift text-center">
+              <div className="w-8 h-8 bg-warm-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                <Store className="w-4 h-4 text-warm-600" />
+              </div>
               <div className="text-2xl font-bold text-warm-800">500+</div>
               <div className="text-xs text-warm-600 uppercase tracking-wide">Local Stores</div>
             </div>
-            <div className="bg-white rounded-xl p-4 shadow-md hover-lift">
+            <div className="bg-white rounded-xl p-4 shadow-md hover-lift text-center">
+              <div className="w-8 h-8 bg-warm-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                <Clock className="w-4 h-4 text-warm-600" />
+              </div>
               <div className="text-2xl font-bold text-warm-800">1-2h</div>
               <div className="text-xs text-warm-600 uppercase tracking-wide">Fast Delivery</div>
             </div>
-            <div className="bg-white rounded-xl p-4 shadow-md hover-lift">
+            <div className="bg-white rounded-xl p-4 shadow-md hover-lift text-center">
+              <div className="w-8 h-8 bg-warm-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                <Star className="w-4 h-4 text-warm-600" />
+              </div>
               <div className="text-2xl font-bold text-warm-800">4.8★</div>
               <div className="text-xs text-warm-600 uppercase tracking-wide">Rating</div>
             </div>
@@ -85,30 +101,45 @@ const HomePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Category Filter */}
-      <div className="px-4 py-8 bg-white">
+      {/* Enhanced Category Filter */}
+      <div className="px-4 py-12 bg-gradient-to-r from-warm-50 to-white">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-serif font-bold text-warm-900 mb-2">Shop by Category</h2>
-            <p className="text-warm-600">Explore our curated collections</p>
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-serif font-bold text-warm-900 mb-3">Shop by Category</h2>
+            <p className="text-warm-600 text-lg">Explore our curated collections</p>
           </div>
-          <div className="flex flex-wrap justify-center gap-3">
-            {categories.map((category, index) => (
-              <button
-                key={category}
-                onClick={() => setSelectedCategory(category)}
-                className={`px-6 py-3 rounded-2xl text-sm font-medium transition-all duration-300 hover:scale-105 ${
-                  selectedCategory === category
-                    ? 'bg-warm-800 text-white shadow-xl transform scale-105'
-                    : 'bg-warm-100 text-warm-700 hover:bg-warm-200 border border-warm-300'
-                }`}
-                style={{
-                  animationDelay: `${index * 0.1}s`
-                }}
-              >
-                {category}
-              </button>
-            ))}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {categories.map((category, index) => {
+              const getCategoryIcon = (cat: string) => {
+                switch(cat) {
+                  case 'All': return '🛍️';
+                  case 'Men': return '👔';
+                  case 'Women': return '👗';
+                  case 'Kids': return '👶';
+                  case 'Shoes': return '👟';
+                  case 'Accessories': return '👜';
+                  default: return '👕';
+                }
+              };
+              
+              return (
+                <button
+                  key={category}
+                  onClick={() => setSelectedCategory(category)}
+                  className={`flex flex-col items-center p-6 rounded-2xl text-sm font-medium transition-all duration-300 hover:scale-105 ${
+                    selectedCategory === category
+                      ? 'bg-warm-800 text-white shadow-xl transform scale-105'
+                      : 'bg-white text-warm-700 hover:bg-warm-100 border border-warm-200 shadow-sm hover:shadow-md'
+                  }`}
+                  style={{
+                    animationDelay: `${index * 0.1}s`
+                  }}
+                >
+                  <div className="text-2xl mb-2">{getCategoryIcon(category)}</div>
+                  <span className="font-semibold">{category}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -212,48 +243,59 @@ const HomePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Trending Products */}
-      <div className="px-4 py-6">
-        <div className="max-w-4xl mx-auto">
-          <h3 className="text-xl font-semibold text-warm-900 mb-4">Trending Products</h3>
-          <div className="grid gap-4">
+      {/* Featured Products */}
+      <div className="px-4 py-12 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-serif font-bold text-warm-900 mb-3">Featured Products</h2>
+            <p className="text-warm-600 text-lg">Discover trending fashion pieces</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {trendingProducts.map((product) => (
-              <div key={product.id} className="bg-white rounded-2xl p-4 shadow-lg hover-lift">
-                <div className="flex items-center space-x-4">
-                  <div className="w-16 h-16 bg-warm-200 rounded-xl flex items-center justify-center text-2xl">
-                    {product.image}
+              <div key={product.id} className="bg-white rounded-2xl p-6 shadow-lg hover-lift border border-warm-100">
+                <div className="aspect-square bg-gradient-to-br from-warm-100 to-warm-200 rounded-xl flex items-center justify-center text-6xl mb-4 relative overflow-hidden">
+                  {product.image}
+                  {product.discount && (
+                    <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+                      -{product.discount}%
+                    </div>
+                  )}
+                  {!product.inStock && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                      <span className="bg-white text-gray-800 px-3 py-1 rounded-full text-sm font-medium">
+                        Out of Stock
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div className="text-center">
+                  <h4 className="font-semibold text-warm-900 mb-2 line-clamp-2">{product.name}</h4>
+                  <div className="flex items-center justify-center space-x-2 mb-4">
+                    <span className="text-2xl font-bold text-warm-800">${product.price}</span>
+                    {product.discount && (
+                      <span className="text-sm text-gray-500 line-through">
+                        ${(product.price * 1.25).toFixed(2)}
+                      </span>
+                    )}
                   </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-semibold text-warm-900">{product.name}</h4>
-                      <div className="flex items-center space-x-2">
-                        {product.discount && (
-                          <span className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium">
-                            -{product.discount}%
-                          </span>
-                        )}
-                        {!product.inStock && (
-                          <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs font-medium">
-                            Out of Stock
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-lg font-bold text-warm-800">${product.price}</span>
-                      <div className="flex space-x-2">
-                        <Button variant="outline" size="sm" className="p-2">
-                          <Heart className="w-4 h-4" />
-                        </Button>
-                        <Button variant="primary" size="sm" className="p-2" disabled={!product.inStock}>
-                          <ShoppingBag className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
+                  <div className="flex space-x-2 justify-center">
+                    <Button variant="outline" size="sm" className="flex-1">
+                      <Heart className="w-4 h-4 mr-1" />
+                      Save
+                    </Button>
+                    <Button variant="primary" size="sm" className="flex-1" disabled={!product.inStock}>
+                      <ShoppingBag className="w-4 h-4 mr-1" />
+                      Add
+                    </Button>
                   </div>
                 </div>
               </div>
             ))}
+          </div>
+          <div className="text-center mt-8">
+            <Button variant="outline" size="lg">
+              View All Products
+            </Button>
           </div>
         </div>
       </div>
@@ -286,9 +328,9 @@ const HomePage: React.FC = () => {
             <span className="text-warm-600 text-sm font-medium tracking-wider uppercase bg-warm-100 px-4 py-2 rounded-full">New Arrivals</span>
           </div>
           <h1 className="text-5xl md:text-7xl font-serif font-bold text-warm-900 mb-4 animate-slide-up">
-            Timeless Style
+            Show Your
             <br />
-            <span className="text-warm-700 italic gradient-text">Local Marketplace</span>
+            <span className="text-warm-700 italic gradient-text">Perfect Fit</span>
           </h1>
           <p className="text-lg text-warm-600 mb-12 max-w-2xl mx-auto leading-relaxed animate-fade-in">
             Discover curated collections from local artisans and boutiques. 
