@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import { Search, Store, Shield } from 'lucide-react';
+import { Search, Store, Shield, ShoppingBag, Heart } from 'lucide-react';
 import HomePage from './pages/HomePage';
 import ShopAuth from './pages/ShopAuth';
 import ShopDashboard from './pages/ShopDashboard';
@@ -17,76 +17,137 @@ const SearchPage = () => {
   const categories = ['All', 'Men', 'Women', 'Kids', 'Shoes', 'Accessories'];
   
   const mockResults = [
-    { id: 1, name: 'Fashion Hub Store', type: 'store', distance: '2.5 km', rating: 4.8 },
-    { id: 2, name: 'Classic Cotton T-Shirt', type: 'product', price: 29.99, store: 'Fashion Hub' },
-    { id: 3, name: 'Urban Closet', type: 'store', distance: '1.1 km', rating: 4.5 },
-    { id: 4, name: 'Summer Dress', type: 'product', price: 49.99, store: 'Style Central' },
+    { id: 1, name: 'Fashion Hub Store', type: 'store', distance: '2.5 km', rating: 4.8, category: 'All' },
+    { id: 2, name: 'Classic Cotton T-Shirt', type: 'product', price: 29.99, store: 'Fashion Hub', category: 'Men', image: '👕' },
+    { id: 3, name: 'Urban Closet', type: 'store', distance: '1.1 km', rating: 4.5, category: 'All' },
+    { id: 4, name: 'Summer Dress', type: 'product', price: 49.99, store: 'Style Central', category: 'Women', image: '👗' },
+    { id: 5, name: 'Kids Play Shoes', type: 'product', price: 39.99, store: 'Urban Closet', category: 'Kids', image: '👟' },
+    { id: 6, name: 'Designer Handbag', type: 'product', price: 199.99, store: 'Elite Boutique', category: 'Accessories', image: '👜' },
   ];
 
-  const filteredResults = mockResults.filter(item => 
-    item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (item.type === 'product' && item.store?.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  const getCategoryIcon = (cat: string) => {
+    switch(cat) {
+      case 'All': return '🛍️';
+      case 'Men': return '👔';
+      case 'Women': return '👗';
+      case 'Kids': return '👶';
+      case 'Shoes': return '👟';
+      case 'Accessories': return '👜';
+      default: return '👕';
+    }
+  };
+
+  const filteredResults = mockResults.filter(item => {
+    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.type === 'product' && item.store?.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className="min-h-screen bg-cream">
       <Navbar userRole="user" />
       <div className="px-4 py-6 pt-20">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-2xl font-serif font-bold text-warm-900 mb-6">Search</h1>
+        <div className="max-w-6xl mx-auto">
+          {/* Hero Section */}
+          <div className="text-center mb-10">
+            <h1 className="text-3xl font-serif font-bold text-warm-900 mb-3">Find Your Perfect Fit</h1>
+            <p className="text-warm-600 text-lg">Search through stores and products</p>
+          </div>
           
-          {/* Search Bar */}
-          <div className="relative mb-6">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-warm-400 w-5 h-5" />
+          {/* Enhanced Search Bar */}
+          <div className="relative mb-8">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-warm-400 w-5 h-5" />
             <input
               type="text"
-              placeholder="Search stores and products..."
+              placeholder="Search for stores, products, or categories..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-warm-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-warm-400 focus:border-transparent"
+              className="w-full pl-12 pr-4 py-4 border-2 border-warm-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-warm-400 focus:border-transparent text-lg shadow-lg"
             />
-          </div>
-
-          {/* Category Filter */}
-          <div className="flex flex-wrap gap-2 mb-6">
-            {categories.map((category) => (
+            {searchQuery && (
               <button
-                key={category}
-                onClick={() => setSelectedCategory(category)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
-                  selectedCategory === category
-                    ? 'bg-warm-800 text-white shadow-lg'
-                    : 'bg-white text-warm-700 border border-warm-200 hover:bg-warm-50'
-                }`}
+                onClick={() => setSearchQuery('')}
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-warm-400 hover:text-warm-600 transition-colors"
               >
-                {category}
+                ✕
               </button>
-            ))}
+            )}
           </div>
 
-          {/* Search Results */}
+          {/* Enhanced Category Filter */}
+          <div className="bg-white rounded-2xl p-6 shadow-lg mb-8">
+            <h3 className="text-lg font-semibold text-warm-900 mb-4">Filter by Category</h3>
+            <div className="flex flex-wrap gap-3">
+              {categories.map((category) => (
+                <button
+                  key={category}
+                  onClick={() => setSelectedCategory(category)}
+                  className={`flex items-center px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 hover:scale-105 ${
+                    selectedCategory === category
+                      ? 'bg-warm-800 text-white shadow-lg'
+                      : 'bg-warm-100 text-warm-700 hover:bg-warm-200 border border-warm-300'
+                  }`}
+                >
+                  <span className="mr-2">{getCategoryIcon(category)}</span>
+                  {category}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Results Header */}
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold text-warm-900">
+              {filteredResults.length} {filteredResults.length === 1 ? 'Result' : 'Results'} Found
+            </h2>
+            {searchQuery && (
+              <span className="text-warm-600">for "{searchQuery}"</span>
+            )}
+          </div>
+
+          {/* Enhanced Search Results */}
           <div className="space-y-4">
             {filteredResults.map((item) => (
-              <div key={item.id} className="bg-white rounded-2xl p-4 shadow-lg hover-lift">
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-warm-200 rounded-xl flex items-center justify-center">
-                    {item.type === 'store' ? '🏪' : '👕'}
+              <div key={item.id} className="bg-white rounded-2xl p-6 shadow-lg hover-lift border border-warm-100">
+                <div className="flex items-center space-x-6">
+                  <div className="w-16 h-16 bg-gradient-to-br from-warm-100 to-warm-200 rounded-xl flex items-center justify-center text-2xl">
+                    {item.type === 'store' ? '🏪' : item.image || '👕'}
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-warm-900">{item.name}</h3>
-                    <p className="text-sm text-warm-600">
+                    <h3 className="text-lg font-semibold text-warm-900 mb-1">{item.name}</h3>
+                    <p className="text-warm-600 mb-2">
                       {item.type === 'store' 
                         ? `${item.distance} • ${item.rating}★`
                         : `$${item.price} • ${item.store}`
                       }
                     </p>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xs bg-warm-100 text-warm-700 px-2 py-1 rounded-full">
+                        {item.category}
+                      </span>
+                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                        {item.type}
+                      </span>
+                    </div>
                   </div>
-                  <Button variant="outline" size="sm">
-                    {item.type === 'store' ? 'View Store' : 'View Product'}
+                  <Button variant="outline" size="sm" className="hover:scale-105 transition-transform">
+                    {item.type === 'store' ? 'Visit Store' : 'View Product'}
                   </Button>
                 </div>
               </div>
             ))}
+            
+            {filteredResults.length === 0 && (
+              <div className="text-center py-12">
+                <div className="text-6xl mb-4">🔍</div>
+                <h3 className="text-xl font-semibold text-warm-900 mb-2">No results found</h3>
+                <p className="text-warm-600 mb-4">Try adjusting your search or filters</p>
+                <Button variant="outline" onClick={() => {setSearchQuery(''); setSelectedCategory('All');}}>
+                  Clear Filters
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -95,11 +156,23 @@ const SearchPage = () => {
 };
 
 const CartPage = () => {
-  const cartItems = [
+  const [cartItems, setCartItems] = useState([
     { id: 1, name: 'Classic Cotton T-Shirt', price: 29.99, quantity: 2, image: '👕', store: 'Fashion Hub' },
     { id: 2, name: 'Summer Dress', price: 49.99, quantity: 1, image: '👗', store: 'Style Central' },
     { id: 3, name: 'Casual Jeans', price: 76.99, quantity: 1, image: '👖', store: 'Urban Closet' },
-  ];
+  ]);
+
+  const updateQuantity = (id: number, change: number) => {
+    setCartItems(items => items.map(item => 
+      item.id === id 
+        ? { ...item, quantity: Math.max(1, item.quantity + change) }
+        : item
+    ));
+  };
+
+  const removeItem = (id: number) => {
+    setCartItems(items => items.filter(item => item.id !== id));
+  };
 
   const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
@@ -107,46 +180,113 @@ const CartPage = () => {
     <div className="min-h-screen bg-cream">
       <Navbar userRole="user" />
       <div className="px-4 py-6 pt-20">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-2xl font-serif font-bold text-warm-900 mb-6">Shopping Cart</h1>
+        <div className="max-w-6xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-10">
+            <h1 className="text-3xl font-serif font-bold text-warm-900 mb-3">Your Shopping Cart</h1>
+            <p className="text-warm-600 text-lg">{cartItems.length} items in your cart</p>
+          </div>
           
-          <div className="space-y-4 mb-6">
-            {cartItems.map((item) => (
-              <div key={item.id} className="bg-white rounded-2xl p-4 shadow-lg">
-                <div className="flex items-center space-x-4">
-                  <div className="w-16 h-16 bg-warm-200 rounded-xl flex items-center justify-center text-2xl">
-                    {item.image}
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-warm-900">{item.name}</h3>
-                    <p className="text-sm text-warm-600">{item.store}</p>
-                    <div className="flex items-center space-x-4 mt-2">
-                      <span className="text-lg font-bold text-warm-800">${item.price}</span>
-                      <div className="flex items-center space-x-2">
-                        <button className="w-8 h-8 bg-warm-100 rounded-full flex items-center justify-center">-</button>
-                        <span className="w-8 text-center">{item.quantity}</span>
-                        <button className="w-8 h-8 bg-warm-100 rounded-full flex items-center justify-center">+</button>
+          {cartItems.length === 0 ? (
+            <div className="text-center py-16">
+              <div className="text-6xl mb-4">🛒</div>
+              <h2 className="text-2xl font-semibold text-warm-900 mb-2">Your cart is empty</h2>
+              <p className="text-warm-600 mb-6">Add some items to get started</p>
+              <Button variant="primary" size="lg">
+                Continue Shopping
+              </Button>
+            </div>
+          ) : (
+            <div className="grid lg:grid-cols-3 gap-8">
+              {/* Cart Items */}
+              <div className="lg:col-span-2 space-y-4">
+                {cartItems.map((item) => (
+                  <div key={item.id} className="bg-white rounded-2xl p-6 shadow-lg hover-lift border border-warm-100">
+                    <div className="flex items-center space-x-6">
+                      <div className="w-20 h-20 bg-gradient-to-br from-warm-100 to-warm-200 rounded-xl flex items-center justify-center text-3xl">
+                        {item.image}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-warm-900 mb-1">{item.name}</h3>
+                        <p className="text-warm-600 mb-2">{item.store}</p>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xl font-bold text-warm-800">${item.price}</span>
+                          <div className="flex items-center space-x-3">
+                            <button 
+                              onClick={() => updateQuantity(item.id, -1)}
+                              className="w-8 h-8 bg-warm-100 hover:bg-warm-200 rounded-full flex items-center justify-center transition-colors"
+                            >
+                              -
+                            </button>
+                            <span className="w-8 text-center font-semibold">{item.quantity}</span>
+                            <button 
+                              onClick={() => updateQuantity(item.id, 1)}
+                              className="w-8 h-8 bg-warm-100 hover:bg-warm-200 rounded-full flex items-center justify-center transition-colors"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <button 
+                          onClick={() => removeItem(item.id)}
+                          className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50 transition-colors"
+                        >
+                          🗑️
+                        </button>
+                        <div className="text-lg font-bold text-warm-800 mt-2">
+                          ${(item.price * item.quantity).toFixed(2)}
+                        </div>
                       </div>
                     </div>
                   </div>
-                  <button className="text-red-500 hover:text-red-700">
-                    🗑️
-                  </button>
+                ))}
+              </div>
+
+              {/* Order Summary */}
+              <div className="lg:col-span-1">
+                <div className="bg-white rounded-2xl p-6 shadow-lg sticky top-24">
+                  <h3 className="text-xl font-semibold text-warm-900 mb-6">Order Summary</h3>
+                  
+                  <div className="space-y-4 mb-6">
+                    <div className="flex justify-between">
+                      <span className="text-warm-600">Subtotal</span>
+                      <span className="font-semibold">${total.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-warm-600">Shipping</span>
+                      <span className="font-semibold text-green-600">Free</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-warm-600">Tax</span>
+                      <span className="font-semibold">${(total * 0.08).toFixed(2)}</span>
+                    </div>
+                    <div className="border-t border-warm-200 pt-4">
+                      <div className="flex justify-between text-lg font-bold">
+                        <span>Total</span>
+                        <span className="text-warm-800">${(total * 1.08).toFixed(2)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Button variant="primary" size="lg" className="w-full mb-4">
+                    Proceed to Checkout
+                  </Button>
+                  
+                  <Button variant="outline" size="lg" className="w-full">
+                    Continue Shopping
+                  </Button>
+
+                  <div className="mt-6 text-center">
+                    <p className="text-sm text-warm-500">
+                      🔒 Secure checkout guaranteed
+                    </p>
+                  </div>
                 </div>
               </div>
-            ))}
-          </div>
-
-          {/* Cart Summary */}
-          <div className="bg-white rounded-2xl p-6 shadow-lg">
-            <div className="flex justify-between items-center mb-4">
-              <span className="text-lg font-semibold text-warm-900">Total ({cartItems.length} items)</span>
-              <span className="text-2xl font-bold text-warm-800">${total.toFixed(2)}</span>
             </div>
-            <Button variant="primary" size="lg" className="w-full">
-              Proceed to Checkout
-            </Button>
-          </div>
+          )}
         </div>
       </div>
     </div>
@@ -154,33 +294,93 @@ const CartPage = () => {
 };
 
 const WishlistPage = () => {
-  const wishlistItems = [
-    { id: 1, name: 'Designer Handbag', price: 199.99, image: '👜', store: 'Elite Boutique', inStock: true },
-    { id: 2, name: 'Premium Sneakers', price: 89.99, image: '👟', store: 'Urban Closet', inStock: true },
-    { id: 3, name: 'Silk Scarf', price: 45.99, image: '🧣', store: 'Style Central', inStock: false },
-    { id: 4, name: 'Leather Jacket', price: 299.99, image: '🧥', store: 'Fashion Hub', inStock: true },
-  ];
+  const [wishlistItems, setWishlistItems] = useState([
+    { id: 1, name: 'Designer Handbag', price: 199.99, image: '👜', store: 'Elite Boutique', inStock: true, category: 'Accessories' },
+    { id: 2, name: 'Premium Sneakers', price: 89.99, image: '👟', store: 'Urban Closet', inStock: true, category: 'Shoes' },
+    { id: 3, name: 'Silk Scarf', price: 45.99, image: '🧣', store: 'Style Central', inStock: false, category: 'Accessories' },
+    { id: 4, name: 'Leather Jacket', price: 299.99, image: '🧥', store: 'Fashion Hub', inStock: true, category: 'Men' },
+    { id: 5, name: 'Summer Dress', price: 79.99, image: '👗', store: 'Style Central', inStock: true, category: 'Women' },
+  ]);
+
+  const removeFromWishlist = (id: number) => {
+    setWishlistItems(items => items.filter(item => item.id !== id));
+  };
+
+  const addToCart = (item: any) => {
+    // Mock add to cart functionality
+    console.log('Added to cart:', item);
+  };
 
   return (
     <div className="min-h-screen bg-cream">
       <Navbar userRole="user" />
       <div className="px-4 py-6 pt-20">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-2xl font-serif font-bold text-warm-900 mb-6">Your Favorites</h1>
+        <div className="max-w-6xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-10">
+            <h1 className="text-3xl font-serif font-bold text-warm-900 mb-3">Your Favorites</h1>
+            <p className="text-warm-600 text-lg">{wishlistItems.length} items saved for later</p>
+          </div>
           
-          <div className="space-y-4">
-            {wishlistItems.map((item) => (
-              <div key={item.id} className="bg-white rounded-2xl p-4 shadow-lg hover-lift">
-                <div className="flex items-center space-x-4">
-                  <div className="w-16 h-16 bg-warm-200 rounded-xl flex items-center justify-center text-2xl">
+          {wishlistItems.length === 0 ? (
+            <div className="text-center py-16">
+              <div className="text-6xl mb-4">❤️</div>
+              <h2 className="text-2xl font-semibold text-warm-900 mb-2">No favorites yet</h2>
+              <p className="text-warm-600 mb-6">Start saving items you love</p>
+              <Button variant="primary" size="lg">
+                Browse Products
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {wishlistItems.map((item) => (
+                <div key={item.id} className="bg-white rounded-2xl p-6 shadow-lg hover-lift border border-warm-100">
+                  <div className="aspect-square bg-gradient-to-br from-warm-100 to-warm-200 rounded-xl flex items-center justify-center text-6xl mb-4 relative overflow-hidden">
                     {item.image}
+                    {!item.inStock && (
+                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                        <span className="bg-white text-gray-800 px-3 py-1 rounded-full text-sm font-medium">
+                          Out of Stock
+                        </span>
+                      </div>
+                    )}
+                    <button 
+                      onClick={() => removeFromWishlist(item.id)}
+                      className="absolute top-2 right-2 w-8 h-8 bg-white/90 hover:bg-red-100 text-red-500 hover:text-red-700 rounded-full flex items-center justify-center transition-colors"
+                    >
+                      ❤️
+                    </button>
                   </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-warm-900">{item.name}</h3>
-                    <p className="text-sm text-warm-600">{item.store}</p>
-                    <div className="flex items-center justify-between mt-2">
-                      <span className="text-lg font-bold text-warm-800">${item.price}</span>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  
+                  <div className="text-center">
+                    <h3 className="text-lg font-semibold text-warm-900 mb-2 line-clamp-2">{item.name}</h3>
+                    <p className="text-warm-600 mb-3">{item.store}</p>
+                    
+                    <div className="flex items-center justify-center space-x-2 mb-4">
+                      <span className="text-2xl font-bold text-warm-800">${item.price}</span>
+                      <span className="text-xs bg-warm-100 text-warm-700 px-2 py-1 rounded-full">
+                        {item.category}
+                      </span>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Button 
+                        variant="primary" 
+                        size="sm" 
+                        className="w-full"
+                        disabled={!item.inStock}
+                        onClick={() => addToCart(item)}
+                      >
+                        <ShoppingBag className="w-4 h-4 mr-2" />
+                        Add to Cart
+                      </Button>
+                      <Button variant="outline" size="sm" className="w-full">
+                        View Details
+                      </Button>
+                    </div>
+                    
+                    <div className="mt-3">
+                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
                         item.inStock 
                           ? 'bg-green-100 text-green-800' 
                           : 'bg-red-100 text-red-800'
@@ -189,27 +389,18 @@ const WishlistPage = () => {
                       </span>
                     </div>
                   </div>
-                  <div className="flex space-x-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="p-2 text-red-500 hover:bg-red-50"
-                    >
-                      ❤️
-                    </Button>
-                    <Button 
-                      variant="primary" 
-                      size="sm" 
-                      className="p-2"
-                      disabled={!item.inStock}
-                    >
-                      🛒
-                    </Button>
-                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
+          
+          {wishlistItems.length > 0 && (
+            <div className="text-center mt-12">
+              <Button variant="outline" size="lg">
+                Continue Shopping
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -221,70 +412,155 @@ const ProfilePage = () => {
     <div className="min-h-screen bg-cream">
       <Navbar userRole="user" />
       <div className="px-4 py-6 pt-20">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-2xl font-serif font-bold text-warm-900 mb-6">Profile</h1>
+        <div className="max-w-6xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-10">
+            <h1 className="text-3xl font-serif font-bold text-warm-900 mb-3">My Profile</h1>
+            <p className="text-warm-600 text-lg">Manage your account and preferences</p>
+          </div>
           
-          <div className="grid gap-6">
+          <div className="grid lg:grid-cols-3 gap-8">
             {/* Profile Card */}
-            <div className="bg-white rounded-2xl p-6 shadow-lg">
-              <div className="flex items-center space-x-4 mb-6">
-                <div className="w-20 h-20 bg-warm-200 rounded-full flex items-center justify-center text-3xl">
-                  👤
-                </div>
-                <div>
-                  <h2 className="text-xl font-semibold text-warm-900">John Doe</h2>
-                  <p className="text-warm-600">john.doe@email.com</p>
-                  <p className="text-sm text-warm-500">Member since 2024</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-warm-800">12</div>
-                  <div className="text-xs text-warm-600 uppercase">Orders</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-warm-800">4</div>
-                  <div className="text-xs text-warm-600 uppercase">Favorites</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-warm-800">8</div>
-                  <div className="text-xs text-warm-600 uppercase">Reviews</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Actions */}
-            <div className="bg-white rounded-2xl p-6 shadow-lg">
-              <h3 className="text-lg font-semibold text-warm-900 mb-4">Quick Actions</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <Link to="/shop/auth">
-                  <Button variant="outline" className="w-full justify-start">
-                    <Store className="w-4 h-4 mr-2" />
-                    Become a Seller
-                  </Button>
-                </Link>
-                <Button variant="outline" className="w-full justify-start">
-                  <Shield className="w-4 h-4 mr-2" />
-                  Help & Support
-                </Button>
-              </div>
-            </div>
-
-            {/* Recent Orders */}
-            <div className="bg-white rounded-2xl p-6 shadow-lg">
-              <h3 className="text-lg font-semibold text-warm-900 mb-4">Recent Orders</h3>
-              <div className="space-y-3">
-                {['Classic T-Shirt', 'Summer Dress', 'Casual Jeans'].map((item, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-warm-50 rounded-lg">
-                    <div>
-                      <p className="font-medium text-warm-900">{item}</p>
-                      <p className="text-sm text-warm-600">Ordered 2 days ago</p>
-                    </div>
-                    <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                      Delivered
-                    </span>
+            <div className="lg:col-span-2 space-y-6">
+              <div className="bg-white rounded-2xl p-8 shadow-lg border border-warm-100">
+                <div className="flex items-center space-x-6 mb-8">
+                  <div className="w-24 h-24 bg-gradient-to-br from-warm-200 to-warm-300 rounded-full flex items-center justify-center text-4xl">
+                    👤
                   </div>
-                ))}
+                  <div>
+                    <h2 className="text-2xl font-semibold text-warm-900">John Doe</h2>
+                    <p className="text-warm-600 text-lg">john.doe@email.com</p>
+                    <p className="text-sm text-warm-500">Member since January 2024</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-6">
+                  <div className="text-center p-4 bg-warm-50 rounded-xl">
+                    <div className="text-3xl font-bold text-warm-800 mb-1">12</div>
+                    <div className="text-sm text-warm-600 uppercase tracking-wide">Orders</div>
+                  </div>
+                  <div className="text-center p-4 bg-warm-50 rounded-xl">
+                    <div className="text-3xl font-bold text-warm-800 mb-1">5</div>
+                    <div className="text-sm text-warm-600 uppercase tracking-wide">Favorites</div>
+                  </div>
+                  <div className="text-center p-4 bg-warm-50 rounded-xl">
+                    <div className="text-3xl font-bold text-warm-800 mb-1">8</div>
+                    <div className="text-sm text-warm-600 uppercase tracking-wide">Reviews</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Actions */}
+              <div className="bg-white rounded-2xl p-8 shadow-lg border border-warm-100">
+                <h3 className="text-xl font-semibold text-warm-900 mb-6">Quick Actions</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Link to="/shop/auth">
+                    <Button variant="outline" className="w-full justify-start p-4 h-auto">
+                      <Store className="w-5 h-5 mr-3" />
+                      <div className="text-left">
+                        <div className="font-semibold">Become a Seller</div>
+                        <div className="text-sm text-warm-600">Start selling on Showmyfit</div>
+                      </div>
+                    </Button>
+                  </Link>
+                  <Button variant="outline" className="w-full justify-start p-4 h-auto">
+                    <Shield className="w-5 h-5 mr-3" />
+                    <div className="text-left">
+                      <div className="font-semibold">Help & Support</div>
+                      <div className="text-sm text-warm-600">Get help when you need it</div>
+                    </div>
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start p-4 h-auto">
+                    <Search className="w-5 h-5 mr-3" />
+                    <div className="text-left">
+                      <div className="font-semibold">Order History</div>
+                      <div className="text-sm text-warm-600">View all your orders</div>
+                    </div>
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start p-4 h-auto">
+                    <Heart className="w-5 h-5 mr-3" />
+                    <div className="text-left">
+                      <div className="font-semibold">My Favorites</div>
+                      <div className="text-sm text-warm-600">Manage your wishlist</div>
+                    </div>
+                  </Button>
+                </div>
+              </div>
+
+              {/* Recent Orders */}
+              <div className="bg-white rounded-2xl p-8 shadow-lg border border-warm-100">
+                <h3 className="text-xl font-semibold text-warm-900 mb-6">Recent Orders</h3>
+                <div className="space-y-4">
+                  {[
+                    { name: 'Classic T-Shirt', date: '2 days ago', status: 'Delivered', price: '$29.99', image: '👕' },
+                    { name: 'Summer Dress', date: '1 week ago', status: 'Delivered', price: '$49.99', image: '👗' },
+                    { name: 'Casual Jeans', date: '2 weeks ago', status: 'Delivered', price: '$76.99', image: '👖' },
+                  ].map((order, index) => (
+                    <div key={index} className="flex items-center space-x-4 p-4 bg-warm-50 rounded-xl hover:bg-warm-100 transition-colors">
+                      <div className="w-12 h-12 bg-warm-200 rounded-lg flex items-center justify-center text-xl">
+                        {order.image}
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-semibold text-warm-900">{order.name}</p>
+                        <p className="text-sm text-warm-600">Ordered {order.date}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-warm-800">{order.price}</p>
+                        <span className="inline-block px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                          {order.status}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="text-center mt-6">
+                  <Button variant="outline">View All Orders</Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Sidebar */}
+            <div className="lg:col-span-1 space-y-6">
+              {/* Account Settings */}
+              <div className="bg-white rounded-2xl p-6 shadow-lg border border-warm-100">
+                <h3 className="text-lg font-semibold text-warm-900 mb-4">Account Settings</h3>
+                <div className="space-y-3">
+                  <button className="w-full text-left p-3 rounded-lg hover:bg-warm-50 transition-colors">
+                    <div className="font-medium text-warm-900">Personal Information</div>
+                    <div className="text-sm text-warm-600">Update your details</div>
+                  </button>
+                  <button className="w-full text-left p-3 rounded-lg hover:bg-warm-50 transition-colors">
+                    <div className="font-medium text-warm-900">Payment Methods</div>
+                    <div className="text-sm text-warm-600">Manage your cards</div>
+                  </button>
+                  <button className="w-full text-left p-3 rounded-lg hover:bg-warm-50 transition-colors">
+                    <div className="font-medium text-warm-900">Addresses</div>
+                    <div className="text-sm text-warm-600">Shipping addresses</div>
+                  </button>
+                  <button className="w-full text-left p-3 rounded-lg hover:bg-warm-50 transition-colors">
+                    <div className="font-medium text-warm-900">Notifications</div>
+                    <div className="text-sm text-warm-600">Email preferences</div>
+                  </button>
+                </div>
+              </div>
+
+              {/* Stats Card */}
+              <div className="bg-gradient-to-br from-warm-800 to-warm-900 rounded-2xl p-6 text-white">
+                <h3 className="text-lg font-semibold mb-4">Your Stats</h3>
+                <div className="space-y-4">
+                  <div className="flex justify-between">
+                    <span className="text-warm-200">Total Spent</span>
+                    <span className="font-semibold">$1,247.89</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-warm-200">Favorite Stores</span>
+                    <span className="font-semibold">3</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-warm-200">Reviews Written</span>
+                    <span className="font-semibold">8</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

@@ -1,46 +1,84 @@
 import React, { useEffect } from 'react';
-import { CheckCircle, XCircle, AlertCircle, X } from 'lucide-react';
+import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react';
 
 interface ToastProps {
-  type: 'success' | 'error' | 'warning';
-  message: string;
-  onClose: () => void;
+  id: string;
+  type: 'success' | 'error' | 'info' | 'warning';
+  title: string;
+  message?: string;
   duration?: number;
+  onClose: (id: string) => void;
 }
 
-const Toast: React.FC<ToastProps> = ({ 
-  type, 
-  message, 
-  onClose, 
-  duration = 5000 
+const Toast: React.FC<ToastProps> = ({
+  id,
+  type,
+  title,
+  message,
+  duration = 5000,
+  onClose
 }) => {
   useEffect(() => {
-    const timer = setTimeout(onClose, duration);
+    const timer = setTimeout(() => {
+      onClose(id);
+    }, duration);
+
     return () => clearTimeout(timer);
-  }, [onClose, duration]);
+  }, [id, duration, onClose]);
 
-  const icons = {
-    success: CheckCircle,
-    error: XCircle,
-    warning: AlertCircle
+  const typeConfig = {
+    success: {
+      icon: CheckCircle,
+      bgColor: 'bg-green-500',
+      iconColor: 'text-green-500',
+      bgLight: 'bg-green-50',
+      borderColor: 'border-green-200'
+    },
+    error: {
+      icon: AlertCircle,
+      bgColor: 'bg-red-500',
+      iconColor: 'text-red-500',
+      bgLight: 'bg-red-50',
+      borderColor: 'border-red-200'
+    },
+    warning: {
+      icon: AlertTriangle,
+      bgColor: 'bg-yellow-500',
+      iconColor: 'text-yellow-500',
+      bgLight: 'bg-yellow-50',
+      borderColor: 'border-yellow-200'
+    },
+    info: {
+      icon: Info,
+      bgColor: 'bg-blue-500',
+      iconColor: 'text-blue-500',
+      bgLight: 'bg-blue-50',
+      borderColor: 'border-blue-200'
+    }
   };
 
-  const colors = {
-    success: 'bg-green-50 border-green-200 text-green-800',
-    error: 'bg-red-50 border-red-200 text-red-800',
-    warning: 'bg-yellow-50 border-yellow-200 text-yellow-800'
-  };
-
-  const Icon = icons[type];
+  const config = typeConfig[type];
+  const Icon = config.icon;
 
   return (
-    <div className={`fixed top-4 right-4 z-50 max-w-sm w-full border rounded-xl p-4 shadow-lg ${colors[type]} animate-in slide-in-from-top-2`}>
-      <div className="flex items-start">
-        <Icon className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0" />
-        <p className="flex-1 text-sm font-medium">{message}</p>
+    <div className={`
+      ${config.bgLight} ${config.borderColor}
+      border rounded-xl p-4 shadow-lg hover-lift
+      animate-slide-up max-w-sm w-full
+    `}>
+      <div className="flex items-start space-x-3">
+        <Icon className={`w-5 h-5 ${config.iconColor} flex-shrink-0 mt-0.5`} />
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-warm-900">{title}</p>
+          {message && (
+            <p className="text-sm text-warm-600 mt-1">{message}</p>
+          )}
+        </div>
         <button
-          onClick={onClose}
-          className="ml-3 flex-shrink-0 hover:opacity-70"
+          onClick={() => onClose(id)}
+          className="text-warm-400 hover:text-warm-600 transition-colors flex-shrink-0"
+          aria-label="Close notification"
+          title="Close notification"
         >
           <X className="w-4 h-4" />
         </button>
