@@ -74,9 +74,9 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
             <span className="text-xs mt-1 font-medium">Cart</span>
           </Link>
           <Link
-            to="/shop/auth"
+            to="/profile"
             className={`flex flex-col items-center py-2 px-4 rounded-xl transition-all duration-300 ${
-              location.pathname.includes('/shop') 
+              location.pathname === '/profile' 
                 ? 'text-warm-800 bg-warm-100 scale-105' 
                 : 'text-warm-500 hover:text-warm-700 hover:bg-warm-50'
             }`}
@@ -95,7 +95,7 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <Link to="/" className="text-xl font-serif font-bold text-warm-900 tracking-wide hover:text-warm-700 transition-colors">
-            VERVE THREADS
+            SHOWMYFIT
           </Link>
           
           <div className="flex items-center space-x-4">

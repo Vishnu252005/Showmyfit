@@ -30,47 +30,81 @@ const HomePage: React.FC = () => {
     <div className="min-h-screen bg-cream">
       <Navbar userRole="user" />
       
-      {/* Delivery Banner */}
-      <div className="bg-gradient-to-r from-purple-600 to-purple-800 text-white py-6 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-2xl font-bold mb-2">1-2 Hour Delivery</h2>
-          <p className="text-purple-100 mb-4">Shop from nearby stores and get your items delivered fast.</p>
-          <Button variant="primary" className="bg-orange-500 hover:bg-orange-600 text-white border-0">
-            Shop Now
-          </Button>
-        </div>
-      </div>
+      {/* Hero Section */}
+      <div className="px-4 py-12">
+        <div className="max-w-6xl mx-auto text-center">
+          <div className="mb-8 animate-fade-in">
+            <span className="text-warm-600 text-sm font-medium tracking-wider uppercase bg-warm-100 px-4 py-2 rounded-full">Welcome to Showmyfit</span>
+          </div>
+          <h1 className="text-4xl md:text-6xl font-serif font-bold text-warm-900 mb-6 animate-slide-up">
+            Show Your
+            <br />
+            <span className="text-warm-700 italic gradient-text">Perfect Fit</span>
+          </h1>
+          <p className="text-lg text-warm-600 mb-8 max-w-2xl mx-auto leading-relaxed animate-fade-in">
+            Discover fashion that fits your style and body perfectly. 
+            Connect with local stores, find your ideal fit, and express your unique style.
+          </p>
 
-      {/* Search Section */}
-      <div className="px-4 py-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-warm-400 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Search stores and products..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-warm-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-warm-400 focus:border-transparent"
-            />
+          {/* Search Section */}
+          <div className="max-w-2xl mx-auto mb-8 animate-slide-up">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-warm-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Search for the perfect fit..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-12 pr-4 py-4 border-2 border-warm-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-warm-400 focus:border-transparent text-lg shadow-lg"
+              />
+              <Button 
+                variant="primary" 
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 px-6 py-2"
+                onClick={() => setSearchQuery('')}
+              >
+                Search
+              </Button>
+            </div>
+          </div>
+
+          {/* Quick Stats */}
+          <div className="grid grid-cols-3 gap-4 max-w-md mx-auto animate-fade-in">
+            <div className="bg-white rounded-xl p-4 shadow-md hover-lift">
+              <div className="text-2xl font-bold text-warm-800">500+</div>
+              <div className="text-xs text-warm-600 uppercase tracking-wide">Local Stores</div>
+            </div>
+            <div className="bg-white rounded-xl p-4 shadow-md hover-lift">
+              <div className="text-2xl font-bold text-warm-800">1-2h</div>
+              <div className="text-xs text-warm-600 uppercase tracking-wide">Fast Delivery</div>
+            </div>
+            <div className="bg-white rounded-xl p-4 shadow-md hover-lift">
+              <div className="text-2xl font-bold text-warm-800">4.8★</div>
+              <div className="text-xs text-warm-600 uppercase tracking-wide">Rating</div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Category Filter */}
-      <div className="px-4 py-6">
-        <div className="max-w-4xl mx-auto">
-          <h3 className="text-xl font-semibold text-warm-900 mb-4">Shop by Category</h3>
-          <div className="flex flex-wrap gap-2">
-            {categories.map((category) => (
+      <div className="px-4 py-8 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-serif font-bold text-warm-900 mb-2">Shop by Category</h2>
+            <p className="text-warm-600">Explore our curated collections</p>
+          </div>
+          <div className="flex flex-wrap justify-center gap-3">
+            {categories.map((category, index) => (
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                className={`px-6 py-3 rounded-2xl text-sm font-medium transition-all duration-300 hover:scale-105 ${
                   selectedCategory === category
-                    ? 'bg-warm-800 text-white shadow-lg'
-                    : 'bg-white text-warm-700 border border-warm-200 hover:bg-warm-50'
+                    ? 'bg-warm-800 text-white shadow-xl transform scale-105'
+                    : 'bg-warm-100 text-warm-700 hover:bg-warm-200 border border-warm-300'
                 }`}
+                style={{
+                  animationDelay: `${index * 0.1}s`
+                }}
               >
                 {category}
               </button>
