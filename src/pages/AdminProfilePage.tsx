@@ -1,0 +1,454 @@
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { 
+  Shield, Users, Store, BarChart3, Settings, LogOut, 
+  TrendingUp, Eye, Edit, Trash2, CheckCircle, XCircle,
+  User, Mail, Phone, MapPin, Calendar, Award, Crown,
+  ShoppingBag, Heart, Star, Package, DollarSign, Activity
+} from 'lucide-react';
+import Navbar from '../components/Navbar';
+import Button from '../components/Button';
+import { useAuth } from '../contexts/AuthContext';
+
+const AdminProfilePage: React.FC = () => {
+  const { currentUser, userData, signOut } = useAuth();
+  const navigate = useNavigate();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState({
+    displayName: userData?.displayName || currentUser?.displayName || '',
+    phone: userData?.phone || '',
+    address: userData?.address || ''
+  });
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
+  const handleEdit = () => {
+    setIsEditing(true);
+    setEditData({
+      displayName: userData?.displayName || currentUser?.displayName || '',
+      phone: userData?.phone || '',
+      address: userData?.address || ''
+    });
+  };
+
+  const handleSave = async () => {
+    // TODO: Implement save functionality
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    setEditData({
+      displayName: userData?.displayName || currentUser?.displayName || '',
+      phone: userData?.phone || '',
+      address: userData?.address || ''
+    });
+  };
+
+  if (!currentUser) {
+    // Redirect to auth page instead of showing "Please Sign In"
+    navigate('/auth');
+    return null;
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50">
+      <Navbar userRole="admin" />
+      
+      <div className="main-content pt-16">
+        <div className="min-h-screen px-4 py-8">
+          <div className="max-w-7xl mx-auto">
+            {/* Admin Header */}
+            <div className="bg-gradient-to-r from-red-600 to-orange-600 text-white rounded-2xl shadow-xl p-8 mb-8">
+              <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
+                {/* Admin Badge */}
+                <div className="relative">
+                  <div className="w-24 h-24 bg-white/20 backdrop-blur-lg rounded-full flex items-center justify-center text-white text-3xl font-bold border-4 border-white/30">
+                    {currentUser.displayName ? currentUser.displayName.charAt(0).toUpperCase() : currentUser.email?.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">
+                    <Crown className="w-5 h-5 text-red-600" />
+                  </div>
+                </div>
+
+                {/* Admin Info */}
+                <div className="flex-1 text-center md:text-left">
+                  <div className="flex items-center justify-center md:justify-start mb-2">
+                    <Shield className="w-6 h-6 mr-2" />
+                    <h1 className="text-3xl font-bold">
+                      {currentUser.displayName || 'Admin'}
+                    </h1>
+                  </div>
+                  <p className="text-red-100 text-lg mb-2">{currentUser.email}</p>
+                  <div className="flex items-center justify-center md:justify-start space-x-4 text-sm text-red-100">
+                    <div className="flex items-center">
+                      <Calendar className="w-4 h-4 mr-1" />
+                      <span>Admin since {new Date(currentUser.metadata.creationTime).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Award className="w-4 h-4 mr-1" />
+                      <span>Super Admin</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex space-x-3">
+                  <button
+                    onClick={handleEdit}
+                    className="px-4 py-2 bg-white/20 backdrop-blur-lg text-white rounded-lg hover:bg-white/30 transition-colors flex items-center"
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
+                    Edit Profile
+                  </button>
+                  <button
+                    onClick={handleSignOut}
+                    className="px-4 py-2 bg-white/20 backdrop-blur-lg text-white rounded-lg hover:bg-white/30 transition-colors flex items-center"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sign Out
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid lg:grid-cols-4 gap-8">
+              {/* Main Content */}
+              <div className="lg:col-span-3 space-y-6">
+                {/* Admin Stats */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="bg-white rounded-xl p-6 shadow-lg text-center hover:shadow-xl transition-shadow">
+                    <Users className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                    <div className="text-2xl font-bold text-gray-900">1,247</div>
+                    <div className="text-sm text-gray-600">Total Users</div>
+                    <div className="text-xs text-green-600 mt-1">+12% this week</div>
+                  </div>
+                  <div className="bg-white rounded-xl p-6 shadow-lg text-center hover:shadow-xl transition-shadow">
+                    <Store className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                    <div className="text-2xl font-bold text-gray-900">89</div>
+                    <div className="text-sm text-gray-600">Active Sellers</div>
+                    <div className="text-xs text-green-600 mt-1">+5 new this week</div>
+                  </div>
+                  <div className="bg-white rounded-xl p-6 shadow-lg text-center hover:shadow-xl transition-shadow">
+                    <ShoppingBag className="w-8 h-8 text-purple-600 mx-auto mb-2" />
+                    <div className="text-2xl font-bold text-gray-900">3,456</div>
+                    <div className="text-sm text-gray-600">Total Orders</div>
+                    <div className="text-xs text-green-600 mt-1">+23% this month</div>
+                  </div>
+                  <div className="bg-white rounded-xl p-6 shadow-lg text-center hover:shadow-xl transition-shadow">
+                    <DollarSign className="w-8 h-8 text-orange-600 mx-auto mb-2" />
+                    <div className="text-2xl font-bold text-gray-900">₹2.4M</div>
+                    <div className="text-sm text-gray-600">Revenue</div>
+                    <div className="text-xs text-green-600 mt-1">+18% this month</div>
+                  </div>
+                </div>
+
+                {/* Advanced Analytics */}
+                <div className="bg-white rounded-2xl shadow-lg p-6">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+                    <BarChart3 className="w-6 h-6 mr-2 text-red-600" />
+                    Advanced Analytics
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-semibold text-blue-900">User Growth</h3>
+                        <TrendingUp className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <div className="text-2xl font-bold text-blue-900">+24%</div>
+                      <div className="text-sm text-blue-700">vs last month</div>
+                    </div>
+                    <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-semibold text-green-900">Conversion Rate</h3>
+                        <Eye className="w-5 h-5 text-green-600" />
+                      </div>
+                      <div className="text-2xl font-bold text-green-900">3.2%</div>
+                      <div className="text-sm text-green-700">visitor to customer</div>
+                    </div>
+                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-semibold text-purple-900">Avg Order Value</h3>
+                        <Package className="w-5 h-5 text-purple-600" />
+                      </div>
+                      <div className="text-2xl font-bold text-purple-900">₹1,247</div>
+                      <div className="text-sm text-purple-700">per transaction</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Actions */}
+                <div className="bg-white rounded-2xl shadow-lg p-6">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+                    <Activity className="w-6 h-6 mr-2 text-red-600" />
+                    Quick Actions
+                  </h2>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <Link to="/admin/users" className="group">
+                      <div className="bg-blue-50 rounded-xl p-4 text-center group-hover:bg-blue-100 transition-colors">
+                        <Users className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                        <div className="font-semibold text-gray-900">User Management</div>
+                        <div className="text-sm text-gray-600">Manage Users</div>
+                      </div>
+                    </Link>
+                    <Link to="/admin/sellers" className="group">
+                      <div className="bg-green-50 rounded-xl p-4 text-center group-hover:bg-green-100 transition-colors">
+                        <Store className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                        <div className="font-semibold text-gray-900">Seller Management</div>
+                        <div className="text-sm text-gray-600">Manage Sellers</div>
+                      </div>
+                    </Link>
+                    <Link to="/admin/orders" className="group">
+                      <div className="bg-purple-50 rounded-xl p-4 text-center group-hover:bg-purple-100 transition-colors">
+                        <ShoppingBag className="w-8 h-8 text-purple-600 mx-auto mb-2" />
+                        <div className="font-semibold text-gray-900">Order Management</div>
+                        <div className="text-sm text-gray-600">Track Orders</div>
+                      </div>
+                    </Link>
+                    <Link to="/admin/products" className="group">
+                      <div className="bg-orange-50 rounded-xl p-4 text-center group-hover:bg-orange-100 transition-colors">
+                        <Package className="w-8 h-8 text-orange-600 mx-auto mb-2" />
+                        <div className="font-semibold text-gray-900">Product Management</div>
+                        <div className="text-sm text-gray-600">Manage Products</div>
+                      </div>
+                    </Link>
+                    <Link to="/admin/settings" className="group">
+                      <div className="bg-gray-50 rounded-xl p-4 text-center group-hover:bg-gray-100 transition-colors">
+                        <Settings className="w-8 h-8 text-gray-600 mx-auto mb-2" />
+                        <div className="font-semibold text-gray-900">Settings</div>
+                        <div className="text-sm text-gray-600">Platform Settings</div>
+                      </div>
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Pending Approvals */}
+                <div className="bg-white rounded-2xl shadow-lg p-6">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+                    <CheckCircle className="w-6 h-6 mr-2 text-yellow-600" />
+                    Pending Approvals
+                  </h2>
+                  <div className="space-y-4">
+                    {[
+                      { type: 'Seller Registration', name: 'Fashion Store', email: 'fashion@store.com', submitted: '2 hours ago' },
+                      { type: 'Product Listing', name: 'Tech Gadgets Pro', email: 'tech@gadgets.com', submitted: '4 hours ago' },
+                      { type: 'Store Verification', name: 'Electronics Hub', email: 'electronics@hub.com', submitted: '6 hours ago' }
+                    ].map((item, index) => (
+                      <div key={index} className="flex items-center justify-between p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <div className="flex items-center">
+                          <div className="w-3 h-3 rounded-full bg-yellow-500 mr-3"></div>
+                          <div>
+                            <div className="font-medium text-gray-900">{item.type}</div>
+                            <div className="text-sm text-gray-600">{item.name} - {item.email}</div>
+                          </div>
+                        </div>
+                        <div className="flex space-x-2">
+                          <button className="px-3 py-1 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors">
+                            Approve
+                          </button>
+                          <button className="px-3 py-1 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors">
+                            Reject
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* System Alerts */}
+                <div className="bg-white rounded-2xl shadow-lg p-6">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+                    <XCircle className="w-6 h-6 mr-2 text-red-600" />
+                    System Alerts
+                  </h2>
+                  <div className="space-y-4">
+                    {[
+                      { alert: 'High server load detected', severity: 'warning', time: '5 minutes ago' },
+                      { alert: 'Payment gateway timeout', severity: 'error', time: '15 minutes ago' },
+                      { alert: 'Database backup completed', severity: 'success', time: '1 hour ago' },
+                      { alert: 'New security update available', severity: 'info', time: '2 hours ago' }
+                    ].map((alert, index) => (
+                      <div key={index} className={`flex items-center justify-between p-4 rounded-lg ${
+                        alert.severity === 'error' ? 'bg-red-50 border border-red-200' :
+                        alert.severity === 'warning' ? 'bg-yellow-50 border border-yellow-200' :
+                        alert.severity === 'success' ? 'bg-green-50 border border-green-200' :
+                        'bg-blue-50 border border-blue-200'
+                      }`}>
+                        <div className="flex items-center">
+                          <div className={`w-3 h-3 rounded-full mr-3 ${
+                            alert.severity === 'error' ? 'bg-red-500' :
+                            alert.severity === 'warning' ? 'bg-yellow-500' :
+                            alert.severity === 'success' ? 'bg-green-500' :
+                            'bg-blue-500'
+                          }`}></div>
+                          <div>
+                            <div className="font-medium text-gray-900">{alert.alert}</div>
+                            <div className="text-sm text-gray-600">{alert.time}</div>
+                          </div>
+                        </div>
+                        <button className="text-gray-400 hover:text-gray-600">
+                          <XCircle className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Recent Activity */}
+                <div className="bg-white rounded-2xl shadow-lg p-6">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-6">Recent Activity</h2>
+                  <div className="space-y-4">
+                    {[
+                      { action: 'New seller registration', user: 'Fashion Store', time: '2 minutes ago', status: 'pending' },
+                      { action: 'Order completed', user: 'Order #1234', time: '15 minutes ago', status: 'completed' },
+                      { action: 'User registered', user: 'john@example.com', time: '1 hour ago', status: 'completed' },
+                      { action: 'Seller approved', user: 'Tech Gadgets', time: '2 hours ago', status: 'completed' },
+                      { action: 'Payment processed', user: '₹15,000', time: '3 hours ago', status: 'completed' }
+                    ].map((activity, index) => (
+                      <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        <div className="flex items-center">
+                          <div className={`w-3 h-3 rounded-full mr-3 ${
+                            activity.status === 'completed' ? 'bg-green-500' : 'bg-yellow-500'
+                          }`}></div>
+                          <div>
+                            <div className="font-medium text-gray-900">{activity.action}</div>
+                            <div className="text-sm text-gray-600">{activity.user}</div>
+                          </div>
+                        </div>
+                        <div className="text-sm text-gray-500">{activity.time}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Sidebar */}
+              <div className="space-y-6">
+                {/* Personal Information */}
+                <div className="bg-white rounded-2xl shadow-lg p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Personal Information</h3>
+                  {isEditing ? (
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                        <input
+                          type="text"
+                          value={editData.displayName}
+                          onChange={(e) => setEditData({...editData, displayName: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                        <input
+                          type="tel"
+                          value={editData.phone}
+                          onChange={(e) => setEditData({...editData, phone: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                        <textarea
+                          value={editData.address}
+                          onChange={(e) => setEditData({...editData, address: e.target.value})}
+                          rows={3}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+                        />
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button onClick={handleSave} variant="primary" size="sm">
+                          Save
+                        </Button>
+                        <Button onClick={handleCancel} variant="outline" size="sm">
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-3">
+                        <User className="w-4 h-4 text-gray-400" />
+                        <div>
+                          <p className="text-sm text-gray-500">Full Name</p>
+                          <p className="font-medium text-gray-900">{currentUser.displayName || 'Not set'}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <Mail className="w-4 h-4 text-gray-400" />
+                        <div>
+                          <p className="text-sm text-gray-500">Email</p>
+                          <p className="font-medium text-gray-900">{currentUser.email}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <Phone className="w-4 h-4 text-gray-400" />
+                        <div>
+                          <p className="text-sm text-gray-500">Phone</p>
+                          <p className="font-medium text-gray-900">{userData?.phone || 'Not set'}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <MapPin className="w-4 h-4 text-gray-400" />
+                        <div>
+                          <p className="text-sm text-gray-500">Address</p>
+                          <p className="font-medium text-gray-900">{userData?.address || 'Not set'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Admin Tools */}
+                <div className="bg-gradient-to-br from-red-600 to-orange-600 rounded-2xl p-6 text-white">
+                  <h3 className="text-lg font-semibold mb-4">Admin Tools</h3>
+                  <div className="space-y-3">
+                    <Link to="/admin" className="block">
+                      <button className="w-full text-left p-3 rounded-lg bg-white/20 hover:bg-white/30 transition-colors">
+                        <BarChart3 className="w-5 h-5 mr-3 inline" />
+                        Analytics Dashboard
+                      </button>
+                    </Link>
+                    <Link to="/admin/users" className="block">
+                      <button className="w-full text-left p-3 rounded-lg bg-white/20 hover:bg-white/30 transition-colors">
+                        <Users className="w-5 h-5 mr-3 inline" />
+                        User Management
+                      </button>
+                    </Link>
+                    <Link to="/admin/sellers" className="block">
+                      <button className="w-full text-left p-3 rounded-lg bg-white/20 hover:bg-white/30 transition-colors">
+                        <Store className="w-5 h-5 mr-3 inline" />
+                        Seller Management
+                      </button>
+                    </Link>
+                    <Link to="/admin/products" className="block">
+                      <button className="w-full text-left p-3 rounded-lg bg-white/20 hover:bg-white/30 transition-colors">
+                        <Package className="w-5 h-5 mr-3 inline" />
+                        Product Management
+                      </button>
+                    </Link>
+                    <Link to="/admin/settings" className="block">
+                      <button className="w-full text-left p-3 rounded-lg bg-white/20 hover:bg-white/30 transition-colors">
+                        <Settings className="w-5 h-5 mr-3 inline" />
+                        System Settings
+                      </button>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AdminProfilePage;
