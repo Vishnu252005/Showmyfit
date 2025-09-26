@@ -6,7 +6,8 @@ import Button from '../components/Button';
 import { useAuth } from '../contexts/AuthContext';
 import { updateUserProfile } from '../firebase/auth';
 import AdminProfilePage from './AdminProfilePage';
-import { collection, getDocs } from 'firebase/firestore';
+import SellerProfilePage from './SellerProfilePage';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
 const ProfilePage: React.FC = () => {
@@ -20,6 +21,8 @@ const ProfilePage: React.FC = () => {
   });
   const [adminEmails, setAdminEmails] = useState<string[]>([]);
   const [loadingAdmins, setLoadingAdmins] = useState(false);
+  const [isSeller, setIsSeller] = useState(false);
+  const [loadingSeller, setLoadingSeller] = useState(false);
 
   // Fetch admin emails from user profile
   const fetchAdminEmails = async () => {
@@ -42,14 +45,52 @@ const ProfilePage: React.FC = () => {
     }
   };
 
+  // Check if user is a seller
+  const checkSellerStatus = async () => {
+    if (!currentUser?.email) return;
+    
+    setLoadingSeller(true);
+    try {
+      console.log('ProfilePage - Checking seller status for:', currentUser.email);
+      
+      const sellersQuery = query(
+        collection(db, 'sellers'),
+        where('email', '==', currentUser.email)
+      );
+      const snapshot = await getDocs(sellersQuery);
+      
+      console.log('ProfilePage - Seller query result:', {
+        docsCount: snapshot.docs.length,
+        empty: snapshot.empty
+      });
+      
+      if (!snapshot.empty) {
+        const sellerData = snapshot.docs[0].data();
+        console.log('ProfilePage - Seller data found:', sellerData);
+        setIsSeller(true);
+      } else {
+        console.log('ProfilePage - No seller data found');
+        setIsSeller(false);
+      }
+    } catch (error) {
+      console.error('Error checking seller status:', error);
+      setIsSeller(false);
+    } finally {
+      setLoadingSeller(false);
+    }
+  };
+
   useEffect(() => {
     fetchAdminEmails();
-  }, [userData]);
+    checkSellerStatus();
+  }, [userData, currentUser]);
 
-  // Show admin profile if user is admin
-  if (userData?.role === 'admin') {
-    return <AdminProfilePage />;
-  }
+  // Handle authentication redirect
+  useEffect(() => {
+    if (!currentUser) {
+      navigate('/auth');
+    }
+  }, [currentUser, navigate]);
 
   const handleSignOut = async () => {
     try {
@@ -91,17 +132,33 @@ const ProfilePage: React.FC = () => {
     });
   };
 
+  // Show loading or redirect if not authenticated
   if (!currentUser) {
-    // Redirect to auth page instead of showing "Please Sign In"
-    navigate('/auth');
-    return null;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Redirecting to login...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show admin profile if user is admin
+  if (userData?.role === 'admin') {
+    return <AdminProfilePage />;
+  }
+
+  // Show seller profile if user is seller
+  if (userData?.role === 'shop') {
+    return <SellerProfilePage />;
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <Navbar userRole="user" />
       
-      <div className="main-content pt-16">
+      <div className="main-content pt-24">
         <div className="min-h-screen px-4 py-8">
           <div className="max-w-4xl mx-auto">
             {/* Back Button */}
@@ -123,7 +180,11 @@ const ProfilePage: React.FC = () => {
                   <div className="w-24 h-24 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white text-3xl font-bold">
                     {currentUser.displayName ? currentUser.displayName.charAt(0).toUpperCase() : currentUser.email?.charAt(0).toUpperCase()}
                   </div>
-                  <button className="absolute -bottom-2 -right-2 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 transition-colors">
+                  <button 
+                    className="absolute -bottom-2 -right-2 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 transition-colors"
+                    title="Edit profile picture"
+                    aria-label="Edit profile picture"
+                  >
                     <Edit className="w-4 h-4" />
                   </button>
                 </div>
@@ -176,6 +237,8 @@ const ProfilePage: React.FC = () => {
                     <button
                       onClick={handleEdit}
                       className="text-blue-600 hover:text-blue-700 transition-colors"
+                      title="Edit personal information"
+                      aria-label="Edit personal information"
                     >
                       <Edit className="w-5 h-5" />
                     </button>
@@ -190,6 +253,8 @@ const ProfilePage: React.FC = () => {
                           value={editData.displayName}
                           onChange={(e) => setEditData({...editData, displayName: e.target.value})}
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="Enter your full name"
+                          aria-label="Full name"
                         />
                       </div>
                       <div>
@@ -417,6 +482,73 @@ const ProfilePage: React.FC = () => {
                       <Button variant="outline" size="sm">
                         <Shield className="w-4 h-4 mr-2" />
                         Manage Admins
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Seller Status Check */}
+                <div className="bg-white rounded-2xl shadow-lg p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <Package className="w-5 h-5 mr-2 text-green-600" />
+                    Seller Status Check
+                  </h3>
+                  
+                  {loadingSeller ? (
+                    <div className="flex items-center justify-center py-4">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
+                      <span className="ml-2 text-gray-600">Checking seller status...</span>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {isSeller ? (
+                        <>
+                          <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                            <div className="flex items-center">
+                              <Package className="w-5 h-5 text-green-600 mr-2" />
+                              <div>
+                                <p className="text-sm font-medium text-green-800">
+                                  ✅ You are registered as a seller!
+                                </p>
+                                <p className="text-xs text-green-600 mt-1">
+                                  Your email ({currentUser?.email}) is found in the sellers collection.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                            <p className="text-sm text-blue-800">
+                              <strong>Note:</strong> You should see the seller profile interface with product management features. 
+                              If you're seeing the regular user profile, there might be a role assignment issue.
+                            </p>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="text-center py-4">
+                          <Package className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                          <p className="text-gray-600 mb-2">You are not registered as a seller.</p>
+                          <p className="text-sm text-gray-500">
+                            Your email ({currentUser?.email}) was not found in the sellers collection.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  <div className="mt-4 flex space-x-2">
+                    <Button
+                      onClick={checkSellerStatus}
+                      variant="outline"
+                      size="sm"
+                      disabled={loadingSeller}
+                    >
+                      <Eye className="w-4 h-4 mr-2" />
+                      Refresh
+                    </Button>
+                    <Link to="/become-seller">
+                      <Button variant="outline" size="sm">
+                        <Package className="w-4 h-4 mr-2" />
+                        Become Seller
                       </Button>
                     </Link>
                   </div>

@@ -1,116 +1,172 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Store, ShoppingBag, Shield, MapPin, Users, Package, Star, Zap, Heart, Clock, Navigation, Search, Filter, Truck, Award, ArrowRight, Sparkles, TrendingUp, Globe, ShieldCheck, ChevronRight, Grid3X3, Menu, Bell, User } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { 
+  Store, ShoppingBag, Shield, MapPin, Users, Package, Star, Zap, Heart, Clock, 
+  Navigation, Search, Filter, Truck, Award, ArrowRight, Sparkles, TrendingUp, 
+  Globe, ShieldCheck, ChevronRight, Grid3X3, Menu, Bell, User, Eye, Share2, 
+  Plus, Minus, Check, X, ThumbsUp, MessageCircle, ExternalLink, ShoppingCart, Phone,
+  Play, Gift, Headphones, Camera, Laptop, Smartphone, Home, Car, Gamepad2, 
+  Shirt, Watch, BookOpen, Music, Coffee, Utensils, Wrench, Flower2
+} from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Button from '../components/Button';
+import { collection, query, getDocs } from 'firebase/firestore';
+import { db } from '../firebase/config';
 
 const HomePage: React.FC = () => {
+  const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoaded, setIsLoaded] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<string>('');
   const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [wishlist, setWishlist] = useState<string[]>([]);
+  const [cartItems, setCartItems] = useState<{[key: string]: number}>({});
+  const [showQuickView, setShowQuickView] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [sellers, setSellers] = useState<any[]>([]);
+  const [loadingSellers, setLoadingSellers] = useState(true);
 
   useEffect(() => {
     setIsLoaded(true);
   }, []);
 
+  // Fetch sellers from database
+  useEffect(() => {
+    const fetchSellers = async () => {
+      setLoadingSellers(true);
+      try {
+        const usersQuery = query(collection(db, 'users'));
+        const snapshot = await getDocs(usersQuery);
+        
+        const sellersList: any[] = [];
+        snapshot.docs.forEach((doc) => {
+          const userData = doc.data();
+          if (userData.role === 'shop' && userData.status === 'approved') {
+            sellersList.push({
+              id: doc.id,
+              name: userData.name || 'Unknown Seller',
+              email: userData.email || 'No email',
+              phone: userData.phone || 'No phone',
+              businessName: userData.businessName || 'No business name',
+              businessType: userData.businessType || 'No type',
+              address: userData.address || 'No address',
+              stats: userData.stats || {
+                totalProducts: 0,
+                totalSales: 0,
+                totalOrders: 0,
+                rating: 0
+              },
+              createdAt: userData.createdAt
+            });
+          }
+        });
+        
+        // Limit to 6 sellers for home page
+        setSellers(sellersList.slice(0, 6));
+      } catch (error) {
+        console.error('Error loading sellers:', error);
+      } finally {
+        setLoadingSellers(false);
+      }
+    };
+
+    fetchSellers();
+  }, []);
+
+  // View seller products
+  const viewSellerProducts = (seller: any) => {
+    navigate(`/seller/${seller.id}`);
+  };
+
   const categories = [
-    { name: 'Minutes', icon: '🛵', color: 'text-orange-600' },
-    { name: 'Mobiles & Tablets', icon: '📱', color: 'text-blue-600' },
-    { name: 'TVs & Appliances', icon: '📺', color: 'text-purple-600' },
-    { name: 'Electronics', icon: '💻', color: 'text-green-600' },
-    { name: 'Fashion', icon: '👗', color: 'text-pink-600' },
-    { name: 'Home & Kitchen', icon: '🏠', color: 'text-yellow-600' },
-    { name: 'Beauty & Toys', icon: '🧸', color: 'text-red-600' },
-    { name: 'Furniture', icon: '🪑', color: 'text-indigo-600' },
-    { name: 'Flight Bookings', icon: '✈️', color: 'text-cyan-600' },
-    { name: 'Grocery', icon: '🛒', color: 'text-lime-600' }
+    { name: 'Electronics', icon: Smartphone, color: 'from-blue-500 to-blue-600', bgColor: 'bg-blue-50', description: 'Latest gadgets' },
+    { name: 'Fashion', icon: Shirt, color: 'from-pink-500 to-pink-600', bgColor: 'bg-pink-50', description: 'Trendy styles' },
+    { name: 'Home & Kitchen', icon: Home, color: 'from-yellow-500 to-yellow-600', bgColor: 'bg-yellow-50', description: 'Home essentials' },
+    { name: 'Beauty & Health', icon: Flower2, color: 'from-purple-500 to-purple-600', bgColor: 'bg-purple-50', description: 'Self care' },
+    { name: 'Sports & Fitness', icon: Gamepad2, color: 'from-green-500 to-green-600', bgColor: 'bg-green-50', description: 'Active lifestyle' },
+    { name: 'Books & Media', icon: BookOpen, color: 'from-indigo-500 to-indigo-600', bgColor: 'bg-indigo-50', description: 'Knowledge hub' },
+    { name: 'Music & Audio', icon: Headphones, color: 'from-red-500 to-red-600', bgColor: 'bg-red-50', description: 'Audio gear' },
+    { name: 'Automotive', icon: Car, color: 'from-gray-500 to-gray-600', bgColor: 'bg-gray-50', description: 'Car accessories' },
+    { name: 'Health & Wellness', icon: Heart, color: 'from-emerald-500 to-emerald-600', bgColor: 'bg-emerald-50', description: 'Wellness products' },
+    { name: 'Food & Beverages', icon: Coffee, color: 'from-orange-500 to-orange-600', bgColor: 'bg-orange-50', description: 'Delicious treats' }
   ];
 
-  const smartphoneDeals = [
+  const toggleWishlist = (productId: string) => {
+    setWishlist(prev => 
+      prev.includes(productId) 
+        ? prev.filter(id => id !== productId)
+        : [...prev, productId]
+    );
+  };
+
+  const addToCart = (product: any) => {
+    setCartItems(prev => ({
+      ...prev,
+      [product.id]: (prev[product.id] || 0) + 1
+    }));
+  };
+
+  const quickViewProduct = (product: any) => {
+    setSelectedProduct(product);
+    setShowQuickView(true);
+  };
+
+  const featuredProducts = [
     { 
-      name: 'Moto Edge 60 Pro 5G', 
-      price: 'From ₹24,999*', 
-      image: 'https://images.unsplash.com/photo-1511707171631-9ad203683d6d?w=200&h=300&fit=crop',
-      features: ['50MP+50MP+50X', 'Most Personalised'],
-      color: 'purple'
+      id: '1',
+      name: 'iPhone 15 Pro Max', 
+      price: 124999, 
+      originalPrice: 134999,
+      image: 'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=300&h=300&fit=crop',
+      brand: 'Apple',
+      rating: 4.8,
+      reviews: 1250,
+      category: 'Electronics',
+      featured: true,
+      stock: 15
     },
     { 
-      name: 'Galaxy S24 5G', 
-      price: 'From ₹39,999', 
-      image: 'https://images.unsplash.com/photo-1511707171631-9ad203683d6d?w=200&h=300&fit=crop',
-      features: ['Galaxy AI', 'Now with Snapdragon'],
-      color: 'cream'
+      id: '2',
+      name: 'Samsung Galaxy S24 Ultra', 
+      price: 99999, 
+      originalPrice: 109999,
+      image: 'https://images.unsplash.com/photo-1511707171631-9ad203683d6d?w=300&h=300&fit=crop',
+      brand: 'Samsung',
+      rating: 4.7,
+      reviews: 980,
+      category: 'Electronics',
+      featured: true,
+      stock: 8
     },
     { 
-      name: 'vivo T4 Lite 5G', 
-      price: 'Just ₹8,999*', 
-      image: 'https://images.unsplash.com/photo-1511707171631-9ad203683d6d?w=200&h=300&fit=crop',
-      features: ['GET. SET. TURBO', '5G'],
-      color: 'white'
+      id: '3',
+      name: 'MacBook Pro M3', 
+      price: 199999, 
+      originalPrice: 219999,
+      image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=300&h=300&fit=crop',
+      brand: 'Apple',
+      rating: 4.9,
+      reviews: 650,
+      category: 'Electronics',
+      featured: true,
+      stock: 5
     },
     { 
-      name: 'moto g86 Power', 
-      price: 'Just ₹15,999', 
-      image: 'https://images.unsplash.com/photo-1511707171631-9ad203683d6d?w=200&h=300&fit=crop',
-      features: ['Long Lasting Battery', 'Camera with OIS'],
-      color: 'blue'
-    },
-    { 
-      name: 'Realme P3x 5G', 
-      price: 'From ₹10,999', 
-      image: 'https://images.unsplash.com/photo-1511707171631-9ad203683d6d?w=200&h=300&fit=crop',
-      features: ['6000mAh Battery', '45W Charge'],
-      color: 'blue'
-    },
-    { 
-      name: 'Galaxy F36 5G', 
-      price: 'From ₹13,999', 
-      image: 'https://images.unsplash.com/photo-1511707171631-9ad203683d6d?w=200&h=300&fit=crop',
-      features: ['Night Portraits'],
-      color: 'purple'
+      id: '4',
+      name: 'Sony WH-1000XM5', 
+      price: 29999, 
+      originalPrice: 34999,
+      image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&h=300&fit=crop',
+      brand: 'Sony',
+      rating: 4.6,
+      reviews: 420,
+      category: 'Electronics',
+      featured: true,
+      stock: 12
     }
   ];
 
-  const applianceDeals = [
-    { 
-      name: 'Sony 75" 4K Ultra HD TV', 
-      price: 'From ₹30,849*', 
-      image: 'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=200&h=150&fit=crop',
-      category: '65 / 75 inch TVs'
-    },
-    { 
-      name: 'LG Washing Machine', 
-      price: 'Shop now!', 
-      image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200&h=150&fit=crop',
-      category: 'Trending deals'
-    },
-    { 
-      name: 'Samsung Refrigerator', 
-      price: 'From ₹9,990', 
-      image: 'https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?w=200&h=150&fit=crop',
-      category: 'Best-selling Refriger...'
-    },
-    { 
-      name: 'IFB Microwave Oven', 
-      price: 'From ₹4,990', 
-      image: 'https://images.unsplash.com/photo-1574269909862-7e1d70bb8078?w=200&h=150&fit=crop',
-      category: 'Microwave Ovens'
-    },
-    { 
-      name: 'LG Air Conditioner', 
-      price: 'From ₹19,490', 
-      image: 'https://images.unsplash.com/photo-1631679706909-1844bbd07221?w=200&h=150&fit=crop',
-      category: 'Lowest Price Ever'
-    },
-    { 
-      name: 'Philips Mixer Grinder', 
-      price: 'From ₹1249', 
-      image: 'https://images.unsplash.com/photo-1583394838336-acd977736f90?w=200&h=150&fit=crop',
-      category: 'Kitchen Essentials'
-    }
-  ];
 
   const featuredBrands = [
     { name: 'NOISE', image: 'https://via.placeholder.com/120x60/000000/FFFFFF?text=NOISE' },
@@ -120,134 +176,385 @@ const HomePage: React.FC = () => {
   ];
 
   return (
-    <div className={`min-h-screen bg-white transition-all duration-1000 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+    <div className={`min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 transition-all duration-1000 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
       <Navbar userRole="user" />
       
       {/* Main Content */}
-      <div className="main-content pt-16">
-        {/* Categories Section - Mobile Optimized */}
-        <section className="bg-white border-b border-gray-200">
-          <div className="px-4 py-4">
-            <div className="flex space-x-4 overflow-x-auto scrollbar-hide pb-2">
+      <div className="main-content pt-24">
+        {/* Enhanced Categories Section */}
+        <section className="bg-white shadow-sm border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 py-8">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-900 mb-3">Shop by Category</h2>
+              <p className="text-gray-600">Discover amazing products across all categories</p>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-10 gap-6">
               {categories.map((category, index) => (
-                <div key={category.name} className="flex-shrink-0 text-center group cursor-pointer min-w-[80px]">
-                  <div className={`w-14 h-14 mx-auto mb-2 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-gray-200 transition-colors ${category.color} touch-manipulation`}>
-                    <span className="text-xl">{category.icon}</span>
+                <Link
+                  key={category.name}
+                  to="/browse"
+                  className="group text-center touch-manipulation transform hover:scale-105 transition-all duration-300"
+                >
+                  <div className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center mb-3 mx-auto bg-gradient-to-br ${category.color} shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110`}>
+                    <category.icon className="w-8 h-8 md:w-10 md:h-10 text-white" />
           </div>
-                  <p className="text-xs font-medium text-gray-700 group-hover:text-blue-600 transition-colors leading-tight">
-                    {category.name}
-                  </p>
-                  </div>
+                  <p className="text-sm font-semibold text-gray-700 group-hover:text-blue-600 transition-colors duration-300 leading-tight">{category.name}</p>
+                  <p className="text-xs text-gray-500 mt-1">{category.description}</p>
+                </Link>
                 ))}
             </div>
           </div>
         </section>
 
-        {/* Hero Banner - Mobile Optimized */}
-        <section className="bg-gradient-to-r from-purple-600 to-purple-800 py-8 md:py-12">
-          <div className="px-4">
+        {/* Enhanced Hero Banner */}
+        <section className="bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 py-12 md:py-16 relative overflow-hidden">
+          <div className="absolute inset-0 bg-black opacity-10"></div>
+          <div className="max-w-7xl mx-auto px-4 relative">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-              <div className="flex-1 mb-6 md:mb-0">
-                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 md:mb-4 leading-tight">
+              <div className="flex-1 mb-8 md:mb-0">
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 md:mb-6 leading-tight">
                   THE BIG BILLION DAYS
                 </h1>
-                <p className="text-lg md:text-xl text-purple-100 mb-4 md:mb-6 leading-relaxed">
+                <p className="text-xl md:text-2xl text-white/90 mb-4 md:mb-6 leading-relaxed">
                   Designer sofas, Carlton london, mintwud & more
                 </p>
-                <p className="text-xl md:text-2xl font-bold text-white mb-4">From ₹6,499</p>
-                <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
-                  <div className="bg-white bg-opacity-20 px-4 py-3 rounded-lg touch-manipulation">
-                    <p className="text-sm font-semibold text-white">AXIS BANK</p>
-                    <p className="text-xs text-purple-100">10% Instant Discount</p>
+                <p className="text-2xl md:text-3xl font-bold text-white mb-6">From ₹6,499</p>
+                <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                  <div className="bg-white/20 backdrop-blur-sm px-6 py-4 rounded-xl border border-white/30">
+                    <p className="text-sm font-bold text-white">AXIS BANK</p>
+                    <p className="text-xs text-white/80">10% Instant Discount</p>
               </div>
-                  <div className="bg-white bg-opacity-20 px-4 py-3 rounded-lg touch-manipulation">
-                    <p className="text-sm font-semibold text-white">ICICI Bank</p>
-                    <p className="text-xs text-purple-100">super.money</p>
+                  <div className="bg-white/20 backdrop-blur-sm px-6 py-4 rounded-xl border border-white/30">
+                    <p className="text-sm font-bold text-white">ICICI Bank</p>
+                    <p className="text-xs text-white/80">super.money</p>
               </div>
             </div>
+                <button className="bg-white text-purple-600 px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
+                  Shop Now
+                </button>
               </div>
               <div className="hidden md:block">
                 <img 
-                  src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=300&fit=crop" 
+                  src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=500&h=400&fit=crop" 
                   alt="Sofa"
-                  className="w-80 h-60 object-cover rounded-lg"
+                  className="w-96 h-80 object-cover rounded-2xl shadow-2xl"
                 />
         </div>
       </div>
           </div>
         </section>
 
-        {/* Mobile Become a Seller Button */}
-        <section className="md:hidden py-4 bg-white border-b border-gray-200">
-          <div className="px-4">
+        {/* Enhanced Become a Seller Section */}
+        <section className="py-12 bg-gradient-to-br from-gray-50 to-white">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-3xl p-8 md:p-12 text-center text-white relative overflow-hidden">
+              <div className="absolute inset-0 bg-black/10"></div>
+              <div className="relative z-10">
+                <div className="flex items-center justify-center mb-6">
+                  <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                    <Store className="w-8 h-8 text-white" />
+                  </div>
+                </div>
+                <h2 className="text-3xl md:text-4xl font-bold mb-4">Start Your Business Journey</h2>
+                <p className="text-lg md:text-xl mb-8 text-white/90 max-w-2xl mx-auto">Join thousands of successful sellers on our platform and reach millions of customers</p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link
               to="/shop/auth"
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-6 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center space-x-3 touch-manipulation"
+                    className="inline-flex items-center bg-white text-blue-600 py-4 px-8 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
             >
-              <Store className="w-6 h-6" />
+                    <Store className="w-6 h-6 mr-3" />
               <span>Become a Seller</span>
-              <ArrowRight className="w-5 h-5" />
+                    <ArrowRight className="w-5 h-5 ml-3" />
             </Link>
-            <p className="text-center text-sm text-gray-600 mt-2">
-              Start selling and grow your business with us
-            </p>
+                  <div className="flex items-center space-x-6 text-white/80">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold">10K+</div>
+                      <div className="text-sm">Active Sellers</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold">1M+</div>
+                      <div className="text-sm">Products</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold">50K+</div>
+                      <div className="text-sm">Orders Daily</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
-        {/* Best Deals on Smartphones - Mobile Optimized */}
-        <section className="py-6 md:py-8 bg-white">
-          <div className="px-4">
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Best deals on smartphones</h2>
-            <div className="flex space-x-4 overflow-x-auto scrollbar-hide pb-2">
-              {smartphoneDeals.map((phone, index) => (
-                <div key={index} className="flex-shrink-0 bg-white border border-gray-200 rounded-lg p-3 w-40 md:w-48 hover:shadow-lg transition-shadow touch-manipulation">
-                  <div className="relative mb-3">
-                    <img 
-                      src={phone.image} 
-                      alt={phone.name}
-                      className="w-full h-24 md:h-32 object-cover rounded"
-                    />
-                    <div className="absolute top-1 right-1 bg-red-500 text-white px-2 py-1 rounded text-xs">
-                      {phone.features[0]}
+        {/* Featured Products Section */}
+        <section className="py-16 bg-gradient-to-br from-gray-50 to-white">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mb-4">
+                <Sparkles className="w-8 h-8 text-white" />
+              </div>
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">Featured Products</h2>
+              <p className="text-gray-600 text-lg max-w-2xl mx-auto">Discover our handpicked selection of premium products that our customers love</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {featuredProducts.map((product) => (
+                <div key={product.id} className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-100">
+                  <div className="p-5">
+                    <div className="relative mb-4 group/image">
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="w-full h-48 object-cover rounded-xl transition-transform duration-300 group-hover:scale-105"
+                      />
+                      
+                      {/* Action Buttons */}
+                      <div className="absolute top-3 right-3 flex flex-col space-y-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <button
+                          onClick={() => toggleWishlist(product.id)}
+                          className="p-2 bg-white rounded-full shadow-lg hover:shadow-xl transition-all"
+                          title={wishlist.includes(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                          aria-label={wishlist.includes(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                        >
+                          <Heart className={`w-4 h-4 ${
+                            wishlist.includes(product.id) ? 'text-red-500 fill-current' : 'text-gray-600'
+                          }`} />
+                        </button>
+                        <button
+                          onClick={() => quickViewProduct(product)}
+                          className="p-2 bg-white rounded-full shadow-lg hover:shadow-xl transition-all"
+                          title="Quick view"
+                          aria-label="Quick view product"
+                        >
+                          <Eye className="w-4 h-4 text-gray-600" />
+                        </button>
         </div>
+
+                      {/* Badges */}
+                      <div className="absolute top-3 left-3 flex flex-col space-y-2">
+                        {product.featured && (
+                          <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                            ⭐ Featured
+                          </span>
+                        )}
+                        {product.originalPrice && product.originalPrice > product.price && (
+                          <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+                            {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
+                          </span>
+                        )}
       </div>
-                  <h3 className="font-semibold text-gray-900 text-xs md:text-sm mb-1 leading-tight">{phone.name}</h3>
-                  <p className="text-xs text-gray-600 mb-2 line-clamp-1">{phone.features[1]}</p>
-                  <p className="text-sm md:text-lg font-bold text-blue-600">{phone.price}</p>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div>
+                        <h3 className="font-bold text-gray-900 line-clamp-2 text-lg mb-1 group-hover:text-blue-600 transition-colors">
+                          {product.name}
+                        </h3>
+                        <p className="text-sm text-gray-600 font-medium">{product.brand}</p>
+                      </div>
+                      
+                      {/* Rating */}
+                      <div className="flex items-center space-x-2">
+                        <div className="flex items-center bg-yellow-50 px-2 py-1 rounded-full">
+                          <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                          <span className="text-sm font-bold ml-1">{product.rating.toFixed(1)}</span>
+                        </div>
+                        <span className="text-sm text-gray-500">({product.reviews} reviews)</span>
+                      </div>
+
+                      {/* Price */}
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="text-2xl font-bold text-gray-900">₹{product.price.toLocaleString()}</span>
+                          {product.originalPrice && product.originalPrice > product.price && (
+                            <div className="text-sm text-gray-500 line-through">
+                              ₹{product.originalPrice.toLocaleString()}
+                            </div>
+                          )}
+                        </div>
+                        <span className="text-xs bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">
+                          {product.category}
+                        </span>
+                      </div>
+
+                      {/* Stock Status */}
+                      <div className="flex items-center justify-between text-sm">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          product.stock > 10 ? 'bg-green-100 text-green-800' :
+                          product.stock > 0 ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {product.stock > 10 ? 'In Stock' : product.stock > 0 ? 'Low Stock' : 'Out of Stock'}
+                        </span>
+                        <span className="text-gray-500">{product.stock} left</span>
+                      </div>
+
+                      {/* Add to Cart Button */}
+                      <button
+                        onClick={() => addToCart(product)}
+                        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 flex items-center justify-center font-semibold shadow-lg hover:shadow-xl"
+                      >
+                        <ShoppingCart className="w-5 h-5 mr-2" />
+                        Add to Cart
+                      </button>
+                    </div>
+                  </div>
               </div>
             ))}
-              {/* Motorola Edge 60 FUSION Ad */}
-              <div className="flex-shrink-0 bg-gradient-to-b from-teal-400 to-teal-600 rounded-lg p-4 w-40 md:w-48 text-white touch-manipulation">
-                <div className="text-center">
-                  <h3 className="font-bold text-sm md:text-lg mb-1">Motorola Edge 60 FUSION</h3>
-                  <p className="text-xs mb-2">1.5K quad-curved display</p>
-                  <p className="text-lg md:text-2xl font-bold mb-1">₹19,999*</p>
-                  <p className="text-xs line-through opacity-75">₹22,999</p>
                 </div>
+              </div>
+        </section>
+
+        {/* Enhanced Deals Section */}
+        <section className="py-12 bg-white">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Best Deals & Offers</h2>
+              <p className="text-gray-600 text-lg">Don't miss out on these amazing deals</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {/* Deal Card 1 */}
+              <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-8 text-white relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
+                <h3 className="text-2xl font-bold mb-4">Electronics Sale</h3>
+                <p className="text-blue-100 mb-6">Up to 50% off on all electronics</p>
+                <div className="text-4xl font-bold mb-2">50% OFF</div>
+                <p className="text-sm text-blue-200">Limited time offer</p>
+                <button className="mt-6 bg-white text-blue-600 px-6 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors">
+                  Shop Now
+                </button>
+              </div>
+
+              {/* Deal Card 2 */}
+              <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-8 text-white relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
+                <h3 className="text-2xl font-bold mb-4">Fashion Week</h3>
+                <p className="text-purple-100 mb-6">Latest trends at amazing prices</p>
+                <div className="text-4xl font-bold mb-2">30% OFF</div>
+                <p className="text-sm text-purple-200">New arrivals</p>
+                <button className="mt-6 bg-white text-purple-600 px-6 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors">
+                  Explore
+                </button>
+              </div>
+
+              {/* Deal Card 3 */}
+              <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-8 text-white relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
+                <h3 className="text-2xl font-bold mb-4">Home & Living</h3>
+                <p className="text-green-100 mb-6">Transform your space</p>
+                <div className="text-4xl font-bold mb-2">40% OFF</div>
+                <p className="text-sm text-green-200">Free delivery</p>
+                <button className="mt-6 bg-white text-green-600 px-6 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors">
+                  Shop Now
+                </button>
               </div>
                 </div>
                 </div>
         </section>
 
-        {/* Best Deals on Appliances - Mobile Optimized */}
-        <section className="py-6 md:py-8 bg-gray-50">
-          <div className="px-4">
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Best deals on appliances</h2>
-            <div className="flex space-x-4 overflow-x-auto scrollbar-hide pb-2">
-              {applianceDeals.map((appliance, index) => (
-                <div key={index} className="flex-shrink-0 bg-white border border-gray-200 rounded-lg p-3 w-40 md:w-48 hover:shadow-lg transition-shadow touch-manipulation">
+        {/* Enhanced Appliances Section */}
+        <section className="py-12 bg-gray-50">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Home & Appliances</h2>
+              <p className="text-gray-600 text-lg">Upgrade your home with our premium appliances</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* Appliance Card 1 */}
+              <div className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group">
+                <div className="relative">
                   <img 
-                    src={appliance.image} 
-                    alt={appliance.name}
-                    className="w-full h-20 md:h-24 object-cover rounded mb-3"
+                    src="https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=300&h=200&fit=crop" 
+                    alt="Smart TV"
+                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                   />
-                  <h3 className="font-semibold text-gray-900 text-xs md:text-sm mb-1 leading-tight">{appliance.name}</h3>
-                  <p className="text-xs text-gray-600 mb-2 line-clamp-1">{appliance.category}</p>
-                  <p className="text-sm md:text-lg font-bold text-blue-600">{appliance.price}</p>
+                  <div className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+                    25% OFF
                 </div>
-              ))}
-              <div className="flex-shrink-0 flex items-center justify-center w-12">
-                <ChevronRight className="w-6 h-6 md:w-8 md:h-8 text-gray-400" />
+                </div>
+                <div className="p-6">
+                  <h3 className="font-bold text-gray-900 text-lg mb-2">Smart TVs</h3>
+                  <p className="text-gray-600 text-sm mb-4">4K Ultra HD displays</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xl font-bold text-gray-900">From ₹15,999</span>
+                    <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                      Shop Now
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Appliance Card 2 */}
+              <div className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group">
+                <div className="relative">
+                  <img 
+                    src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&h=200&fit=crop" 
+                    alt="Washing Machine"
+                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div className="absolute top-3 left-3 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+                    30% OFF
+                  </div>
+                </div>
+                <div className="p-6">
+                  <h3 className="font-bold text-gray-900 text-lg mb-2">Washing Machines</h3>
+                  <p className="text-gray-600 text-sm mb-4">Energy efficient models</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xl font-bold text-gray-900">From ₹12,999</span>
+                    <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                      Shop Now
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Appliance Card 3 */}
+              <div className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group">
+                <div className="relative">
+                  <img 
+                    src="https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?w=300&h=200&fit=crop" 
+                    alt="Refrigerator"
+                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div className="absolute top-3 left-3 bg-purple-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+                    20% OFF
+                  </div>
+                </div>
+                <div className="p-6">
+                  <h3 className="font-bold text-gray-900 text-lg mb-2">Refrigerators</h3>
+                  <p className="text-gray-600 text-sm mb-4">Smart cooling technology</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xl font-bold text-gray-900">From ₹18,999</span>
+                    <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                      Shop Now
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Appliance Card 4 */}
+              <div className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group">
+                <div className="relative">
+                  <img 
+                    src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=300&h=200&fit=crop" 
+                    alt="Air Conditioner"
+                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div className="absolute top-3 left-3 bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+                    35% OFF
+                  </div>
+                </div>
+                <div className="p-6">
+                  <h3 className="font-bold text-gray-900 text-lg mb-2">Air Conditioners</h3>
+                  <p className="text-gray-600 text-sm mb-4">Inverter technology</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xl font-bold text-gray-900">From ₹22,999</span>
+                    <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                      Shop Now
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -297,18 +604,83 @@ const HomePage: React.FC = () => {
           </div>
         </section>
 
-        {/* Featured Brands - Mobile Optimized */}
-        <section className="py-6 md:py-8 bg-white">
-          <div className="px-4">
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Featured Brands</h2>
-            <div className="flex space-x-4 overflow-x-auto scrollbar-hide pb-2">
+        {/* Customer Testimonials Section */}
+        <section className="py-16 bg-gradient-to-br from-blue-50 to-purple-50">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-green-500 to-blue-600 rounded-full mb-4">
+                <ThumbsUp className="w-8 h-8 text-white" />
+              </div>
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">What Our Customers Say</h2>
+              <p className="text-gray-600 text-lg max-w-2xl mx-auto">Real feedback from satisfied customers who love shopping with us</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[
+                {
+                  name: "Priya Sharma",
+                  location: "Mumbai",
+                  rating: 5,
+                  comment: "Amazing shopping experience! Fast delivery and great quality products. Highly recommended!",
+                  avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face"
+                },
+                {
+                  name: "Rajesh Kumar",
+                  location: "Delhi",
+                  rating: 5,
+                  comment: "Best platform for local shopping. Found everything I needed at great prices. Excellent service!",
+                  avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face"
+                },
+                {
+                  name: "Anita Patel",
+                  location: "Bangalore",
+                  rating: 5,
+                  comment: "Love the variety of products and the easy checkout process. Will definitely shop again!",
+                  avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face"
+                }
+              ].map((testimonial, index) => (
+                <div key={index} className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
+                  <div className="flex items-center mb-4">
+                    <img 
+                      src={testimonial.avatar} 
+                      alt={testimonial.name}
+                      className="w-12 h-12 rounded-full object-cover mr-4"
+                    />
+                    <div>
+                      <h4 className="font-semibold text-gray-900">{testimonial.name}</h4>
+                      <p className="text-sm text-gray-600">{testimonial.location}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center mb-3">
+                    {[...Array(testimonial.rating)].map((_, i) => (
+                      <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
+                    ))}
+                  </div>
+                  <p className="text-gray-700 leading-relaxed">"{testimonial.comment}"</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Featured Brands - Enhanced */}
+        <section className="py-12 bg-white">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Trusted Brands</h2>
+              <p className="text-gray-600 text-lg">Shop from your favorite brands</p>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {featuredBrands.map((brand, index) => (
-                <div key={index} className="flex-shrink-0 bg-gray-100 rounded-lg p-3 w-24 md:w-32 hover:bg-gray-200 transition-colors touch-manipulation">
+                <div key={index} className="bg-gray-50 rounded-2xl p-6 hover:bg-gray-100 transition-all duration-300 group cursor-pointer">
+                  <div className="flex items-center justify-center h-16">
                   <img 
                     src={brand.image} 
                     alt={brand.name}
-                    className="w-full h-12 md:h-16 object-contain"
+                      className="max-h-12 object-contain group-hover:scale-110 transition-transform duration-300"
                   />
+                  </div>
+                  <p className="text-center text-sm font-medium text-gray-700 mt-3">{brand.name}</p>
                 </div>
               ))}
         </div>
@@ -480,240 +852,223 @@ const HomePage: React.FC = () => {
           </div>
         </section>
 
-        {/* Nearby Local Stores - Mobile Optimized */}
-        <section className="py-6 md:py-8 bg-gradient-to-br from-blue-50 to-indigo-100">
-          <div className="px-4">
-            <div className="flex items-center justify-between mb-4 md:mb-6">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                  <MapPin className="w-4 h-4 text-white" />
+        {/* Featured Local Stores - Real Sellers */}
+        <section className="py-12 bg-gradient-to-br from-blue-50 to-indigo-100">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="text-center mb-12">
+              <div className="flex items-center justify-center space-x-3 mb-4">
+                <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
+                  <Store className="w-6 h-6 text-white" />
                 </div>
-                <div>
-                  <h2 className="text-xl md:text-2xl font-bold text-gray-900">Nearby Local Stores</h2>
-                  <p className="text-sm text-gray-600">Discover stores near you</p>
+                <h2 className="text-3xl font-bold text-gray-900">Featured Local Stores</h2>
                 </div>
+              <p className="text-gray-600 text-lg">Discover amazing stores and their products</p>
               </div>
-              <button className="text-blue-600 text-sm font-medium hover:text-blue-700 transition-colors flex items-center space-x-1">
-                <span>View All</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
 
-            {/* Location Search Bar */}
-            <div className="mb-6">
-              <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="text"
-                  placeholder="Enter your location or use current location"
-                  value={currentLocation}
-                  onChange={(e) => setCurrentLocation(e.target.value)}
-                  className="w-full pl-10 pr-32 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                />
-                <button 
-                  onClick={() => {
-                    if (navigator.geolocation) {
-                      setIsGettingLocation(true);
-                      navigator.geolocation.getCurrentPosition(
-                        (position) => {
-                          const { latitude, longitude } = position.coords;
-                          // You can use these coordinates to get the address
-                          // console.log('Current location:', latitude, longitude);
-                          // For now, we'll set a mock address based on coordinates
-                          setCurrentLocation(`Current Location (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`);
-                          setIsGettingLocation(false);
-                        },
-                        (error) => {
-                          // console.error('Error getting location:', error);
-                          alert('Unable to get your current location. Please enter manually.');
-                          setIsGettingLocation(false);
-                        }
-                      );
-                    } else {
-                      alert('Geolocation is not supported by this browser.');
-                    }
-                  }}
-                  disabled={isGettingLocation}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-blue-600 text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors flex items-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isGettingLocation ? (
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  ) : (
-                    <Navigation className="w-4 h-4" />
-                  )}
-                  <span className="hidden sm:inline">
-                    {isGettingLocation ? 'Getting...' : 'Use Current'}
-                  </span>
-                </button>
+            {loadingSellers ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
               </div>
-            </div>
-
-            {/* Store Categories Filter */}
-            <div className="mb-6">
-              <div className="flex space-x-2 overflow-x-auto scrollbar-hide pb-2">
-                {['All', 'Fashion', 'Electronics', 'Home', 'Beauty', 'Sports', 'Books', 'Food'].map((category, index) => (
-                  <button
-                    key={category}
-                    className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                      index === 0 
-                        ? 'bg-blue-600 text-white shadow-lg' 
-                        : 'bg-white text-gray-700 hover:bg-blue-50 border border-gray-200'
-                    }`}
-                  >
-                    {category}
-                  </button>
-                ))}
+            ) : sellers.length === 0 ? (
+              <div className="text-center py-8">
+                <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No stores found</h3>
+                <p className="text-gray-600">No approved stores are available at the moment.</p>
               </div>
-            </div>
-
-            {/* Store Cards */}
-            <div className="space-y-4">
-              {[
-                { 
-                  name: 'Fashion Hub Store', 
-                  category: 'Fashion', 
-                  distance: '0.8 km', 
-                  rating: 4.8, 
-                  reviews: 124, 
-                  image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=300&h=200&fit=crop',
-                  address: '123 Main Street, Downtown',
-                  open: true,
-                  offers: ['20% off on all items', 'Free delivery'],
-                  tags: ['Trending', 'Popular']
-                },
-                { 
-                  name: 'Tech World Electronics', 
-                  category: 'Electronics', 
-                  distance: '1.2 km', 
-                  rating: 4.6, 
-                  reviews: 89, 
-                  image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=300&h=200&fit=crop',
-                  address: '456 Tech Avenue, Tech Park',
-                  open: true,
-                  offers: ['15% off on smartphones', 'Extended warranty'],
-                  tags: ['New', 'Tech']
-                },
-                { 
-                  name: 'Home & Living', 
-                  category: 'Home', 
-                  distance: '2.1 km', 
-                  rating: 4.4, 
-                  reviews: 67, 
-                  image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=300&h=200&fit=crop',
-                  address: '789 Home Street, Residential',
-                  open: false,
-                  offers: ['30% off on furniture', 'Free assembly'],
-                  tags: ['Furniture', 'Decor']
-                },
-                { 
-                  name: 'Beauty Paradise', 
-                  category: 'Beauty', 
-                  distance: '1.5 km', 
-                  rating: 4.7, 
-                  reviews: 156, 
-                  image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=300&h=200&fit=crop',
-                  address: '321 Beauty Lane, Mall Area',
-                  open: true,
-                  offers: ['Buy 2 Get 1 Free', 'Free consultation'],
-                  tags: ['Luxury', 'Premium']
-                }
-              ].map((store, index) => (
-                <div key={index} className="bg-white rounded-xl p-4 shadow-lg hover:shadow-xl transition-shadow touch-manipulation">
-                  <div className="flex space-x-4">
-                    {/* Store Image */}
-                    <div className="relative">
-                      <img 
-                        src={store.image} 
-                        alt={store.name}
-                        className="w-20 h-20 md:w-24 md:h-24 object-cover rounded-lg"
-                      />
-                      <div className={`absolute -top-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center ${
-                        store.open ? 'bg-green-500' : 'bg-red-500'
-                      }`}>
-                        <div className={`w-2 h-2 rounded-full ${
-                          store.open ? 'bg-white' : 'bg-white'
-                        }`}></div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {sellers.map((seller) => (
+                  <div key={seller.id} className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group cursor-pointer" onClick={() => viewSellerProducts(seller)}>
+                    {/* Store Header */}
+                    <div className="relative h-32 bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                      <div className="absolute inset-0 bg-black/20"></div>
+                      <div className="relative text-center text-white">
+                        <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-2 backdrop-blur-sm">
+                          <span className="text-2xl font-bold">{seller.businessName.charAt(0).toUpperCase()}</span>
+                        </div>
+                        <h3 className="font-bold text-lg">{seller.businessName}</h3>
+                        <p className="text-sm opacity-90">Owner: {seller.name}</p>
                       </div>
-                    </div>
+                      <div className="absolute top-3 right-3 w-6 h-6 rounded-full flex items-center justify-center bg-green-500">
+                        <div className="w-2 h-2 rounded-full bg-white"></div>
+                      </div>
+            </div>
 
                     {/* Store Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <h3 className="font-bold text-gray-900 text-sm md:text-base line-clamp-1">{store.name}</h3>
-                          <p className="text-xs text-gray-600">{store.address}</p>
+                    <div className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center space-x-1">
+                          <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                          <span className="font-semibold text-gray-900">{seller.stats.rating.toFixed(1)}</span>
+                          <span className="text-sm text-gray-500">({seller.stats.totalOrders})</span>
                         </div>
-                        <div className="text-right">
-                          <div className="flex items-center space-x-1">
-                            <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                            <span className="text-sm font-semibold text-gray-900">{store.rating}</span>
-                            <span className="text-xs text-gray-500">({store.reviews})</span>
-                          </div>
-                          <p className="text-xs text-gray-600">{store.distance}</p>
-                        </div>
-                      </div>
-
-                      {/* Category and Status */}
-                      <div className="flex items-center space-x-2 mb-3">
-                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">{store.category}</span>
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          store.open 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {store.open ? 'Open Now' : 'Closed'}
+                        <span className="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">
+                          {seller.businessType}
                         </span>
-                        {store.tags.map((tag, tagIndex) => (
-                          <span key={tagIndex} className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full">
-                            {tag}
-                          </span>
-                        ))}
                       </div>
 
-                      {/* Offers */}
-                      <div className="mb-3">
-                        <div className="flex flex-wrap gap-1">
-                          {store.offers.map((offer, offerIndex) => (
-                            <span key={offerIndex} className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full">
-                              {offer}
-                            </span>
-                          ))}
+                      <div className="space-y-2 mb-4">
+                        <div className="flex items-center space-x-2 text-sm text-gray-600">
+                          <MapPin className="w-4 h-4" />
+                          <span className="line-clamp-1">{seller.address}</span>
+                        </div>
+                        <div className="flex items-center space-x-2 text-sm text-gray-600">
+                          <Phone className="w-4 h-4" />
+                          <span>{seller.phone}</span>
+                        </div>
+                        <div className="flex items-center space-x-2 text-sm text-gray-600">
+                          <Package className="w-4 h-4" />
+                          <span>{seller.stats.totalProducts} products available</span>
+                        </div>
+                      </div>
+
+                      {/* Stats */}
+                      <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div className="text-center p-3 bg-gray-50 rounded-lg">
+                          <div className="text-lg font-bold text-gray-900">{seller.stats.totalProducts}</div>
+                          <div className="text-xs text-gray-600">Products</div>
+                        </div>
+                        <div className="text-center p-3 bg-gray-50 rounded-lg">
+                          <div className="text-lg font-bold text-gray-900">{seller.stats.totalOrders}</div>
+                          <div className="text-xs text-gray-600">Orders</div>
                         </div>
                       </div>
 
                       {/* Action Buttons */}
                       <div className="flex space-x-2">
-                        <button className="flex-1 bg-blue-600 text-white py-2 px-3 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
-                          Visit Store
-                        </button>
-                        <button 
-                          className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                          aria-label="Get directions to store"
+                <button 
+                          className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-xl font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            viewSellerProducts(seller);
+                          }}
                         >
-                          <Navigation className="w-4 h-4" />
+                          <Eye className="w-4 h-4 mr-2" />
+                          View Products
                         </button>
                         <button 
-                          className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                          className="px-4 py-3 border border-gray-300 rounded-xl font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                           aria-label="Add store to favorites"
+                          onClick={(e) => e.stopPropagation()}
                         >
                           <Heart className="w-4 h-4" />
                 </button>
               </div>
             </div>
-          </div>
+                  </div>
+                ))}
               </div>
-              ))}
-              </div>
+            )}
 
-            {/* View More Stores Button */}
-            <div className="text-center mt-6">
-              <button className="bg-white text-blue-600 border-2 border-blue-600 py-3 px-8 rounded-lg font-medium hover:bg-blue-50 transition-colors">
-                View More Stores
-              </button>
+            {/* View All Stores Button */}
+            <div className="text-center mt-8">
+              <Link 
+                to="/browse" 
+                className="inline-flex items-center space-x-2 bg-white text-blue-600 border-2 border-blue-600 py-3 px-8 rounded-xl font-semibold hover:bg-blue-50 transition-colors"
+              >
+                <span>View All Stores</span>
+                <ArrowRight className="w-5 h-5" />
+              </Link>
             </div>
           </div>
         </section>
       </div>
+
+      {/* Quick View Modal */}
+      {showQuickView && selectedProduct && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-2xl font-bold text-gray-900">Quick View</h3>
+                  <button
+                onClick={() => {
+                  setShowQuickView(false);
+                  setSelectedProduct(null);
+                }}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+                title="Close quick view"
+                aria-label="Close quick view"
+              >
+                <X className="w-6 h-6" />
+                  </button>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8">
+              <div>
+                <img
+                  src={selectedProduct.image}
+                  alt={selectedProduct.name}
+                  className="w-full h-96 object-cover rounded-xl"
+                />
+                    </div>
+
+              <div className="space-y-4">
+                        <div>
+                  <h4 className="text-2xl font-bold text-gray-900 mb-2">{selectedProduct.name}</h4>
+                  <p className="text-gray-600 mb-4">{selectedProduct.brand}</p>
+                        </div>
+                
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center bg-yellow-50 px-3 py-2 rounded-full">
+                    <Star className="w-5 h-5 text-yellow-500 fill-current" />
+                    <span className="font-bold ml-2">{selectedProduct.rating.toFixed(1)}</span>
+                    <span className="text-gray-500 ml-1">({selectedProduct.reviews} reviews)</span>
+                          </div>
+                        </div>
+                
+                <div className="space-y-2">
+                  <div className="text-3xl font-bold text-gray-900">₹{selectedProduct.price.toLocaleString()}</div>
+                  {selectedProduct.originalPrice && selectedProduct.originalPrice > selectedProduct.price && (
+                    <div className="text-lg text-gray-500 line-through">
+                      ₹{selectedProduct.originalPrice.toLocaleString()}
+                    </div>
+                  )}
+                      </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-4">
+                    <span className="text-sm text-gray-600">Category:</span>
+                    <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                      {selectedProduct.category}
+                        </span>
+                      </div>
+
+                  <div className="flex items-center space-x-4">
+                    <span className="text-sm text-gray-600">Stock:</span>
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      selectedProduct.stock > 10 ? 'bg-green-100 text-green-800' :
+                      selectedProduct.stock > 0 ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-red-100 text-red-800'
+                    }`}>
+                      {selectedProduct.stock} available
+                            </span>
+                        </div>
+                      </div>
+
+                <div className="flex space-x-4">
+                        <button 
+                    onClick={() => addToCart(selectedProduct)}
+                    className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-6 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 flex items-center justify-center font-semibold"
+                        >
+                    <ShoppingCart className="w-5 h-5 mr-2" />
+                    Add to Cart
+                        </button>
+                        <button 
+                    onClick={() => toggleWishlist(selectedProduct.id)}
+                    className="px-4 py-3 border-2 border-gray-300 rounded-xl hover:border-red-500 hover:text-red-500 transition-colors"
+                    title={wishlist.includes(selectedProduct.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                    aria-label={wishlist.includes(selectedProduct.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                  >
+                    <Heart className={`w-5 h-5 ${
+                      wishlist.includes(selectedProduct.id) ? 'text-red-500 fill-current' : 'text-gray-400'
+                    }`} />
+                </button>
+              </div>
+            </div>
+          </div>
+              </div>
+              </div>
+      )}
 
       {/* Floating Mobile Seller Button */}
       <div className="fixed bottom-20 right-4 z-40 md:hidden">
@@ -725,35 +1080,35 @@ const HomePage: React.FC = () => {
         </Link>
           </div>
 
-      {/* Professional Footer */}
+      {/* Enhanced Professional Footer */}
       <footer className="bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
-        <div className="px-4 py-12 md:py-16">
+        <div className="px-4 py-16">
           <div className="max-w-7xl mx-auto">
             {/* Main Footer Content */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
               {/* Company Info */}
               <div className="lg:col-span-1">
-                <div className="flex items-center space-x-2 mb-4">
-                  <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
                     <span className="text-white font-bold text-lg">S</span>
                   </div>
                   <h3 className="text-2xl font-bold text-white">Showmyfit</h3>
                 </div>
-                <p className="text-gray-300 text-sm mb-4 leading-relaxed">
-                  Find your perfect fit with local fashion stores and boutiques. Style that fits you, crafted with care.
+                <p className="text-gray-300 text-sm mb-6 leading-relaxed">
+                  Your ultimate destination for local shopping. Connect with nearby stores, discover amazing products, and enjoy seamless shopping experiences.
                 </p>
                 <div className="flex space-x-4">
-                  <a href="#" className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors">
-                    <span className="text-sm">f</span>
+                  <a href="#" className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center hover:bg-blue-600 transition-all duration-300 hover:scale-110" title="Facebook">
+                    <span className="text-sm font-bold">f</span>
                   </a>
-                  <a href="#" className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors">
-                    <span className="text-sm">t</span>
+                  <a href="#" className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center hover:bg-blue-600 transition-all duration-300 hover:scale-110" title="Twitter">
+                    <span className="text-sm font-bold">t</span>
                   </a>
-                  <a href="#" className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors">
-                    <span className="text-sm">in</span>
+                  <a href="#" className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center hover:bg-blue-600 transition-all duration-300 hover:scale-110" title="LinkedIn">
+                    <span className="text-sm font-bold">in</span>
                   </a>
-                  <a href="#" className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors">
-                    <span className="text-sm">ig</span>
+                  <a href="#" className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center hover:bg-blue-600 transition-all duration-300 hover:scale-110" title="Instagram">
+                    <span className="text-sm font-bold">ig</span>
                   </a>
                 </div>
               </div>

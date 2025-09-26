@@ -1,12 +1,14 @@
-import { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Search, ShoppingBag, Heart, MapPin, Navigation, Star } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
+import { Search, ShoppingBag, Heart, MapPin, Navigation, Star, Package, Phone, Eye } from 'lucide-react';
+import { collection, query, getDocs } from 'firebase/firestore';
+import { db } from './firebase/config';
 import HomePage from './pages/HomePage';
-import ShopAuth from './pages/ShopAuth';
 import ShopDashboard from './pages/ShopDashboard';
 import AuthPage from './pages/AuthPage';
 import ProfilePage from './pages/ProfilePage';
 import BecomeSellerPage from './pages/BecomeSellerPage';
+import SellerProductsPage from './pages/SellerProductsPage';
 import AdminSetupPage from './pages/AdminSetupPage';
 import FixAdminEmailPage from './pages/FixAdminEmailPage';
 import AdminTestPage from './pages/AdminTestPage';
@@ -18,8 +20,10 @@ import SellerManagementPage from './pages/SellerManagementPage';
 import UserManagementPage from './pages/UserManagementPage';
 import OrderManagementPage from './pages/OrderManagementPage';
 import AdminSettingsPage from './pages/AdminSettingsPage';
+import AdminDashboard from './pages/AdminDashboard';
 import Navbar from './components/Navbar';
 import Button from './components/Button';
+import ScrollToTop from './components/ScrollToTop';
 import { AppProvider } from './context/AppContext';
 import { AuthProvider } from './contexts/AuthContext';
 
@@ -130,11 +134,14 @@ const BottomNavigation = () => {
 
 // Enhanced pages for bottom navigation
 const SearchPage = () => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [currentLocation, setCurrentLocation] = useState<string>('');
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [showNearbyStores, setShowNearbyStores] = useState(true);
+  const [sellers, setSellers] = useState<any[]>([]);
+  const [loadingSellers, setLoadingSellers] = useState(true);
   
   const categories = ['All', 'Men', 'Women', 'Kids', 'Shoes', 'Accessories'];
   
@@ -147,56 +154,53 @@ const SearchPage = () => {
     { id: 6, name: 'Designer Handbag', type: 'product', price: 199.99, store: 'Elite Boutique', category: 'Accessories', image: '👜' },
   ];
 
-  const nearbyStores = [
-    { 
-      name: 'Fashion Hub Store', 
-      category: 'Fashion', 
-      distance: '0.8 km', 
-      rating: 4.8, 
-      reviews: 124, 
-      image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=300&h=200&fit=crop',
-      address: '123 Main Street, Downtown',
-      open: true,
-      offers: ['20% off on all items', 'Free delivery'],
-      tags: ['Trending', 'Popular']
-    },
-    { 
-      name: 'Tech World Electronics', 
-      category: 'Electronics', 
-      distance: '1.2 km', 
-      rating: 4.6, 
-      reviews: 89, 
-      image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=300&h=200&fit=crop',
-      address: '456 Tech Avenue, Tech Park',
-      open: true,
-      offers: ['15% off on smartphones', 'Extended warranty'],
-      tags: ['New', 'Tech']
-    },
-    { 
-      name: 'Home & Living', 
-      category: 'Home', 
-      distance: '2.1 km', 
-      rating: 4.4, 
-      reviews: 67, 
-      image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=300&h=200&fit=crop',
-      address: '789 Home Street, Residential',
-      open: false,
-      offers: ['30% off on furniture', 'Free assembly'],
-      tags: ['Furniture', 'Decor']
-    },
-    { 
-      name: 'Beauty Paradise', 
-      category: 'Beauty', 
-      distance: '1.5 km', 
-      rating: 4.7, 
-      reviews: 156, 
-      image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=300&h=200&fit=crop',
-      address: '321 Beauty Lane, Mall Area',
-      open: true,
-      offers: ['Buy 2 Get 1 Free', 'Free consultation'],
-      tags: ['Luxury', 'Premium']
-    }
-  ];
+  // Fetch sellers from database
+  useEffect(() => {
+    const fetchSellers = async () => {
+      setLoadingSellers(true);
+      try {
+        const usersQuery = query(collection(db, 'users'));
+        const snapshot = await getDocs(usersQuery);
+        
+        const sellersList: any[] = [];
+        snapshot.docs.forEach((doc) => {
+          const userData = doc.data();
+          if (userData.role === 'shop' && userData.status === 'approved') {
+            sellersList.push({
+              id: doc.id,
+              name: userData.name || 'Unknown Seller',
+              email: userData.email || 'No email',
+              phone: userData.phone || 'No phone',
+              businessName: userData.businessName || 'No business name',
+              businessType: userData.businessType || 'No type',
+              address: userData.address || 'No address',
+              stats: userData.stats || {
+                totalProducts: 0,
+                totalSales: 0,
+                totalOrders: 0,
+                rating: 0
+              },
+              createdAt: userData.createdAt
+            });
+          }
+        });
+        
+        setSellers(sellersList);
+      } catch (error) {
+        console.error('Error loading sellers:', error);
+      } finally {
+        setLoadingSellers(false);
+      }
+    };
+
+    fetchSellers();
+  }, []);
+
+
+  // View seller products
+  const viewSellerProducts = (seller: any) => {
+    navigate(`/seller/${seller.id}`);
+  };
 
   const getCategoryIcon = (cat: string) => {
     switch(cat) {
@@ -220,7 +224,7 @@ const SearchPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-cream via-white to-primary-50">
       <Navbar userRole="user" />
-      <div className="main-content px-4 py-6 pt-20">
+      <div className="main-content px-4 py-6 pt-28">
         <div className="max-w-6xl mx-auto">
           {/* Hero Section */}
           <div className="text-center mb-10">
@@ -360,94 +364,101 @@ const SearchPage = () => {
                 </div>
               </div>
               
-              <div className="space-y-4">
-                {nearbyStores.map((store, index) => (
-                  <div key={index} className="bg-white rounded-xl p-4 shadow-lg hover:shadow-xl transition-shadow">
-                    <div className="flex space-x-4">
-                      {/* Store Image */}
-                      <div className="relative">
-                        <img 
-                          src={store.image} 
-                          alt={store.name}
-                          className="w-20 h-20 md:w-24 md:h-24 object-cover rounded-lg"
-                        />
-                        <div className={`absolute -top-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center ${
-                          store.open ? 'bg-green-500' : 'bg-red-500'
-                        }`}>
-                          <div className={`w-2 h-2 rounded-full ${
-                            store.open ? 'bg-white' : 'bg-white'
-                          }`}></div>
-                        </div>
-                      </div>
-
-                      {/* Store Info */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between mb-2">
-                          <div>
-                            <h3 className="font-bold text-gray-900 text-sm md:text-base line-clamp-1">{store.name}</h3>
-                            <p className="text-xs text-gray-600">{store.address}</p>
+              {loadingSellers ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                </div>
+              ) : sellers.length === 0 ? (
+                <div className="text-center py-8">
+                  <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No stores found</h3>
+                  <p className="text-gray-600">No approved stores are available at the moment.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {sellers.map((seller) => (
+                    <div key={seller.id} className="bg-white rounded-xl p-4 shadow-lg hover:shadow-xl transition-shadow cursor-pointer" onClick={() => viewSellerProducts(seller)}>
+                      <div className="flex space-x-4">
+                        {/* Store Image */}
+                        <div className="relative">
+                          <div className="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white text-2xl font-bold">
+                            {seller.businessName.charAt(0).toUpperCase()}
                           </div>
-                          <div className="text-right">
-                            <div className="flex items-center space-x-1">
-                              <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                              <span className="text-sm font-semibold text-gray-900">{store.rating}</span>
-                              <span className="text-xs text-gray-500">({store.reviews})</span>
+                          <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center bg-green-500">
+                            <div className="w-2 h-2 rounded-full bg-white"></div>
+                          </div>
+                        </div>
+
+                        {/* Store Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between mb-2">
+                            <div>
+                              <h3 className="font-bold text-gray-900 text-sm md:text-base line-clamp-1">{seller.businessName}</h3>
+                              <p className="text-xs text-gray-600">{seller.address}</p>
+                              <p className="text-xs text-gray-500">Owner: {seller.name}</p>
                             </div>
-                            <p className="text-xs text-gray-600">{store.distance}</p>
+                            <div className="text-right">
+                              <div className="flex items-center space-x-1">
+                                <Star className="w-3 h-3 text-yellow-400 fill-current" />
+                                <span className="text-sm font-semibold text-gray-900">{seller.stats.rating.toFixed(1)}</span>
+                                <span className="text-xs text-gray-500">({seller.stats.totalOrders})</span>
+                              </div>
+                              <p className="text-xs text-gray-600">{seller.stats.totalProducts} products</p>
+                            </div>
                           </div>
-                        </div>
 
-                        {/* Category and Status */}
-                        <div className="flex items-center space-x-2 mb-3">
-                          <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">{store.category}</span>
-                          <span className={`text-xs px-2 py-1 rounded-full ${
-                            store.open 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-red-100 text-red-800'
-                          }`}>
-                            {store.open ? 'Open Now' : 'Closed'}
-                          </span>
-                          {store.tags.map((tag, tagIndex) => (
-                            <span key={tagIndex} className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full">
-                              {tag}
+                          {/* Category and Status */}
+                          <div className="flex items-center space-x-2 mb-3">
+                            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">{seller.businessType}</span>
+                            <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                              Active
                             </span>
-                          ))}
-                        </div>
-
-                        {/* Offers */}
-                        <div className="mb-3">
-                          <div className="flex flex-wrap gap-1">
-                            {store.offers.map((offer, offerIndex) => (
-                              <span key={offerIndex} className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full">
-                                {offer}
-                              </span>
-                            ))}
+                            <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full">
+                              Verified
+                            </span>
                           </div>
-                        </div>
 
-                        {/* Action Buttons */}
-                        <div className="flex space-x-2">
-                          <button className="flex-1 bg-blue-600 text-white py-2 px-3 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
-                            Visit Store
-                          </button>
-                          <button 
-                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                            aria-label="Get directions to store"
-                          >
-                            <Navigation className="w-4 h-4" />
-                          </button>
-                          <button 
-                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                            aria-label="Add store to favorites"
-                          >
-                            <Heart className="w-4 h-4" />
-                          </button>
+                          {/* Contact Info */}
+                          <div className="mb-3">
+                            <div className="flex items-center space-x-2 text-xs text-gray-600">
+                              <Phone className="w-3 h-3" />
+                              <span>{seller.phone}</span>
+                            </div>
+                          </div>
+
+                          {/* Action Buttons */}
+                          <div className="flex space-x-2">
+                            <button 
+                              className="flex-1 bg-blue-600 text-white py-2 px-3 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center justify-center"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                viewSellerProducts(seller);
+                              }}
+                            >
+                              <Eye className="w-4 h-4 mr-1" />
+                              View Products
+                            </button>
+                            <button 
+                              className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                              aria-label="Get directions to store"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Navigation className="w-4 h-4" />
+                            </button>
+                            <button 
+                              className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                              aria-label="Add store to favorites"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Heart className="w-4 h-4" />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -498,6 +509,7 @@ const SearchPage = () => {
           )}
         </div>
       </div>
+
     </div>
   );
 };
@@ -526,7 +538,7 @@ const CartPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-cream via-white to-primary-50">
       <Navbar userRole="user" />
-      <div className="main-content px-4 py-6 pt-20">
+      <div className="main-content px-4 py-6 pt-28">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="text-center mb-10">
@@ -661,7 +673,7 @@ const WishlistPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-cream via-white to-primary-50">
       <Navbar userRole="user" />
-      <div className="main-content px-4 py-6 pt-20">
+      <div className="main-content px-4 py-6 pt-28">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="text-center mb-10">
@@ -761,15 +773,18 @@ function App() {
     <AppProvider>
       <Router>
           <div className="min-h-screen bg-gradient-to-br from-cream via-white to-primary-50 font-sans">
+          <ScrollToTop />
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/browse" element={<SearchPage />} />
               <Route path="/trending" element={<SearchPage />} />
               <Route path="/categories" element={<SearchPage />} />
+              <Route path="/seller/:sellerId" element={<SellerProductsPage />} />
               <Route path="/login" element={<AuthPage />} />
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/shop/auth" element={<BecomeSellerPage />} />
             <Route path="/shop/dashboard" element={<ShopDashboard />} />
+            <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/setup" element={<AdminSetupPage />} />
             <Route path="/admin/fix-email" element={<FixAdminEmailPage />} />
             <Route path="/admin/test" element={<AdminTestPage />} />

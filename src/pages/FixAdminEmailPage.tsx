@@ -33,10 +33,10 @@ const FixAdminEmailPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 admin-content">
       <Navbar userRole="admin" />
       
-      <div className="main-content pt-16">
+      <div className="main-content pt-24">
         <div className="min-h-screen flex items-center justify-center px-4">
           <div className="max-w-md w-full">
             <div className="bg-white rounded-2xl shadow-xl p-8">

@@ -70,7 +70,7 @@ const OrderManagementPage: React.FC = () => {
   // Check if user is admin
   if (!currentUser || userData?.role !== 'admin') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50">
+      <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 admin-content">
         <Navbar />
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-md mx-auto bg-white rounded-2xl shadow-xl p-8 text-center">
@@ -180,7 +180,7 @@ const OrderManagementPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 admin-content">
       <Navbar />
       
       <div className="container mx-auto px-4 py-8">
@@ -230,51 +230,6 @@ const OrderManagementPage: React.FC = () => {
           </div>
         )}
 
-        {/* Search and Filter */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 mb-8">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                placeholder="Search orders by number, customer name, or email..."
-              />
-            </div>
-            <div className="relative">
-              <Filter className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="pl-10 pr-8 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent appearance-none bg-white"
-              >
-                <option value="all">All Status</option>
-                <option value="pending">Pending</option>
-                <option value="confirmed">Confirmed</option>
-                <option value="shipped">Shipped</option>
-                <option value="delivered">Delivered</option>
-                <option value="cancelled">Cancelled</option>
-                <option value="refunded">Refunded</option>
-              </select>
-            </div>
-            <div className="relative">
-              <Filter className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-              <select
-                value={filterPaymentStatus}
-                onChange={(e) => setFilterPaymentStatus(e.target.value)}
-                className="pl-10 pr-8 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent appearance-none bg-white"
-              >
-                <option value="all">All Payment</option>
-                <option value="pending">Payment Pending</option>
-                <option value="paid">Paid</option>
-                <option value="failed">Payment Failed</option>
-                <option value="refunded">Refunded</option>
-              </select>
-            </div>
-          </div>
-        </div>
 
         {/* Orders List */}
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">

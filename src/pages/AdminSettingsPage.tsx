@@ -75,7 +75,7 @@ const AdminSettingsPage: React.FC = () => {
   // Check if user is admin
   if (!currentUser || userData?.role !== 'admin') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50">
+      <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 admin-content">
         <Navbar />
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-md mx-auto bg-white rounded-2xl shadow-xl p-8 text-center">
@@ -95,28 +95,48 @@ const AdminSettingsPage: React.FC = () => {
   const loadSettings = async () => {
     setLoading(true);
     try {
+      console.log('Loading admin settings...');
+      
       const settingsQuery = query(collection(db, 'adminSettings'));
       const snapshot = await getDocs(settingsQuery);
       
+      console.log('Settings query result:', {
+        docsCount: snapshot.docs.length,
+        empty: snapshot.empty
+      });
+      
       if (snapshot.empty) {
+        console.log('No settings found, creating default settings');
         // Create default settings if none exist
         const defaultSettings = {
           ...settings,
           createdAt: new Date(),
           updatedAt: new Date()
         };
-        await addDoc(collection(db, 'adminSettings'), defaultSettings);
-        setSettings(defaultSettings);
+        const docRef = await addDoc(collection(db, 'adminSettings'), defaultSettings);
+        console.log('Default settings created with ID:', docRef.id);
+        setSettings({
+          ...defaultSettings,
+          id: docRef.id
+        });
       } else {
         const settingsData = snapshot.docs[0].data() as AdminSettings;
+        console.log('Settings loaded:', {
+          id: snapshot.docs[0].id,
+          data: settingsData
+        });
         setSettings({
           ...settingsData,
           id: snapshot.docs[0].id
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading settings:', error);
-      setMessage('Error loading settings');
+      console.error('Error details:', {
+        code: error.code,
+        message: error.message
+      });
+      setMessage(`Error loading settings: ${error.message}`);
       setIsSuccess(false);
     } finally {
       setLoading(false);
@@ -131,23 +151,43 @@ const AdminSettingsPage: React.FC = () => {
   const saveSettings = async () => {
     setSaving(true);
     try {
+      // Check if user is authenticated
+      if (!currentUser) {
+        setMessage('You must be logged in to save settings');
+        setIsSuccess(false);
+        return;
+      }
+
+      console.log('Saving admin settings:', settings);
+      
       const settingsData = {
         ...settings,
         updatedAt: new Date()
       };
 
       if (settings.id) {
+        console.log('Updating existing settings document:', settings.id);
         await updateDoc(doc(db, 'adminSettings', settings.id), settingsData);
+        console.log('Settings updated successfully');
       } else {
-        await addDoc(collection(db, 'adminSettings'), settingsData);
+        console.log('Creating new settings document');
+        const docRef = await addDoc(collection(db, 'adminSettings'), settingsData);
+        console.log('Settings created successfully with ID:', docRef.id);
+        // Update local state with the new ID
+        setSettings(prev => ({ ...prev, id: docRef.id }));
       }
 
       setMessage('Settings saved successfully!');
       setIsSuccess(true);
       setTimeout(() => setMessage(''), 3000);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving settings:', error);
-      setMessage('Error saving settings');
+      console.error('Error details:', {
+        code: error.code,
+        message: error.message,
+        settings: settings
+      });
+      setMessage(`Error saving settings: ${error.message}`);
       setIsSuccess(false);
     } finally {
       setSaving(false);
@@ -162,7 +202,7 @@ const AdminSettingsPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 admin-content">
       <Navbar />
       
       <div className="container mx-auto px-4 py-8">

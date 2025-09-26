@@ -18,10 +18,19 @@ const AdminTestPage: React.FC = () => {
     
     setLoading(true);
     try {
+      console.log('Checking admin status for:', currentUser.email);
+      
       // Check if email exists in admins collection
       const adminsQuery = query(collection(db, 'admins'), where('email', '==', currentUser.email));
       const adminsSnapshot = await getDocs(adminsQuery);
       const adminExists = !adminsSnapshot.empty;
+      
+      console.log('Admin query result:', {
+        email: currentUser.email,
+        adminExists,
+        docsCount: adminsSnapshot.docs.length,
+        userRole: userData?.role
+      });
       
       setAdminCheck({
         email: currentUser.email,
@@ -29,9 +38,17 @@ const AdminTestPage: React.FC = () => {
         userRole: userData?.role,
         adminData: adminExists ? adminsSnapshot.docs[0].data() : null
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error checking admin status:', error);
-      setAdminCheck({ error: 'Failed to check admin status' });
+      console.error('Error details:', {
+        code: error.code,
+        message: error.message,
+        email: currentUser?.email
+      });
+      setAdminCheck({ 
+        error: `Failed to check admin status: ${error.message}`,
+        email: currentUser?.email || 'Unknown'
+      });
     } finally {
       setLoading(false);
     }
@@ -45,7 +62,7 @@ const AdminTestPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50">
         <Navbar userRole="user" />
-        <div className="main-content pt-16">
+        <div className="main-content pt-24">
           <div className="min-h-screen flex items-center justify-center px-4">
             <div className="text-center">
               <h1 className="text-2xl font-bold text-gray-900 mb-4">Please Sign In</h1>
@@ -64,7 +81,7 @@ const AdminTestPage: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50">
       <Navbar userRole={userData?.role || 'user'} />
       
-      <div className="main-content pt-16">
+      <div className="main-content pt-24">
         <div className="min-h-screen px-4 py-8">
           <div className="max-w-4xl mx-auto">
             <div className="bg-white rounded-2xl shadow-xl p-8">

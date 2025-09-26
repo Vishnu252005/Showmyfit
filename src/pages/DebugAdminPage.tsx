@@ -77,7 +77,7 @@ const DebugAdminPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50">
         <Navbar userRole="user" />
-        <div className="main-content pt-16">
+        <div className="main-content pt-24">
           <div className="min-h-screen flex items-center justify-center px-4">
             <div className="text-center">
               <h1 className="text-2xl font-bold text-gray-900 mb-4">Please Sign In</h1>
@@ -96,7 +96,7 @@ const DebugAdminPage: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50">
       <Navbar userRole={userData?.role || 'user'} />
       
-      <div className="main-content pt-16">
+      <div className="main-content pt-24">
         <div className="min-h-screen px-4 py-8">
           <div className="max-w-6xl mx-auto">
             <div className="bg-white rounded-2xl shadow-xl p-8">

@@ -52,7 +52,7 @@ const UserManagementPage: React.FC = () => {
   // Check if user is admin
   if (!currentUser || userData?.role !== 'admin') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50">
+      <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 admin-content">
         <Navbar />
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-md mx-auto bg-white rounded-2xl shadow-xl p-8 text-center">
@@ -124,8 +124,8 @@ const UserManagementPage: React.FC = () => {
 
   // Filter users
   const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (user.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                         (user.email?.toLowerCase() || '').includes(searchTerm.toLowerCase());
     const matchesRole = filterRole === 'all' || user.role === filterRole;
     const matchesStatus = filterStatus === 'all' || user.status === filterStatus;
     return matchesSearch && matchesRole && matchesStatus;
@@ -159,7 +159,7 @@ const UserManagementPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 admin-content">
       <Navbar />
       
       <div className="container mx-auto px-4 py-8">
@@ -203,47 +203,6 @@ const UserManagementPage: React.FC = () => {
           </div>
         )}
 
-        {/* Search and Filter */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 mb-8">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                placeholder="Search users by name or email..."
-              />
-            </div>
-            <div className="relative">
-              <Filter className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-              <select
-                value={filterRole}
-                onChange={(e) => setFilterRole(e.target.value)}
-                className="pl-10 pr-8 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent appearance-none bg-white"
-              >
-                <option value="all">All Roles</option>
-                <option value="user">Users</option>
-                <option value="shop">Sellers</option>
-                <option value="admin">Admins</option>
-              </select>
-            </div>
-            <div className="relative">
-              <Filter className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="pl-10 pr-8 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent appearance-none bg-white"
-              >
-                <option value="all">All Status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="suspended">Suspended</option>
-              </select>
-            </div>
-          </div>
-        </div>
 
         {/* Users List */}
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
@@ -290,12 +249,12 @@ const UserManagementPage: React.FC = () => {
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-12 w-12">
                             <div className="h-12 w-12 rounded-full bg-gradient-to-r from-red-500 to-orange-500 flex items-center justify-center text-white font-bold text-lg">
-                              {user.name.charAt(0).toUpperCase()}
+                              {(user.name || 'U').charAt(0).toUpperCase()}
                             </div>
                           </div>
                           <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                            <div className="text-sm text-gray-500">{user.email}</div>
+                            <div className="text-sm font-medium text-gray-900">{user.name || 'Unknown User'}</div>
+                            <div className="text-sm text-gray-500">{user.email || 'No email'}</div>
                             {user.phone && (
                               <div className="text-sm text-gray-500 flex items-center">
                                 <Phone className="w-3 h-3 mr-1" />
@@ -401,11 +360,11 @@ const UserManagementPage: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Name</label>
-                        <p className="text-gray-900">{selectedUser.name}</p>
+                        <p className="text-gray-900">{selectedUser.name || 'Unknown User'}</p>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Email</label>
-                        <p className="text-gray-900">{selectedUser.email}</p>
+                        <p className="text-gray-900">{selectedUser.email || 'No email'}</p>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Phone</label>

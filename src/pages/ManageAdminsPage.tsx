@@ -18,18 +18,35 @@ const ManageAdminsPage: React.FC = () => {
 
   // Load admin emails from user profile
   const loadAdminEmails = async () => {
-    if (!currentUser) return;
+    if (!currentUser) {
+      console.log('No current user, cannot load admin emails');
+      return;
+    }
     
     setLoading(true);
     try {
+      console.log('Loading admin emails for user:', currentUser.uid);
+      
       const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
       if (userDoc.exists()) {
         const userData = userDoc.data();
+        console.log('User data loaded:', {
+          adminEmails: userData.adminEmails,
+          role: userData.role
+        });
         setAdminEmails(userData.adminEmails || []);
+      } else {
+        console.log('User document does not exist');
+        setAdminEmails([]);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading admin emails:', error);
-      setMessage('Error loading admin emails');
+      console.error('Error details:', {
+        code: error.code,
+        message: error.message,
+        userId: currentUser?.uid
+      });
+      setMessage(`Error loading admin emails: ${error.message}`);
       setIsSuccess(false);
     } finally {
       setLoading(false);
@@ -58,19 +75,37 @@ const ManageAdminsPage: React.FC = () => {
   };
 
   const saveAdminEmails = async () => {
-    if (!currentUser) return;
+    if (!currentUser) {
+      setMessage('You must be logged in to save admin emails');
+      setIsSuccess(false);
+      return;
+    }
     
     setLoading(true);
     try {
+      console.log('Saving admin emails:', {
+        userId: currentUser.uid,
+        emails: adminEmails
+      });
+      
       await setDoc(doc(db, 'users', currentUser.uid), {
-        adminEmails: adminEmails
+        adminEmails: adminEmails,
+        updatedAt: new Date()
       }, { merge: true });
       
+      console.log('Admin emails saved successfully');
       setMessage('Admin emails saved successfully!');
       setIsSuccess(true);
-    } catch (error) {
+      setTimeout(() => setMessage(''), 3000);
+    } catch (error: any) {
       console.error('Error saving admin emails:', error);
-      setMessage('Error saving admin emails');
+      console.error('Error details:', {
+        code: error.code,
+        message: error.message,
+        userId: currentUser?.uid,
+        emails: adminEmails
+      });
+      setMessage(`Error saving admin emails: ${error.message}`);
       setIsSuccess(false);
     } finally {
       setLoading(false);
@@ -81,7 +116,7 @@ const ManageAdminsPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50">
         <Navbar userRole="user" />
-        <div className="main-content pt-16">
+        <div className="main-content pt-24">
           <div className="min-h-screen flex items-center justify-center px-4">
             <div className="text-center">
               <h1 className="text-2xl font-bold text-gray-900 mb-4">Please Sign In</h1>
@@ -97,10 +132,10 @@ const ManageAdminsPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 admin-content">
       <Navbar userRole="admin" />
       
-      <div className="main-content pt-16">
+      <div className="main-content pt-24">
         <div className="min-h-screen px-4 py-8">
           <div className="max-w-4xl mx-auto">
             <div className="bg-white rounded-2xl shadow-xl p-8">

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   Shield, Users, Store, BarChart3, Settings, LogOut, 
@@ -39,8 +39,33 @@ const AdminProfilePage: React.FC = () => {
   };
 
   const handleSave = async () => {
-    // TODO: Implement save functionality
-    setIsEditing(false);
+    try {
+      // Update user data in Firestore
+      const { doc, updateDoc } = await import('firebase/firestore');
+      const { db } = await import('../firebase/config');
+      
+      if (currentUser?.uid) {
+        await updateDoc(doc(db, 'users', currentUser.uid), {
+          displayName: editData.displayName,
+          phone: editData.phone,
+          address: editData.address,
+          updatedAt: new Date()
+        });
+        
+        // Update local state
+        if (userData) {
+          userData.displayName = editData.displayName;
+          userData.phone = editData.phone;
+          userData.address = editData.address;
+        }
+        
+        setIsEditing(false);
+        alert('Profile updated successfully!');
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      alert('Failed to update profile. Please try again.');
+    }
   };
 
   const handleCancel = () => {
@@ -52,17 +77,30 @@ const AdminProfilePage: React.FC = () => {
     });
   };
 
+  // Handle authentication redirect
+  useEffect(() => {
+    if (!currentUser) {
+      navigate('/auth');
+    }
+  }, [currentUser, navigate]);
+
   if (!currentUser) {
-    // Redirect to auth page instead of showing "Please Sign In"
-    navigate('/auth');
-    return null;
+    // Show loading while redirecting
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Redirecting to login...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 admin-content">
       <Navbar userRole="admin" />
       
-      <div className="main-content pt-16">
+      <div className="main-content pt-24">
         <div className="min-h-screen px-4 py-8">
           <div className="max-w-7xl mx-auto">
             {/* Admin Header */}
@@ -413,7 +451,7 @@ const AdminProfilePage: React.FC = () => {
                     <Link to="/admin" className="block">
                       <button className="w-full text-left p-3 rounded-lg bg-white/20 hover:bg-white/30 transition-colors">
                         <BarChart3 className="w-5 h-5 mr-3 inline" />
-                        Analytics Dashboard
+                        Admin Dashboard
                       </button>
                     </Link>
                     <Link to="/admin/users" className="block">

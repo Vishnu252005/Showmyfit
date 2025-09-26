@@ -9,6 +9,7 @@ import {
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { auth, db } from './config';
+import { isSellerEmail } from './sellerSetup';
 
 export interface UserData {
   uid: string;
@@ -124,6 +125,19 @@ export const getUserData = async (uid: string, userEmail?: string): Promise<User
         console.log('Admin role assigned to:', emailToCheck);
       } else {
         console.log('User is not an admin. Email:', emailToCheck, 'Admin emails:', userData.adminEmails);
+      }
+
+      // Check if user is a seller by checking if their email is in the sellers collection
+      if (emailToCheck && userData.role !== 'admin') {
+        const isSeller = await isSellerEmail(emailToCheck);
+        if (isSeller) {
+          // Update user role to shop (seller)
+          userData.role = 'shop';
+          await updateUserData(uid, { role: 'shop' });
+          console.log('Seller role assigned to:', emailToCheck);
+        } else {
+          console.log('User is not a seller. Email:', emailToCheck);
+        }
       }
       
       return userData;

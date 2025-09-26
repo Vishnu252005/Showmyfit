@@ -221,7 +221,7 @@ const BecomeSellerPage: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <Navbar userRole="user" />
       
-      <div className="main-content pt-16">
+      <div className="main-content pt-24">
         {/* Hero Section */}
         <section className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-16">
           <div className="max-w-7xl mx-auto px-4">
@@ -344,16 +344,16 @@ const BecomeSellerPage: React.FC = () => {
                       
                       // Business Information
                       businessName: 'Smith Electronics Store',
-                      businessType: 'Electronics Retail',
+                      businessType: 'Electronics & Gadgets', // Updated to match dropdown option
                       businessDescription: 'Leading electronics retailer specializing in smartphones, laptops, and accessories with 5+ years of experience.',
                       businessAddress: '123 Business Street, Electronics Market, Mumbai, Maharashtra 400001',
                       businessPhone: '+91 9876543210',
                       businessEmail: 'business@smithstore.com',
                       
                       // Business Details
-                      yearsInBusiness: '5',
-                      numberOfEmployees: '15',
-                      annualRevenue: '5000000',
+                      yearsInBusiness: '5-10', // Updated to match dropdown option
+                      numberOfEmployees: '6-20', // Updated to match dropdown option
+                      annualRevenue: '1Cr-5Cr', // Updated to match dropdown option
                       website: 'https://smithstore.com',
                       
                       // Documents
@@ -363,7 +363,7 @@ const BecomeSellerPage: React.FC = () => {
                       ifscCode: 'SBIN0001234',
                       
                       // Categories
-                      categories: ['electronics', 'fashion', 'home'],
+                      categories: ['Electronics', 'Mobile & Accessories', 'Men\'s Clothing', 'Women\'s Clothing', 'Shoes & Footwear', 'Accessories', 'Beauty Products', 'Sports & Fitness'],
                       
                       // Terms
                       agreeToTerms: true
