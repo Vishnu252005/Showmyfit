@@ -1,27 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
-  Store, ShoppingBag, Shield, MapPin, Users, Package, Star, Zap, Heart, Clock, 
-  Navigation, Search, Filter, Truck, Award, ArrowRight, Sparkles, TrendingUp, 
-  Globe, ShieldCheck, ChevronRight, Grid3X3, Menu, Bell, User, Eye, Share2, 
-  Plus, Minus, Check, X, ThumbsUp, MessageCircle, ExternalLink, ShoppingCart, Phone,
-  Play, Gift, Headphones, Camera, Laptop, Smartphone, Home, Car, Gamepad2, 
-  Shirt, Watch, BookOpen, Music, Coffee, Utensils, Wrench, Flower2
+  MapPin, Package, Star, Heart, Clock, 
+  ArrowRight, Sparkles, Eye, ShoppingCart, Phone, MapIcon, ThumbsUp, X
 } from 'lucide-react';
 import Navbar from '../components/layout/Navbar';
-import Button from '../components/ui/Button';
 import { collection, query, getDocs } from 'firebase/firestore';
 import { db } from '../firebase/config';
+import { getCurrentLocationWithDetails, sortStoresByDistance, parseAddressToCoordinates } from '../utils/distance';
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [searchQuery, setSearchQuery] = useState('');
   const [isLoaded, setIsLoaded] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<string>('');
   const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [locationError, setLocationError] = useState<string>('');
+  const [nearbyStores, setNearbyStores] = useState<any[]>([]);
+  const [showNearbyStores, setShowNearbyStores] = useState(false);
+  const [showManualLocation, setShowManualLocation] = useState(false);
+  const [manualLocation, setManualLocation] = useState<string>('');
   const [wishlist, setWishlist] = useState<string[]>([]);
-  const [cartItems, setCartItems] = useState<{[key: string]: number}>({});
   const [showQuickView, setShowQuickView] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [sellers, setSellers] = useState<any[]>([]);
@@ -172,6 +170,72 @@ const HomePage: React.FC = () => {
     fetchSellers();
   }, []);
 
+  // Get current location
+  const getCurrentLocation = async () => {
+    setIsGettingLocation(true);
+    setLocationError('');
+    setShowManualLocation(false);
+    
+    try {
+      const locationData = await getCurrentLocationWithDetails();
+      
+      if (locationData.error) {
+        setLocationError(locationData.error);
+        setCurrentLocation('Location unavailable');
+        setShowManualLocation(true); // Show manual input option on error
+      } else {
+        // Store coordinates for distance calculations
+        setCurrentLocation(locationData.address || 'Current location');
+        
+        // Sort stores by distance if we have coordinates
+        if (sellers.length > 0 && locationData.coordinates) {
+          const sortedStores = sortStoresByDistance(
+            sellers, 
+            locationData.coordinates.latitude, 
+            locationData.coordinates.longitude
+          );
+          setNearbyStores(sortedStores.slice(0, 6)); // Show top 6 nearby stores
+          setShowNearbyStores(true);
+        }
+      }
+    } catch (error) {
+      console.error('Error getting location:', error);
+      setLocationError('Failed to get location');
+      setCurrentLocation('Location unavailable');
+      setShowManualLocation(true); // Show manual input option on error
+    } finally {
+      setIsGettingLocation(false);
+    }
+  };
+
+  // Handle manual location input
+  const handleManualLocation = () => {
+    if (!manualLocation.trim()) {
+      setLocationError('Please enter a city name');
+      return;
+    }
+
+    const coordinates = parseAddressToCoordinates(manualLocation);
+    if (coordinates) {
+      setCurrentLocation(manualLocation);
+      setLocationError('');
+      setShowManualLocation(false);
+      
+      // Sort stores by distance using manual location
+      if (sellers.length > 0) {
+        const sortedStores = sortStoresByDistance(
+          sellers, 
+          coordinates.latitude, 
+          coordinates.longitude
+        );
+        setNearbyStores(sortedStores.slice(0, 6));
+        setShowNearbyStores(true);
+      }
+    } else {
+      setLocationError('City not found. Please try a major city name like Mumbai, Delhi, Bangalore, etc.');
+    }
+  };
+
   // View seller products
   const viewSellerProducts = (seller: any) => {
     navigate(`/seller/${seller.id}`);
@@ -200,10 +264,7 @@ const HomePage: React.FC = () => {
   };
 
   const addToCart = (product: any) => {
-    setCartItems(prev => ({
-      ...prev,
-      [product.id]: (prev[product.id] || 0) + 1
-    }));
+    console.log('Added to cart:', product);
   };
 
   const quickViewProduct = (product: any) => {
@@ -280,6 +341,83 @@ const HomePage: React.FC = () => {
       
       {/* Main Content */}
       <div className="main-content pt-24">
+        {/* Location Section */}
+        <section className="bg-white border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <MapPin className="w-5 h-5 text-blue-600" />
+                  <span className="text-sm text-gray-600">Your Location:</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {currentLocation || 'Not detected'}
+                  </span>
+                </div>
+                {locationError && (
+                  <div className="text-xs text-red-600 bg-red-50 px-3 py-2 rounded-lg border border-red-200">
+                    <div className="font-medium">{locationError}</div>
+                    {locationError.includes('unavailable') && (
+                      <div className="mt-1 text-red-500">
+                        💡 Try entering your city manually below
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex flex-col space-y-2">
+                <button
+                  onClick={getCurrentLocation}
+                  disabled={isGettingLocation}
+                  className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors"
+                >
+                  {isGettingLocation ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <span className="text-sm">Getting Location...</span>
+                    </>
+                  ) : (
+                    <>
+                      <MapIcon className="w-4 h-4" />
+                      <span className="text-sm">Find Nearby Stores</span>
+                    </>
+                  )}
+                </button>
+                
+                {/* Manual Location Input - Show when GPS fails */}
+                {showManualLocation && (
+                  <div className="flex items-center space-x-2 bg-gray-50 p-3 rounded-lg border">
+                    <input
+                      type="text"
+                      placeholder="Enter city name (e.g., Mumbai, Delhi)"
+                      value={manualLocation}
+                      onChange={(e) => setManualLocation(e.target.value)}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onKeyPress={(e) => e.key === 'Enter' && handleManualLocation()}
+                    />
+                    <button
+                      onClick={handleManualLocation}
+                      className="bg-green-600 text-white px-3 py-2 rounded-md text-sm hover:bg-green-700 transition-colors"
+                    >
+                      Use
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowManualLocation(false);
+                        setLocationError('');
+                        setManualLocation('');
+                      }}
+                      className="bg-gray-500 text-white px-3 py-2 rounded-md text-sm hover:bg-gray-600 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Quick Category Bar */}
         <section className="bg-white border-b border-gray-200 mt-8">
           <div className="max-w-7xl mx-auto px-4 py-3">
@@ -369,7 +507,7 @@ const HomePage: React.FC = () => {
             
             {/* Mobile-style Category Grid */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {categories.slice(0, 8).map((category, index) => (
+              {categories.slice(0, 8).map((category) => (
                 <Link
                   key={category.name}
                   to="/categories"
@@ -398,7 +536,7 @@ const HomePage: React.FC = () => {
             
             {/* Show more categories on larger screens */}
             <div className="hidden lg:grid grid-cols-6 gap-4 mt-6">
-              {categories.slice(8).map((category, index) => (
+              {categories.slice(8).map((category) => (
                 <Link
                   key={category.name}
                   to="/categories"
@@ -1065,6 +1203,123 @@ const HomePage: React.FC = () => {
           </div>
         </section>
 
+        {/* Nearby Stores Section - Only show when location is detected */}
+        {showNearbyStores && nearbyStores.length > 0 && (
+          <section className="py-12 bg-gradient-to-br from-green-50 to-emerald-100">
+            <div className="max-w-7xl mx-auto px-4">
+              <div className="text-center mb-12">
+                <div className="flex items-center justify-center space-x-3 mb-4">
+                  <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center">
+                    <MapPin className="w-6 h-6 text-white" />
+                  </div>
+                  <h2 className="text-3xl font-bold text-gray-900">Stores Near You</h2>
+                </div>
+                <p className="text-gray-600 text-lg">
+                  Found {nearbyStores.length} stores near {currentLocation}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {nearbyStores.map((seller) => (
+                  <div key={seller.id} className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group cursor-pointer" onClick={() => viewSellerProducts(seller)}>
+                    {/* Store Header with Distance Badge */}
+                    <div className="relative h-32 bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                      <div className="absolute inset-0 bg-black/20"></div>
+                      <div className="relative text-center text-white">
+                        <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-2 backdrop-blur-sm">
+                          <span className="text-2xl font-bold">{seller.businessName.charAt(0).toUpperCase()}</span>
+                        </div>
+                        <h3 className="font-bold text-lg">{seller.businessName}</h3>
+                        <p className="text-sm opacity-90">Owner: {seller.name}</p>
+                      </div>
+                      {/* Distance Badge */}
+                      <div className="absolute top-3 left-3 bg-white/90 text-green-700 px-3 py-1 rounded-full text-sm font-bold">
+                        {seller.distance ? `${seller.distance.toFixed(1)} km` : 'Unknown'}
+                      </div>
+                      <div className="absolute top-3 right-3 w-6 h-6 rounded-full flex items-center justify-center bg-green-500">
+                        <div className="w-2 h-2 rounded-full bg-white"></div>
+                      </div>
+                    </div>
+
+                    {/* Store Info */}
+                    <div className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center space-x-1">
+                          <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                          <span className="font-semibold text-gray-900">{seller.stats.rating.toFixed(1)}</span>
+                          <span className="text-sm text-gray-500">({seller.stats.totalOrders})</span>
+                        </div>
+                        <span className="text-sm bg-green-100 text-green-800 px-3 py-1 rounded-full font-medium">
+                          {seller.businessType}
+                        </span>
+                      </div>
+
+                      <div className="space-y-2 mb-4">
+                        <div className="flex items-center space-x-2 text-sm text-gray-600">
+                          <MapPin className="w-4 h-4" />
+                          <span className="line-clamp-1">{seller.address}</span>
+                        </div>
+                        <div className="flex items-center space-x-2 text-sm text-gray-600">
+                          <Phone className="w-4 h-4" />
+                          <span>{seller.phone}</span>
+                        </div>
+                        <div className="flex items-center space-x-2 text-sm text-gray-600">
+                          <Package className="w-4 h-4" />
+                          <span>{seller.stats.totalProducts} products available</span>
+                        </div>
+                      </div>
+
+                      {/* Stats */}
+                      <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div className="text-center p-3 bg-gray-50 rounded-lg">
+                          <div className="text-lg font-bold text-gray-900">{seller.stats.totalProducts}</div>
+                          <div className="text-xs text-gray-600">Products</div>
+                        </div>
+                        <div className="text-center p-3 bg-gray-50 rounded-lg">
+                          <div className="text-lg font-bold text-gray-900">{seller.stats.totalOrders}</div>
+                          <div className="text-xs text-gray-600">Orders</div>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex space-x-2">
+                        <button 
+                          className="flex-1 bg-green-600 text-white py-3 px-4 rounded-xl font-semibold hover:bg-green-700 transition-colors flex items-center justify-center"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            viewSellerProducts(seller);
+                          }}
+                        >
+                          <Eye className="w-4 h-4 mr-2" />
+                          View Products
+                        </button>
+                        <button 
+                          className="px-4 py-3 border border-gray-300 rounded-xl font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                          aria-label="Add store to favorites"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Heart className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* View All Nearby Stores Button */}
+              <div className="text-center mt-8">
+                <button 
+                  onClick={() => setShowNearbyStores(false)}
+                  className="inline-flex items-center space-x-2 bg-white text-green-600 border-2 border-green-600 py-3 px-8 rounded-xl font-semibold hover:bg-green-50 transition-colors"
+                >
+                  <span>Show All Stores</span>
+                  <ArrowRight className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* Featured Local Stores - Real Sellers */}
         <section className="py-12 bg-gradient-to-br from-blue-50 to-indigo-100">
           <div className="max-w-7xl mx-auto px-4">
@@ -1073,7 +1328,9 @@ const HomePage: React.FC = () => {
                 <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
                   <div className="text-white text-xl">🏠</div>
                 </div>
-                <h2 className="text-3xl font-bold text-gray-900">Featured Local Stores</h2>
+                <h2 className="text-3xl font-bold text-gray-900">
+                  {showNearbyStores ? 'All Local Stores' : 'Featured Local Stores'}
+                </h2>
                 </div>
               <p className="text-gray-600 text-lg">Discover amazing stores and their products</p>
               </div>
@@ -1090,7 +1347,7 @@ const HomePage: React.FC = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {sellers.map((seller) => (
+                {(showNearbyStores ? sellers.filter(seller => !nearbyStores.some(nearby => nearby.id === seller.id)) : sellers).map((seller) => (
                   <div key={seller.id} className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group cursor-pointer" onClick={() => viewSellerProducts(seller)}>
                     {/* Store Header */}
                     <div className="relative h-32 bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
@@ -1175,13 +1432,23 @@ const HomePage: React.FC = () => {
 
             {/* View All Stores Button */}
             <div className="text-center mt-8">
-              <Link 
-                to="/browse" 
-                className="inline-flex items-center space-x-2 bg-white text-blue-600 border-2 border-blue-600 py-3 px-8 rounded-xl font-semibold hover:bg-blue-50 transition-colors"
-              >
-                <span>View All Stores</span>
-                <ArrowRight className="w-5 h-5" />
-              </Link>
+              {showNearbyStores ? (
+                <button 
+                  onClick={() => setShowNearbyStores(false)}
+                  className="inline-flex items-center space-x-2 bg-white text-blue-600 border-2 border-blue-600 py-3 px-8 rounded-xl font-semibold hover:bg-blue-50 transition-colors"
+                >
+                  <span>Show All Stores</span>
+                  <ArrowRight className="w-5 h-5" />
+                </button>
+              ) : (
+                <Link 
+                  to="/browse" 
+                  className="inline-flex items-center space-x-2 bg-white text-blue-600 border-2 border-blue-600 py-3 px-8 rounded-xl font-semibold hover:bg-blue-50 transition-colors"
+                >
+                  <span>View All Stores</span>
+                  <ArrowRight className="w-5 h-5" />
+                </Link>
+              )}
             </div>
           </div>
         </section>

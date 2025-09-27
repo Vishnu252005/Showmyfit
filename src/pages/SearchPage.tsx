@@ -211,66 +211,88 @@ const SearchPage: React.FC = () => {
   // Get current location
   const getCurrentLocation = () => {
     setIsGettingLocation(true);
+    setCurrentLocation('Getting your location...');
     
     // Check if we're on HTTPS or localhost
     const isSecure = window.location.protocol === 'https:' || window.location.hostname === 'localhost';
     if (!isSecure) {
       setCurrentLocation('Location requires HTTPS connection');
       setIsGettingLocation(false);
+      alert('Location services require HTTPS. Please use https:// or localhost');
       return;
     }
     
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          
-          // Try to get city name using reverse geocoding
-          fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`)
-            .then(response => response.json())
-            .then(data => {
-              if (data.city && data.principalSubdivision) {
-                setCurrentLocation(`${data.city}, ${data.principalSubdivision}`);
-              } else {
-                setCurrentLocation(`Current Location (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`);
-              }
-              setIsGettingLocation(false);
-            })
-            .catch(() => {
-              // Fallback to coordinates if geocoding fails
-              setCurrentLocation(`Current Location (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`);
-              setIsGettingLocation(false);
-            });
-        },
-        (error) => {
-          console.error('Error getting location:', error);
-          let errorMessage = 'Location access denied';
-          switch(error.code) {
-            case error.PERMISSION_DENIED:
-              errorMessage = 'Location access denied - Please allow location access in your browser';
-              break;
-            case error.POSITION_UNAVAILABLE:
-              errorMessage = 'Location unavailable - Check if location services are enabled';
-              break;
-            case error.TIMEOUT:
-              errorMessage = 'Location request timed out - Please try again';
-              break;
-            default:
-              errorMessage = 'Unable to get location - Please enter manually';
-          }
-          setCurrentLocation(errorMessage);
-          setIsGettingLocation(false);
-        },
-        {
-          enableHighAccuracy: false, // Changed to false for better compatibility
-          timeout: 15000, // Increased timeout
-          maximumAge: 600000 // 10 minutes cache
-        }
-      );
-    } else {
+    if (!navigator.geolocation) {
       setCurrentLocation('Location not supported by browser');
       setIsGettingLocation(false);
+      alert('Your browser does not support location services');
+      return;
     }
+
+    const options = {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 300000 // 5 minutes
+    };
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        console.log('Location obtained:', { latitude, longitude });
+        
+        // Try to get city name using reverse geocoding
+        fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`)
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Geocoding API error');
+            }
+            return response.json();
+          })
+          .then(data => {
+            console.log('Geocoding data:', data);
+            if (data.city && data.principalSubdivision) {
+              setCurrentLocation(`${data.city}, ${data.principalSubdivision}`);
+            } else if (data.locality && data.principalSubdivision) {
+              setCurrentLocation(`${data.locality}, ${data.principalSubdivision}`);
+            } else {
+              setCurrentLocation(`Current Location (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`);
+            }
+            setIsGettingLocation(false);
+          })
+          .catch((error) => {
+            console.log('Geocoding failed, using coordinates:', error);
+            // Fallback to coordinates if geocoding fails
+            setCurrentLocation(`Current Location (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`);
+            setIsGettingLocation(false);
+          });
+      },
+      (error) => {
+        console.error('Geolocation error:', error);
+        let errorMessage = 'Unable to get location';
+        
+        switch(error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = 'Location access denied - Please allow location access in your browser settings';
+            alert('Location access denied. Please allow location access in your browser settings and try again.');
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = 'Location unavailable - Check if location services are enabled on your device';
+            alert('Location services are unavailable. Please check if location services are enabled on your device.');
+            break;
+          case error.TIMEOUT:
+            errorMessage = 'Location request timed out - Please try again';
+            alert('Location request timed out. Please try again.');
+            break;
+          default:
+            errorMessage = 'Unable to get location - Please enter manually';
+            alert('Unable to get your location. Please enter your location manually.');
+        }
+        
+        setCurrentLocation(errorMessage);
+        setIsGettingLocation(false);
+      },
+      options
+    );
   };
 
   // Manual location input

@@ -13,6 +13,11 @@ service cloud.firestore {
       allow read: if resource.data.role == 'shop' && resource.data.status == 'approved';
     }
     
+    // Allow public read access to users collection for approved sellers
+    match /users/{userId} {
+      allow read: if true; // Allow public read for store listings
+    }
+    
     // Admins collection - anyone can read, all authenticated users can write
     match /admins/{adminEmail} {
       allow read: if true;
