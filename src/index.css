@@ -4,6 +4,35 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Cart Notification Animations */
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes progress-bar {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+.animate-progress-bar {
+  animation: progress-bar 3s ease-out;
+}
+
 body {
   font-family: 'Inter', sans-serif;
   background: #F9FAFB;

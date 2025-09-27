@@ -25,6 +25,7 @@ const GoogleMapLocation: React.FC<GoogleMapLocationProps> = ({
   const [marker, setMarker] = useState<google.maps.Marker | null>(null);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Load Google Maps API
   useEffect(() => {
@@ -34,9 +35,22 @@ const GoogleMapLocation: React.FC<GoogleMapLocationProps> = ({
         return;
       }
 
+      // Check if script is already being loaded
+      const existingScript = document.querySelector(`script[src*="maps.googleapis.com"]`);
+      if (existingScript) {
+        // Wait for the existing script to load
+        const checkGoogleMaps = () => {
+          if (window.google && window.google.maps) {
+            setIsMapLoaded(true);
+          } else {
+            setTimeout(checkGoogleMaps, 100);
+          }
+        };
+        checkGoogleMaps();
+        return;
+      }
+
       const apiKey = 'AIzaSyCeyIcYq60rZLMaXRlnU0UwKzDQaonuVwI';
-      console.log('Google Maps API Key:', apiKey);
-      console.log('All env vars:', import.meta.env);
       
       if (!apiKey || apiKey === 'undefined') {
         console.error('Google Maps API key is not defined. Please check your .env file.');
@@ -90,19 +104,20 @@ const GoogleMapLocation: React.FC<GoogleMapLocationProps> = ({
       if (isEditing) {
         markerInstance.addListener('dragend', () => {
           const newPosition = markerInstance.getPosition();
-          if (newPosition) {
-            const newLocation = {
-              lat: newPosition.lat(),
-              lng: newPosition.lng(),
-            };
-            onLocationChange(newLocation);
-            reverseGeocode(newPosition.lat(), newPosition.lng());
-          }
+        if (newPosition) {
+          const newLocation = {
+            lat: newPosition.lat(),
+            lng: newPosition.lng(),
+          };
+          onLocationChange(newLocation);
+          reverseGeocode(newPosition.lat(), newPosition.lng());
+          setHasUnsavedChanges(true);
+        }
         });
       }
     }
 
-    // Add click listener to map for editing
+      // Add click listener to map for editing
     if (isEditing) {
       mapInstance.addListener('click', (event: google.maps.MapMouseEvent) => {
         if (event.latLng) {
@@ -112,6 +127,7 @@ const GoogleMapLocation: React.FC<GoogleMapLocationProps> = ({
           };
           onLocationChange(newLocation);
           reverseGeocode(event.latLng.lat(), event.latLng.lng());
+          setHasUnsavedChanges(true);
         }
       });
     }
@@ -148,6 +164,14 @@ const GoogleMapLocation: React.FC<GoogleMapLocationProps> = ({
     });
   };
 
+  const handleSaveLocation = () => {
+    if (location) {
+      setHasUnsavedChanges(false);
+      // The location is already saved via onLocationChange callback
+      console.log('Location saved:', location);
+    }
+  };
+
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
       alert('Geolocation is not supported by this browser.');
@@ -161,6 +185,7 @@ const GoogleMapLocation: React.FC<GoogleMapLocationProps> = ({
         const newLocation = { lat: latitude, lng: longitude };
         onLocationChange(newLocation);
         reverseGeocode(latitude, longitude);
+        setHasUnsavedChanges(true);
         setIsGettingLocation(false);
       },
       (error) => {
@@ -218,30 +243,49 @@ const GoogleMapLocation: React.FC<GoogleMapLocationProps> = ({
   return (
     <div className="space-y-4">
       {isEditing && (
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <MapPin className="w-5 h-5 text-blue-600" />
-            <span className="text-sm text-gray-600">
-              {location ? 'Click on map or drag marker to set location' : 'Click on map to set your store location'}
-            </span>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <MapPin className="w-5 h-5 text-blue-600" />
+              <span className="text-sm text-gray-600">
+                {location ? 'Click on map or drag marker to set location' : 'Click on map to set your store location'}
+              </span>
+            </div>
+            <button
+              onClick={getCurrentLocation}
+              disabled={isGettingLocation}
+              className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+            >
+              {isGettingLocation ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Getting...</span>
+                </>
+              ) : (
+                <>
+                  <Navigation className="w-4 h-4" />
+                  <span>Use Current Location</span>
+                </>
+              )}
+            </button>
           </div>
-          <button
-            onClick={getCurrentLocation}
-            disabled={isGettingLocation}
-            className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-          >
-            {isGettingLocation ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span>Getting...</span>
-              </>
-            ) : (
-              <>
-                <Navigation className="w-4 h-4" />
-                <span>Use Current Location</span>
-              </>
-            )}
-          </button>
+          
+          {/* Save Location Button */}
+          {hasUnsavedChanges && location && (
+            <div className="flex items-center justify-between bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                <span className="text-sm text-yellow-800">You have unsaved location changes</span>
+              </div>
+              <button
+                onClick={handleSaveLocation}
+                className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
+              >
+                <MapPin className="w-4 h-4" />
+                <span>Save Location</span>
+              </button>
+            </div>
+          )}
         </div>
       )}
 

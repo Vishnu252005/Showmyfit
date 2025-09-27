@@ -28,6 +28,7 @@ import Button from './components/ui/Button';
 import ScrollToTop from './components/layout/ScrollToTop';
 import { AppProvider } from './contexts/AppContext';
 import { AuthProvider } from './contexts/AuthContext';
+import { CartProvider } from './contexts/CartContext';
 
 // Bottom Navigation Component
 const BottomNavigation = () => {
@@ -266,6 +267,7 @@ function App() {
   return (
     <AuthProvider>
     <AppProvider>
+    <CartProvider>
       <Router>
           <div className="min-h-screen bg-gradient-to-br from-cream via-white to-primary-50 font-sans">
           <ScrollToTop />
@@ -301,6 +303,7 @@ function App() {
             <BottomNavigation />
         </div>
       </Router>
+    </CartProvider>
     </AppProvider>
     </AuthProvider>
   );

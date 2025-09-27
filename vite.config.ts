@@ -7,6 +7,7 @@ export default defineConfig({
   server: {
     port: 2300,
     host: true, // This allows access from other devices on your network
+    historyApiFallback: true, // This fixes the routing issue when refreshing on client-side routes
   },
   optimizeDeps: {
     exclude: ['lucide-react'],

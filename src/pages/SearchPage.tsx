@@ -314,19 +314,19 @@ const SearchPage: React.FC = () => {
         switch(error.code) {
           case error.PERMISSION_DENIED:
             errorMessage = 'Location access denied - Please allow location access in your browser settings';
-            alert('Location access denied. Please allow location access in your browser settings and try again.');
+            console.log('Location access denied. Please allow location access in your browser settings and try again.');
             break;
           case error.POSITION_UNAVAILABLE:
             errorMessage = 'Location unavailable - Check if location services are enabled on your device';
-            alert('Location services are unavailable. Please check if location services are enabled on your device.');
+            console.log('Location services are unavailable. Please check if location services are enabled on your device.');
             break;
           case error.TIMEOUT:
             errorMessage = 'Location request timed out - Please try again';
-            alert('Location request timed out. Please try again.');
+            console.log('Location request timed out. Please try again.');
             break;
           default:
             errorMessage = 'Unable to get location - Please enter manually';
-            alert('Unable to get your location. Please enter your location manually.');
+            console.log('Unable to get your location. Please enter your location manually.');
         }
         
         setCurrentLocation(errorMessage);
@@ -568,7 +568,11 @@ const SearchPage: React.FC = () => {
                         <Eye className="w-4 h-4 mr-2" />
                         View Store
                       </Link>
-                      <button className="px-4 py-3 border border-gray-300 rounded-xl font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                      <button 
+                        className="px-4 py-3 border border-gray-300 rounded-xl font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                        aria-label="Add to favorites"
+                        title="Add to favorites"
+                      >
                         <Heart className="w-4 h-4" />
                       </button>
                     </div>

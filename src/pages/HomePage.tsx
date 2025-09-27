@@ -5,6 +5,7 @@ import {
   ArrowRight, Sparkles, Eye, ShoppingCart, Phone, MapIcon, ThumbsUp, X
 } from 'lucide-react';
 import Navbar from '../components/layout/Navbar';
+import AddToCartButton from '../components/common/AddToCartButton';
 import { collection, query, getDocs } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { getCurrentLocationWithDetails, sortStoresByDistance, parseAddressToCoordinates } from '../utils/distance';
@@ -263,9 +264,6 @@ const HomePage: React.FC = () => {
     );
   };
 
-  const addToCart = (product: any) => {
-    console.log('Added to cart:', product);
-  };
 
   const quickViewProduct = (product: any) => {
     setSelectedProduct(product);
@@ -740,13 +738,22 @@ const HomePage: React.FC = () => {
                       </div>
 
                       {/* Add to Cart Button */}
-                      <button
-                        onClick={() => addToCart(product)}
-                        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 flex items-center justify-center font-semibold shadow-lg hover:shadow-xl"
-                      >
-                        <ShoppingCart className="w-5 h-5 mr-2" />
-                        Add to Cart
-                      </button>
+                      <AddToCartButton
+                        product={{
+                          id: product.id,
+                          name: product.name,
+                          price: product.price,
+                          originalPrice: product.originalPrice,
+                          image: product.image,
+                          brand: product.brand,
+                          size: product.size,
+                          color: product.color,
+                          category: product.category
+                        }}
+                        variant="primary"
+                        size="lg"
+                        className="w-full"
+                      />
                     </div>
                   </div>
               </div>

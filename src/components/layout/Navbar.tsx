@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Home, Search, User, Store, Shield, Heart, ShoppingBag, Menu, X, LogOut } from 'lucide-react';
 import Sidebar from './Sidebar';
 import { useAuth } from '../../contexts/AuthContext';
+import { useCart } from '../../contexts/CartContext';
 
 interface NavbarProps {
   userRole?: 'user' | 'shop' | 'admin';
@@ -10,10 +11,10 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
   const location = useLocation();
-  const [cartCount] = useState(3); // Mock cart count
   const [wishlistCount] = useState(5); // Mock wishlist count
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { currentUser, signOut } = useAuth();
+  const { getCartItemCount, showAddNotification } = useCart();
 
   if (userRole === 'user') {
     return (
@@ -69,9 +70,11 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
                 >
                   <ShoppingBag className="w-5 h-5" />
                   <span className="hidden md:block">Cart</span>
-                  {cartCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
-                      {cartCount}
+                  {getCartItemCount() > 0 && (
+                    <span className={`absolute -top-1 -right-1 w-5 h-5 text-white text-xs rounded-full flex items-center justify-center font-bold transition-all duration-300 ${
+                      showAddNotification ? 'bg-green-500 animate-pulse' : 'bg-red-500'
+                    }`}>
+                      {getCartItemCount()}
                     </span>
                   )}
                 </Link>

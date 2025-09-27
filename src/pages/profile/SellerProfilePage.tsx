@@ -314,115 +314,339 @@ const SellerProfilePage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gray-50">
       <Navbar userRole="shop" />
       
-      <div className="main-content pt-24">
-        <div className="min-h-screen px-4 py-8">
-          <div className="max-w-6xl mx-auto">
-            {/* Back Button */}
-            <div className="mb-6">
-              <Link
-                to="/"
-                className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Home
-              </Link>
-            </div>
+      <div className="main-content pt-20">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          {/* Back Button */}
+          <div className="mb-6">
+            <Link
+              to="/"
+              className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Home
+            </Link>
+          </div>
 
-            {/* Header */}
-            <div className="bg-white rounded-2xl shadow-xl p-6 mb-8">
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                <div className="flex items-center space-x-4">
-                  <div className="w-20 h-20 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
-                    {(userData?.displayName || currentUser?.displayName || 'S').charAt(0).toUpperCase()}
+          {/* Profile Header */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+              <div className="flex items-center space-x-4">
+                <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xl font-bold">
+                  {(userData?.displayName || currentUser?.displayName || 'S').charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">
+                    {userData?.displayName || currentUser?.displayName || 'Seller'}
+                  </h1>
+                  <p className="text-gray-600 text-lg">{userData?.businessName || 'Business Name'}</p>
+                  <p className="text-sm text-gray-500">{userData?.businessType || 'Business Type'}</p>
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button
+                  onClick={handleEdit}
+                  variant="outline"
+                  className="flex items-center"
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit Profile
+                </Button>
+                <Button
+                  onClick={() => setShowAddProduct(true)}
+                  variant="primary"
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Product
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Message */}
+          {message && (
+            <div className={`mb-6 p-4 rounded-lg ${
+              isSuccess ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+            }`}>
+              {message}
+            </div>
+          )}
+
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            {/* Left Column - Profile Info & Stats */}
+            <div className="lg:col-span-1 space-y-6">
+              {/* Stats Cards */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Store Statistics</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <Package className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Total Products</p>
+                        <p className="text-xl font-bold text-gray-900">{products.length}</p>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <h1 className="text-2xl font-bold text-gray-900">
-                      {userData?.displayName || currentUser?.displayName || 'Seller'}
-                    </h1>
-                    <p className="text-gray-600">{userData?.businessName || 'Business Name'}</p>
-                    <p className="text-sm text-gray-500">{userData?.businessType || 'Business Type'}</p>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                        <TrendingUp className="w-5 h-5 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Active Products</p>
+                        <p className="text-xl font-bold text-gray-900">
+                          {products.filter(p => p.status === 'active').length}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <DollarSign className="w-5 h-5 text-purple-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Total Sales</p>
+                        <p className="text-xl font-bold text-gray-900">
+                          ₹{userData?.stats?.totalSales?.toLocaleString() || '0'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                        <Star className="w-5 h-5 text-yellow-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Rating</p>
+                        <p className="text-xl font-bold text-gray-900">
+                          {userData?.stats?.rating?.toFixed(1) || '0.0'}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <Button
-                    onClick={handleEdit}
-                    variant="outline"
-                    className="flex items-center"
-                  >
-                    <Edit className="w-4 h-4 mr-2" />
-                    Edit Profile & Location
-                  </Button>
+              </div>
+
+              {/* Profile Information */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Information</h3>
+                
+                {isEditing ? (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Display Name</label>
+                      <input
+                        type="text"
+                        value={editData.displayName}
+                        onChange={(e) => setEditData({...editData, displayName: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter your display name"
+                        aria-label="Display Name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                      <input
+                        type="tel"
+                        value={editData.phone}
+                        onChange={(e) => setEditData({...editData, phone: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter your phone number"
+                        aria-label="Phone Number"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                      <textarea
+                        value={editData.address}
+                        onChange={(e) => setEditData({...editData, address: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        rows={3}
+                        placeholder="Enter your address"
+                        aria-label="Address"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Business Name</label>
+                      <input
+                        type="text"
+                        value={editData.businessName}
+                        onChange={(e) => setEditData({...editData, businessName: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter your business name"
+                        aria-label="Business Name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Business Type</label>
+                      <input
+                        type="text"
+                        value={editData.businessType}
+                        onChange={(e) => setEditData({...editData, businessType: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter your business type"
+                        aria-label="Business Type"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Business Description</label>
+                      <textarea
+                        value={editData.businessDescription}
+                        onChange={(e) => setEditData({...editData, businessDescription: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        rows={3}
+                        placeholder="Enter your business description"
+                        aria-label="Business Description"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Store Location</label>
+                      <GoogleMapLocation
+                        location={editData.location}
+                        onLocationChange={(location) => setEditData({...editData, location})}
+                        isEditing={true}
+                        height="250px"
+                      />
+                    </div>
+                    <div className="flex space-x-3 pt-4">
+                      <Button onClick={handleSave} variant="primary" className="flex-1">
+                        Save Changes
+                      </Button>
+                      <Button onClick={handleCancel} variant="outline" className="flex-1">
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-3">
+                      <Mail className="w-4 h-4 text-gray-400" />
+                      <span className="text-gray-600">{currentUser?.email}</span>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <Phone className="w-4 h-4 text-gray-400" />
+                      <span className="text-gray-600">{userData?.phone || 'Not provided'}</span>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <MapPin className="w-4 h-4 text-gray-400 mt-1" />
+                      <span className="text-gray-600">{userData?.address || 'Not provided'}</span>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <Calendar className="w-4 h-4 text-gray-400" />
+                      <span className="text-gray-600">
+                        Joined {userData?.createdAt ? new Date(userData.createdAt.seconds * 1000).toLocaleDateString() : 'Unknown'}
+                      </span>
+                    </div>
+                    <div className="pt-4">
+                      <p className="text-sm font-medium text-gray-700 mb-2">Store Location</p>
+                      <GoogleMapLocation
+                        location={userData?.location || null}
+                        onLocationChange={() => {}}
+                        isEditing={false}
+                        height="200px"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Right Column - Products */}
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900">My Products ({products.length})</h3>
                   <Button
                     onClick={() => setShowAddProduct(true)}
                     variant="primary"
-                    className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
+                    className="bg-blue-600 hover:bg-blue-700"
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Add Product
                   </Button>
                 </div>
+
+                {loading ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading products...</p>
+                  </div>
+                ) : products.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No products yet</h3>
+                    <p className="text-gray-600 mb-4">Start by adding your first product to your store.</p>
+                    <Button
+                      onClick={() => setShowAddProduct(true)}
+                      variant="primary"
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Your First Product
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {products.map((product) => (
+                      <div key={product.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div className="flex items-start justify-between mb-3">
+                          <h4 className="font-semibold text-gray-900 truncate">{product.name}</h4>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            product.status === 'active' 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {product.status}
+                          </span>
+                        </div>
+                        
+                        <p className="text-gray-600 text-sm mb-3 line-clamp-2">{product.description}</p>
+                        
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-lg font-bold text-blue-600">₹{product.price.toLocaleString()}</span>
+                          <span className="text-sm text-gray-500">Stock: {product.stock}</span>
+                        </div>
+                        
+                        <div className="flex space-x-2">
+                          <Button
+                            onClick={() => handleToggleProductStatus(product.id, product.status)}
+                            variant="outline"
+                            size="sm"
+                            className="flex-1"
+                          >
+                            {product.status === 'active' ? 'Deactivate' : 'Activate'}
+                          </Button>
+                          <Button
+                            onClick={() => handleDeleteProduct(product.id)}
+                            variant="outline"
+                            size="sm"
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
+          </div>
 
-            {/* Message */}
-            {message && (
-              <div className={`mb-6 p-4 rounded-lg ${
-                isSuccess ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-              }`}>
-                {message}
-              </div>
-            )}
-
-            {/* Quick Actions */}
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl shadow-lg p-6 mb-8">
-              <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
-                <Settings className="w-5 h-5 mr-2" />
-                Quick Actions
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Button
-                  onClick={handleEdit}
-                  variant="outline"
-                  className="flex items-center justify-center p-4 h-auto bg-white hover:bg-blue-50 border-blue-200"
-                >
-                  <div className="text-center">
-                    <Edit className="w-6 h-6 mx-auto mb-2 text-blue-600" />
-                    <div className="font-medium text-gray-900">Edit Profile</div>
-                    <div className="text-sm text-gray-600">Update your details</div>
-                  </div>
-                </Button>
-                
-                <Button
-                  onClick={handleEdit}
-                  variant="outline"
-                  className="flex items-center justify-center p-4 h-auto bg-white hover:bg-green-50 border-green-200"
-                >
-                  <div className="text-center">
-                    <MapPin className="w-6 h-6 mx-auto mb-2 text-green-600" />
-                    <div className="font-medium text-gray-900">Edit Location</div>
-                    <div className="text-sm text-gray-600">Set store location</div>
-                  </div>
-                </Button>
-                
-                <Button
-                  onClick={() => setShowAddProduct(true)}
-                  variant="outline"
-                  className="flex items-center justify-center p-4 h-auto bg-white hover:bg-purple-50 border-purple-200"
-                >
-                  <div className="text-center">
-                    <Plus className="w-6 h-6 mx-auto mb-2 text-purple-600" />
-                    <div className="font-medium text-gray-900">Add Product</div>
-                    <div className="text-sm text-gray-600">Create new listing</div>
-                  </div>
-                </Button>
-              </div>
-            </div>
-
-            {/* Add/Edit Product Form */}
-            {showAddProduct && (
+          {/* Add/Edit Product Form */}
+          {showAddProduct && (
               <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
                 <div className="mb-6">
                   <h2 className="text-2xl font-bold text-gray-900 mb-4">
@@ -786,352 +1010,19 @@ const SellerProfilePage: React.FC = () => {
               </div>
             )}
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <div className="bg-white rounded-2xl shadow-xl p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Total Products</p>
-                    <p className="text-2xl font-bold text-gray-900">{products.length}</p>
-                  </div>
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                    <Package className="w-6 h-6 text-blue-600" />
-                  </div>
-                </div>
-              </div>
-              
-              <div className="bg-white rounded-2xl shadow-xl p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Active Products</p>
-                    <p className="text-2xl font-bold text-green-600">
-                      {products.filter(p => p.status === 'active').length}
-                    </p>
-                  </div>
-                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                    <TrendingUp className="w-6 h-6 text-green-600" />
-                  </div>
-                </div>
-              </div>
-              
-              <div className="bg-white rounded-2xl shadow-xl p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Total Sales</p>
-                    <p className="text-2xl font-bold text-purple-600">
-                      ₹{userData?.stats?.totalSales?.toLocaleString() || '0'}
-                    </p>
-                  </div>
-                  <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                    <DollarSign className="w-6 h-6 text-purple-600" />
-                  </div>
-                </div>
-              </div>
-              
-              <div className="bg-white rounded-2xl shadow-xl p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Rating</p>
-                    <p className="text-2xl font-bold text-yellow-600">
-                      {userData?.stats?.rating?.toFixed(1) || '0.0'}
-                    </p>
-                  </div>
-                  <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
-                    <Star className="w-6 h-6 text-yellow-600" />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Profile Information */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-              {/* Personal Information */}
-              <div className="bg-white rounded-2xl shadow-xl p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
-                  <User className="w-5 h-5 mr-2" />
-                  Personal Information
-                </h2>
-                
-                {isEditing ? (
-                  <div className="space-y-4">
-                    <div>
-                      <label htmlFor="displayName" className="block text-sm font-medium text-gray-700 mb-1">Display Name</label>
-                      <input
-                        id="displayName"
-                        type="text"
-                        value={editData.displayName}
-                        onChange={(e) => setEditData({...editData, displayName: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                      <input
-                        id="phone"
-                        type="tel"
-                        value={editData.phone}
-                        onChange={(e) => setEditData({...editData, phone: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                      <textarea
-                        id="address"
-                        value={editData.address}
-                        onChange={(e) => setEditData({...editData, address: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                        rows={3}
-                      />
-                    </div>
-                    <div className="flex space-x-3">
-                      <Button onClick={handleSave} variant="primary" className="flex-1">
-                        Save Changes
-                      </Button>
-                      <Button onClick={handleCancel} variant="outline" className="flex-1">
-                        Cancel
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="flex items-center">
-                      <Mail className="w-4 h-4 text-gray-400 mr-3" />
-                      <span className="text-gray-600">{currentUser?.email}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <Phone className="w-4 h-4 text-gray-400 mr-3" />
-                      <span className="text-gray-600">{userData?.phone || 'Not provided'}</span>
-                    </div>
-                    <div className="flex items-start">
-                      <MapPin className="w-4 h-4 text-gray-400 mr-3 mt-1" />
-                      <span className="text-gray-600">{userData?.address || 'Not provided'}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <Calendar className="w-4 h-4 text-gray-400 mr-3" />
-                      <span className="text-gray-600">
-                        Joined {userData?.createdAt ? new Date(userData.createdAt.seconds * 1000).toLocaleDateString() : 'Unknown'}
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Business Information */}
-              <div className="bg-white rounded-2xl shadow-xl p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
-                  <Shield className="w-5 h-5 mr-2" />
-                  Business Information
-                </h2>
-                
-                {isEditing ? (
-                  <div className="space-y-4">
-                    <div>
-                      <label htmlFor="businessName" className="block text-sm font-medium text-gray-700 mb-1">Business Name</label>
-                      <input
-                        id="businessName"
-                        type="text"
-                        value={editData.businessName}
-                        onChange={(e) => setEditData({...editData, businessName: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="businessType" className="block text-sm font-medium text-gray-700 mb-1">Business Type</label>
-                      <input
-                        id="businessType"
-                        type="text"
-                        value={editData.businessType}
-                        onChange={(e) => setEditData({...editData, businessType: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="businessDescription" className="block text-sm font-medium text-gray-700 mb-1">Business Description</label>
-                      <textarea
-                        id="businessDescription"
-                        value={editData.businessDescription}
-                        onChange={(e) => setEditData({...editData, businessDescription: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                        rows={3}
-                      />
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Store Location</label>
-                      <GoogleMapLocation
-                        location={editData.location}
-                        onLocationChange={(location) => setEditData({...editData, location})}
-                        isEditing={true}
-                        height="250px"
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">Business Name</p>
-                      <p className="text-gray-900">{userData?.businessName || 'Not provided'}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">Business Type</p>
-                      <p className="text-gray-900">{userData?.businessType || 'Not provided'}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">Description</p>
-                      <p className="text-gray-900">{userData?.businessDescription || 'Not provided'}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">Status</p>
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        userData?.status === 'approved' 
-                          ? 'bg-green-100 text-green-800' 
-                          : userData?.status === 'pending'
-                          ? 'bg-yellow-100 text-yellow-800'
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {userData?.status || 'Unknown'}
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Location Section - Always visible */}
-                <div className="mt-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                      <MapPin className="w-5 h-5 mr-2 text-blue-600" />
-                      Store Location
-                    </h3>
-                    {!isEditing && (
-                      <Button
-                        onClick={handleEdit}
-                        variant="outline"
-                        size="sm"
-                        className="flex items-center"
-                      >
-                        <Edit className="w-4 h-4 mr-1" />
-                        Edit Location
-                      </Button>
-                    )}
-                  </div>
-                  <GoogleMapLocation
-                    location={userData?.location || null}
-                    onLocationChange={() => {}}
-                    isEditing={false}
-                    height="250px"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Products Section */}
-            <div className="bg-white rounded-2xl shadow-xl p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-900 flex items-center">
-                  <Package className="w-5 h-5 mr-2" />
-                  My Products ({products.length})
-                </h2>
-                <Button
-                  onClick={() => setShowAddProduct(true)}
-                  variant="primary"
-                  className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Product
-                </Button>
-              </div>
-
-              {loading ? (
-                <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-                  <p className="text-gray-600">Loading products...</p>
-                </div>
-              ) : products.length === 0 ? (
-                <div className="text-center py-8">
-                  <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No products yet</h3>
-                  <p className="text-gray-600 mb-4">Start by adding your first product to your store.</p>
-                  <Button
-                    onClick={() => setShowAddProduct(true)}
-                    variant="primary"
-                    className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Your First Product
-                  </Button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {products.map((product) => (
-                    <div key={product.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow">
-                      <div className="flex items-start justify-between mb-3">
-                        <h3 className="font-semibold text-gray-900 truncate">{product.name}</h3>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          product.status === 'active' 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-gray-100 text-gray-800'
-                        }`}>
-                          {product.status}
-                        </span>
-                      </div>
-                      
-                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">{product.description}</p>
-                      
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-lg font-bold text-green-600">₹{product.price.toLocaleString()}</span>
-                        <span className="text-sm text-gray-500">Stock: {product.stock}</span>
-                      </div>
-                      
-                      <div className="flex space-x-2">
-                        <Button
-                          onClick={() => handleToggleProductStatus(product.id, product.status)}
-                          variant="outline"
-                          size="sm"
-                          className="flex-1"
-                        >
-                          {product.status === 'active' ? 'Deactivate' : 'Activate'}
-                        </Button>
-                        <Button
-                          onClick={() => handleDeleteProduct(product.id)}
-                          variant="outline"
-                          size="sm"
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          Delete
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Sign Out Button */}
-            <div className="mt-8 text-center">
-              <Button
-                onClick={handleSignOut}
-                variant="outline"
-                className="text-red-600 hover:text-red-700 border-red-300 hover:border-red-400"
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Sign Out
-              </Button>
-            </div>
-
-            {/* Floating Action Button for Mobile */}
-            <div className="fixed bottom-6 right-6 z-50 md:hidden">
-              <Button
-                onClick={handleEdit}
-                variant="primary"
-                className="w-14 h-14 rounded-full shadow-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-              >
-                <Edit className="w-6 h-6" />
-              </Button>
-            </div>
+          {/* Sign Out Button */}
+          <div className="text-center">
+            <Button
+              onClick={handleSignOut}
+              variant="outline"
+              className="text-red-600 hover:text-red-700 border-red-300 hover:border-red-400"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Sign Out
+            </Button>
           </div>
         </div>
       </div>
-
     </div>
   );
 };

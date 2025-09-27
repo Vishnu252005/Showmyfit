@@ -1,68 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   ShoppingCart, Minus, Plus, Trash2, ArrowLeft, 
-  CreditCard, Truck, Shield, Heart
+  CreditCard, Truck, Shield, Heart, Clock, Package
 } from 'lucide-react';
 import Navbar from '../components/layout/Navbar';
+import { useCart } from '../contexts/CartContext';
+import CartNotification from '../components/common/CartNotification';
 
 const CartPage: React.FC = () => {
-  const [cartItems, setCartItems] = useState([
-    {
-      id: '1',
-      name: 'iPhone 15 Pro Max',
-      price: 124999,
-      originalPrice: 134999,
-      image: 'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=200&h=200&fit=crop',
-      brand: 'Apple',
-      quantity: 1,
-      size: '128GB',
-      color: 'Natural Titanium'
-    },
-    {
-      id: '2',
-      name: 'Samsung Galaxy S24 Ultra',
-      price: 99999,
-      originalPrice: 109999,
-      image: 'https://images.unsplash.com/photo-1511707171631-9ad203683d6d?w=200&h=200&fit=crop',
-      brand: 'Samsung',
-      quantity: 2,
-      size: '256GB',
-      color: 'Titanium Gray'
-    },
-    {
-      id: '3',
-      name: 'MacBook Pro M3',
-      price: 199999,
-      originalPrice: 219999,
-      image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=200&h=200&fit=crop',
-      brand: 'Apple',
-      quantity: 1,
-      size: '14-inch',
-      color: 'Space Gray'
-    }
-  ]);
+  const {
+    cartItems,
+    lastAddedProducts,
+    updateQuantity,
+    removeFromCart,
+    moveToWishlist,
+    getCartTotal,
+    getCartItemCount,
+    showAddNotification,
+    setShowAddNotification
+  } = useCart();
 
-  const updateQuantity = (id: string, newQuantity: number) => {
-    if (newQuantity < 1) return;
-    setCartItems(items => 
-      items.map(item => 
-        item.id === id ? { ...item, quantity: newQuantity } : item
-      )
-    );
-  };
+  const [showLastAdded, setShowLastAdded] = useState(false);
 
-  const removeItem = (id: string) => {
-    setCartItems(items => items.filter(item => item.id !== id));
-  };
+  // Show last added products section if there are any
+  useEffect(() => {
+    setShowLastAdded(lastAddedProducts.length > 0);
+  }, [lastAddedProducts]);
 
-  const moveToWishlist = (item: any) => {
-    // Add to wishlist logic here
-    removeItem(item.id);
-  };
-
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const discount = cartItems.reduce((sum, item) => sum + ((item.originalPrice - item.price) * item.quantity), 0);
+  const subtotal = getCartTotal();
+  const discount = cartItems.reduce((sum, item) => sum + ((item.originalPrice || item.price) - item.price) * item.quantity, 0);
   const shipping = subtotal > 50000 ? 0 : 99;
   const total = subtotal + shipping;
 
@@ -70,8 +37,19 @@ const CartPage: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <Navbar userRole="user" />
       
+      {/* Cart Notification */}
+      {showAddNotification && lastAddedProducts.length > 0 && (
+        <CartNotification
+          show={showAddNotification}
+          onClose={() => setShowAddNotification(false)}
+          productName={lastAddedProducts[0].name}
+          productImage={lastAddedProducts[0].image}
+          quantity={lastAddedProducts[0].quantity}
+        />
+      )}
+      
       <div className="main-content pt-24 pb-24">
-        <div className="max-w-4xl mx-auto px-4 py-6">
+        <div className="max-w-6xl mx-auto px-4 py-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-4">
@@ -83,7 +61,7 @@ const CartPage: React.FC = () => {
               </Link>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">Shopping Cart</h1>
-                <p className="text-gray-600">{cartItems.length} item(s) in your cart</p>
+                <p className="text-gray-600">{getCartItemCount()} item(s) in your cart</p>
               </div>
             </div>
             
@@ -92,6 +70,40 @@ const CartPage: React.FC = () => {
               <span className="font-medium">Cart</span>
             </div>
           </div>
+
+          {/* Last Added Products Section */}
+          {showLastAdded && lastAddedProducts.length > 0 && (
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+              <div className="flex items-center space-x-2 mb-3">
+                <Clock className="w-5 h-5 text-blue-600" />
+                <h3 className="text-lg font-semibold text-blue-900">Recently Added</h3>
+              </div>
+              <div className="flex space-x-3 overflow-x-auto pb-2">
+                {lastAddedProducts.slice(0, 5).map((product, index) => (
+                  <div key={`${product.id}-${index}`} className="flex-shrink-0 bg-white rounded-lg p-3 shadow-sm border border-blue-100">
+                    <div className="flex items-center space-x-2">
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="w-10 h-10 rounded-lg object-cover"
+                      />
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate max-w-[120px]">
+                          {product.name}
+                        </p>
+                        <p className="text-xs text-gray-600">
+                          ₹{product.price.toLocaleString()} • Qty: {product.quantity}
+                        </p>
+                        <p className="text-xs text-blue-600">
+                          {new Date(product.addedAt).toLocaleTimeString()}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {cartItems.length === 0 ? (
             /* Empty Cart */
@@ -164,7 +176,7 @@ const CartPage: React.FC = () => {
                               <Heart className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => removeItem(item.id)}
+                              onClick={() => removeFromCart(item.id)}
                               className="p-2 text-gray-400 hover:text-red-500 transition-colors"
                               title="Remove Item"
                             >
