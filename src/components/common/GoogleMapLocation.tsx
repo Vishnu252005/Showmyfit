@@ -34,11 +34,23 @@ const GoogleMapLocation: React.FC<GoogleMapLocationProps> = ({
         return;
       }
 
+      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || 'AIzaSyCeyIcYq60rZLMaXRlnU0UwKzDQaonuVwI';
+      console.log('Google Maps API Key:', apiKey);
+      console.log('All env vars:', import.meta.env);
+      
+      if (!apiKey || apiKey === 'undefined') {
+        console.error('Google Maps API key is not defined. Please check your .env file.');
+        return;
+      }
+
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&libraries=places`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
       script.async = true;
       script.defer = true;
       script.onload = () => setIsMapLoaded(true);
+      script.onerror = () => {
+        console.error('Failed to load Google Maps API');
+      };
       document.head.appendChild(script);
     };
 
@@ -157,6 +169,20 @@ const GoogleMapLocation: React.FC<GoogleMapLocationProps> = ({
   };
 
   if (!isMapLoaded) {
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    
+    if (!apiKey || apiKey === 'undefined') {
+      return (
+        <div className="flex items-center justify-center bg-gray-100 rounded-lg" style={{ height }}>
+          <div className="text-center p-4">
+            <MapPin className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+            <p className="text-gray-600 text-sm">Map unavailable</p>
+            <p className="text-gray-500 text-xs">API key not configured</p>
+          </div>
+        </div>
+      );
+    }
+    
     return (
       <div className="flex items-center justify-center bg-gray-100 rounded-lg" style={{ height }}>
         <div className="text-center">
