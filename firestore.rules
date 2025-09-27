@@ -9,6 +9,8 @@ service cloud.firestore {
       allow create: if request.auth != null && request.auth.uid == userId;
       // Allow admin operations on any user document
       allow read, write: if request.auth != null;
+      // Allow public read access for approved sellers (for store listings)
+      allow read: if resource.data.role == 'shop' && resource.data.status == 'approved';
     }
     
     // Admins collection - anyone can read, all authenticated users can write

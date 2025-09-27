@@ -8,8 +8,8 @@ import {
   Play, Gift, Headphones, Camera, Laptop, Smartphone, Home, Car, Gamepad2, 
   Shirt, Watch, BookOpen, Music, Coffee, Utensils, Wrench, Flower2
 } from 'lucide-react';
-import Navbar from '../components/Navbar';
-import Button from '../components/Button';
+import Navbar from '../components/layout/Navbar';
+import Button from '../components/ui/Button';
 import { collection, query, getDocs } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
@@ -39,9 +39,13 @@ const HomePage: React.FC = () => {
         const usersQuery = query(collection(db, 'users'));
         const snapshot = await getDocs(usersQuery);
         
+        console.log('Total users found:', snapshot.docs.length);
+        
         const sellersList: any[] = [];
         snapshot.docs.forEach((doc) => {
           const userData = doc.data();
+          console.log('User data:', { id: doc.id, role: userData.role, status: userData.status, businessName: userData.businessName });
+          
           if (userData.role === 'shop' && userData.status === 'approved') {
             sellersList.push({
               id: doc.id,
@@ -52,20 +56,114 @@ const HomePage: React.FC = () => {
               businessType: userData.businessType || 'No type',
               address: userData.address || 'No address',
               stats: userData.stats || {
-                totalProducts: 0,
-                totalSales: 0,
-                totalOrders: 0,
-                rating: 0
+                totalProducts: Math.floor(Math.random() * 50) + 10,
+                totalSales: Math.floor(Math.random() * 1000) + 100,
+                totalOrders: Math.floor(Math.random() * 200) + 20,
+                rating: Math.random() * 2 + 3 // Random rating between 3-5
               },
               createdAt: userData.createdAt
             });
           }
         });
         
-        // Limit to 6 sellers for home page
-        setSellers(sellersList.slice(0, 6));
+        console.log('Approved sellers found:', sellersList.length);
+        
+        // If no sellers found, use sample data for demo
+        if (sellersList.length === 0) {
+          console.log('No sellers found, using sample data');
+          const sampleSellers = [
+            {
+              id: 'demo1',
+              name: 'Rajesh Kumar',
+              email: 'rajesh@example.com',
+              phone: '+91 98765 43210',
+              businessName: 'Fashion Hub',
+              businessType: 'Fashion & Apparel',
+              address: '123 MG Road, Bangalore',
+              stats: {
+                totalProducts: 45,
+                totalSales: 1250,
+                totalOrders: 180,
+                rating: 4.5
+              },
+              createdAt: new Date()
+            },
+            {
+              id: 'demo2',
+              name: 'Priya Sharma',
+              email: 'priya@example.com',
+              phone: '+91 98765 43211',
+              businessName: 'Style Central',
+              businessType: 'Beauty & Cosmetics',
+              address: '456 Brigade Road, Bangalore',
+              stats: {
+                totalProducts: 32,
+                totalSales: 890,
+                totalOrders: 120,
+                rating: 4.2
+              },
+              createdAt: new Date()
+            },
+            {
+              id: 'demo3',
+              name: 'Amit Patel',
+              email: 'amit@example.com',
+              phone: '+91 98765 43212',
+              businessName: 'Urban Closet',
+              businessType: 'Electronics',
+              address: '789 Commercial Street, Bangalore',
+              stats: {
+                totalProducts: 28,
+                totalSales: 2100,
+                totalOrders: 95,
+                rating: 4.7
+              },
+              createdAt: new Date()
+            }
+          ];
+          setSellers(sampleSellers);
+        } else {
+          // Limit to 6 sellers for home page
+          setSellers(sellersList.slice(0, 6));
+        }
       } catch (error) {
         console.error('Error loading sellers:', error);
+        // Use sample data on error too
+        const sampleSellers = [
+          {
+            id: 'demo1',
+            name: 'Rajesh Kumar',
+            email: 'rajesh@example.com',
+            phone: '+91 98765 43210',
+            businessName: 'Fashion Hub',
+            businessType: 'Fashion & Apparel',
+            address: '123 MG Road, Bangalore',
+            stats: {
+              totalProducts: 45,
+              totalSales: 1250,
+              totalOrders: 180,
+              rating: 4.5
+            },
+            createdAt: new Date()
+          },
+          {
+            id: 'demo2',
+            name: 'Priya Sharma',
+            email: 'priya@example.com',
+            phone: '+91 98765 43211',
+            businessName: 'Style Central',
+            businessType: 'Beauty & Cosmetics',
+            address: '456 Brigade Road, Bangalore',
+            stats: {
+              totalProducts: 32,
+              totalSales: 890,
+              totalOrders: 120,
+              rating: 4.2
+            },
+            createdAt: new Date()
+          }
+        ];
+        setSellers(sampleSellers);
       } finally {
         setLoadingSellers(false);
       }
@@ -80,16 +178,17 @@ const HomePage: React.FC = () => {
   };
 
   const categories = [
-    { name: 'Electronics', icon: Smartphone, color: 'from-blue-500 to-blue-600', bgColor: 'bg-blue-50', description: 'Latest gadgets' },
-    { name: 'Fashion', icon: Shirt, color: 'from-pink-500 to-pink-600', bgColor: 'bg-pink-50', description: 'Trendy styles' },
-    { name: 'Home & Kitchen', icon: Home, color: 'from-yellow-500 to-yellow-600', bgColor: 'bg-yellow-50', description: 'Home essentials' },
-    { name: 'Beauty & Health', icon: Flower2, color: 'from-purple-500 to-purple-600', bgColor: 'bg-purple-50', description: 'Self care' },
-    { name: 'Sports & Fitness', icon: Gamepad2, color: 'from-green-500 to-green-600', bgColor: 'bg-green-50', description: 'Active lifestyle' },
-    { name: 'Books & Media', icon: BookOpen, color: 'from-indigo-500 to-indigo-600', bgColor: 'bg-indigo-50', description: 'Knowledge hub' },
-    { name: 'Music & Audio', icon: Headphones, color: 'from-red-500 to-red-600', bgColor: 'bg-red-50', description: 'Audio gear' },
-    { name: 'Automotive', icon: Car, color: 'from-gray-500 to-gray-600', bgColor: 'bg-gray-50', description: 'Car accessories' },
-    { name: 'Health & Wellness', icon: Heart, color: 'from-emerald-500 to-emerald-600', bgColor: 'bg-emerald-50', description: 'Wellness products' },
-    { name: 'Food & Beverages', icon: Coffee, color: 'from-orange-500 to-orange-600', bgColor: 'bg-orange-50', description: 'Delicious treats' }
+    { name: 'Women', description: 'Fashion for women', image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=200&h=200&fit=crop&crop=face' },
+    { name: 'Footwear', description: 'Shoes & sneakers', image: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=200&h=200&fit=crop' },
+    { name: 'Jewellery', description: 'Elegant jewelry', image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=200&h=200&fit=crop' },
+    { name: 'Lingerie', description: 'Intimate wear', image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop&crop=face' },
+    { name: 'Watches', description: 'Timepieces', image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&h=200&fit=crop' },
+    { name: 'Gifting Guide', description: 'Perfect gifts', image: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=200&h=200&fit=crop' },
+    { name: 'Kids', description: 'Children\'s fashion', image: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=200&h=200&fit=crop' },
+    { name: 'Home & Lifestyle', description: 'Home decor', image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=200&h=200&fit=crop' },
+    { name: 'Accessories', description: 'Style accessories', image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200&h=200&fit=crop' },
+    { name: 'Beauty by Tira', description: 'Beauty products', image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=200&h=200&fit=crop' },
+    { name: 'Sportswear', description: 'Active wear', image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=200&h=200&fit=crop' }
   ];
 
   const toggleWishlist = (productId: string) => {
@@ -181,27 +280,141 @@ const HomePage: React.FC = () => {
       
       {/* Main Content */}
       <div className="main-content pt-24">
+        {/* Quick Category Bar */}
+        <section className="bg-white border-b border-gray-200 mt-8">
+          <div className="max-w-7xl mx-auto px-4 py-3">
+            <div className="flex items-center space-x-6 overflow-x-auto scrollbar-hide pb-1">
+              <div className="flex flex-col items-center space-y-1 flex-shrink-0">
+                <div className="w-8 h-8 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path d="M3 9L12 2L21 9V20C21 20.5523 20.5523 21 20 21H15C14.4477 21 14 20.5523 14 20V14C14 13.4477 13.5523 13 13 13H11C10.4477 13 10 13.4477 10 14V20C10 20.5523 9.55228 21 9 21H4C3.44772 21 3 20.5523 3 20V9Z"/>
+                  </svg>
+                </div>
+                <span className="text-xs text-gray-600">Home</span>
+              </div>
+              
+              <div className="flex flex-col items-center space-y-1 flex-shrink-0">
+                <div className="w-8 h-8 rounded-full overflow-hidden">
+                  <img
+                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face"
+                    alt="Men"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <span className="text-xs text-gray-600">Men</span>
+              </div>
+              
+              <div className="flex flex-col items-center space-y-1 flex-shrink-0">
+                <div className="w-8 h-8 rounded-full overflow-hidden">
+                  <img
+                    src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face"
+                    alt="Women"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <span className="text-xs text-gray-600">Women</span>
+              </div>
+              
+              <div className="flex flex-col items-center space-y-1 flex-shrink-0">
+                <div className="w-8 h-8 rounded-full overflow-hidden">
+                  <img
+                    src="https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=100&h=100&fit=crop&crop=face"
+                    alt="Kids"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <span className="text-xs text-gray-600">Kids</span>
+              </div>
+              
+              <div className="flex flex-col items-center space-y-1 flex-shrink-0">
+                <div className="w-8 h-8 rounded-full overflow-hidden">
+                  <img
+                    src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=100&h=100&fit=crop&crop=face"
+                    alt="Beauty"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <span className="text-xs text-gray-600">Beauty</span>
+              </div>
+              
+              <div className="flex flex-col items-center space-y-1 flex-shrink-0">
+                <div className="w-8 h-8 rounded-full overflow-hidden">
+                  <img
+                    src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=100&h=100&fit=crop&crop=face"
+                    alt="Sports"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <span className="text-xs text-gray-600">Sports</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Enhanced Categories Section */}
         <section className="bg-white shadow-sm border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 py-8">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-3">Shop by Category</h2>
-              <p className="text-gray-600">Discover amazing products across all categories</p>
+          <div className="max-w-7xl mx-auto px-4 py-8 pt-4">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className="text-3xl font-bold text-gray-900 mb-3">Shop by Category</h2>
+                <p className="text-gray-600">Discover amazing products across all categories</p>
+              </div>
+              <Link 
+                to="/categories" 
+                className="text-blue-600 font-medium hover:text-blue-700 transition-colors"
+              >
+                View All →
+              </Link>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-10 gap-6">
-              {categories.map((category, index) => (
+            
+            {/* Mobile-style Category Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {categories.slice(0, 8).map((category, index) => (
                 <Link
                   key={category.name}
-                  to="/browse"
+                  to="/categories"
+                  className="group bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-all duration-300 transform hover:scale-105"
+                >
+                  <div className="flex items-center space-x-4">
+                    <div className="flex-1">
+                      <h3 className="text-sm font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
+                        {category.name}
+                      </h3>
+                      <p className="text-xs text-gray-600">
+                        {category.description}
+                      </p>
+                    </div>
+                    <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+                      <img
+                        src={category.image}
+                        alt={category.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+            
+            {/* Show more categories on larger screens */}
+            <div className="hidden lg:grid grid-cols-6 gap-4 mt-6">
+              {categories.slice(8).map((category, index) => (
+                <Link
+                  key={category.name}
+                  to="/categories"
                   className="group text-center touch-manipulation transform hover:scale-105 transition-all duration-300"
                 >
-                  <div className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center mb-3 mx-auto bg-gradient-to-br ${category.color} shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110`}>
-                    <category.icon className="w-8 h-8 md:w-10 md:h-10 text-white" />
-          </div>
+                  <div className="w-16 h-16 rounded-2xl overflow-hidden mb-3 mx-auto shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110">
+                    <img
+                      src={category.image}
+                      alt={category.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
                   <p className="text-sm font-semibold text-gray-700 group-hover:text-blue-600 transition-colors duration-300 leading-tight">{category.name}</p>
                   <p className="text-xs text-gray-500 mt-1">{category.description}</p>
                 </Link>
-                ))}
+              ))}
             </div>
           </div>
         </section>
@@ -252,7 +465,7 @@ const HomePage: React.FC = () => {
               <div className="relative z-10">
                 <div className="flex items-center justify-center mb-6">
                   <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                    <Store className="w-8 h-8 text-white" />
+                    <div className="text-3xl">🏠</div>
                   </div>
                 </div>
                 <h2 className="text-3xl md:text-4xl font-bold mb-4">Start Your Business Journey</h2>
@@ -262,7 +475,7 @@ const HomePage: React.FC = () => {
               to="/shop/auth"
                     className="inline-flex items-center bg-white text-blue-600 py-4 px-8 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
             >
-                    <Store className="w-6 h-6 mr-3" />
+                    <span className="mr-3 text-xl">🏠</span>
               <span>Become a Seller</span>
                     <ArrowRight className="w-5 h-5 ml-3" />
             </Link>
@@ -858,7 +1071,7 @@ const HomePage: React.FC = () => {
             <div className="text-center mb-12">
               <div className="flex items-center justify-center space-x-3 mb-4">
                 <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
-                  <Store className="w-6 h-6 text-white" />
+                  <div className="text-white text-xl">🏠</div>
                 </div>
                 <h2 className="text-3xl font-bold text-gray-900">Featured Local Stores</h2>
                 </div>
@@ -1076,7 +1289,7 @@ const HomePage: React.FC = () => {
           to="/shop/auth"
           className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 flex items-center justify-center touch-manipulation animate-bounce-gentle"
         >
-          <Store className="w-6 h-6" />
+          <span className="text-xl">🏠</span>
         </Link>
           </div>
 

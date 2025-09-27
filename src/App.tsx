@@ -4,27 +4,30 @@ import { Search, ShoppingBag, Heart, MapPin, Navigation, Star, Package, Phone, E
 import { collection, query, getDocs } from 'firebase/firestore';
 import { db } from './firebase/config';
 import HomePage from './pages/HomePage';
-import ShopDashboard from './pages/ShopDashboard';
-import AuthPage from './pages/AuthPage';
-import ProfilePage from './pages/ProfilePage';
-import BecomeSellerPage from './pages/BecomeSellerPage';
-import SellerProductsPage from './pages/SellerProductsPage';
-import AdminSetupPage from './pages/AdminSetupPage';
-import FixAdminEmailPage from './pages/FixAdminEmailPage';
-import AdminTestPage from './pages/AdminTestPage';
-import DebugAdminPage from './pages/DebugAdminPage';
-import CreateUserPage from './pages/CreateUserPage';
-import ManageAdminsPage from './pages/ManageAdminsPage';
-import ProductManagementPage from './pages/ProductManagementPage';
-import SellerManagementPage from './pages/SellerManagementPage';
-import UserManagementPage from './pages/UserManagementPage';
-import OrderManagementPage from './pages/OrderManagementPage';
-import AdminSettingsPage from './pages/AdminSettingsPage';
-import AdminDashboard from './pages/AdminDashboard';
-import Navbar from './components/Navbar';
-import Button from './components/Button';
-import ScrollToTop from './components/ScrollToTop';
-import { AppProvider } from './context/AppContext';
+import SearchPage from './pages/SearchPage';
+import CategoriesPage from './pages/CategoriesPage';
+import ShopDashboard from './pages/seller/ShopDashboard';
+import AuthPage from './pages/auth/AuthPage';
+import ProfilePage from './pages/profile/ProfilePage';
+import BecomeSellerPage from './pages/seller/BecomeSellerPage';
+import SellerProductsPage from './pages/seller/SellerProductsPage';
+import CartPage from './pages/CartPage';
+import AdminSetupPage from './pages/admin/AdminSetupPage';
+import FixAdminEmailPage from './pages/admin/FixAdminEmailPage';
+import AdminTestPage from './pages/admin/AdminTestPage';
+import DebugAdminPage from './pages/admin/DebugAdminPage';
+import CreateUserPage from './pages/user/CreateUserPage';
+import ManageAdminsPage from './pages/admin/ManageAdminsPage';
+import ProductManagementPage from './pages/product/ProductManagementPage';
+import SellerManagementPage from './pages/seller/SellerManagementPage';
+import UserManagementPage from './pages/user/UserManagementPage';
+import OrderManagementPage from './pages/order/OrderManagementPage';
+import AdminSettingsPage from './pages/admin/AdminSettingsPage';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import Navbar from './components/layout/Navbar';
+import Button from './components/ui/Button';
+import ScrollToTop from './components/layout/ScrollToTop';
+import { AppProvider } from './contexts/AppContext';
 import { AuthProvider } from './contexts/AuthContext';
 
 // Bottom Navigation Component
@@ -43,7 +46,11 @@ const BottomNavigation = () => {
           }`}
         >
           <div className="w-6 h-6 mb-1 flex items-center justify-center">
-            <div className="w-5 h-5">🏠</div>
+            <div className="w-5 h-5 flex items-center justify-center">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path d="M3 9L12 2L21 9V20C21 20.5523 20.5523 21 20 21H15C14.4477 21 14 20.5523 14 20V14C14 13.4477 13.5523 13 13 13H11C10.4477 13 10 13.4477 10 14V20C10 20.5523 9.55228 21 9 21H4C3.44772 21 3 20.5523 3 20V9Z"/>
+              </svg>
+            </div>
           </div>
           <span className="text-xs font-medium">Home</span>
           {location.pathname === '/' && (
@@ -60,7 +67,15 @@ const BottomNavigation = () => {
           }`}
         >
           <div className="w-6 h-6 mb-1 flex items-center justify-center">
-            <div className="w-5 h-5">🔍</div>
+            <div className="w-5 h-5 flex items-center justify-center">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path d="M3 21L21 21"/>
+                <path d="M5 21L5 9L12 3L19 9L19 21"/>
+                <path d="M9 9L9 21"/>
+                <path d="M15 9L15 21"/>
+                <path d="M9 21L15 21"/>
+              </svg>
+            </div>
           </div>
           <span className="text-xs font-medium">Explore</span>
           {location.pathname === '/browse' && (
@@ -69,23 +84,22 @@ const BottomNavigation = () => {
         </Link>
         
         <Link
-          to="/trending"
+          to="/cart"
           className={`flex flex-col items-center py-3 px-2 transition-all duration-200 ${
-            location.pathname === '/trending' 
+            location.pathname === '/cart' 
               ? 'text-black' 
               : 'text-gray-600'
           }`}
         >
           <div className="w-6 h-6 mb-1 flex items-center justify-center">
-            <div className="w-6 h-6 rounded-full border-2 border-gray-600 flex items-center justify-center">
-              <span className="text-xs font-bold">OG</span>
+            <div className="w-6 h-6 flex items-center justify-center">
+              <span className="text-lg">🛒</span>
             </div>
           </div>
           <div className="text-center">
-            <div className="text-xs font-medium">GenZ Fits</div>
-            <div className="text-xs text-gray-500">Rs.799</div>
+            <div className="text-xs font-medium">Cart</div>
           </div>
-          {location.pathname === '/trending' && (
+          {location.pathname === '/cart' && (
             <div className="w-8 h-0.5 bg-black mt-1"></div>
           )}
         </Link>
@@ -132,525 +146,7 @@ const BottomNavigation = () => {
   );
 };
 
-// Enhanced pages for bottom navigation
-const SearchPage = () => {
-  const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [currentLocation, setCurrentLocation] = useState<string>('');
-  const [isGettingLocation, setIsGettingLocation] = useState(false);
-  const [showNearbyStores, setShowNearbyStores] = useState(true);
-  const [sellers, setSellers] = useState<any[]>([]);
-  const [loadingSellers, setLoadingSellers] = useState(true);
-  
-  const categories = ['All', 'Men', 'Women', 'Kids', 'Shoes', 'Accessories'];
-  
-  const mockResults = [
-    { id: 1, name: 'Fashion Hub Store', type: 'store', distance: '2.5 km', rating: 4.8, category: 'All' },
-    { id: 2, name: 'Classic Cotton T-Shirt', type: 'product', price: 29.99, store: 'Fashion Hub', category: 'Men', image: '👕' },
-    { id: 3, name: 'Urban Closet', type: 'store', distance: '1.1 km', rating: 4.5, category: 'All' },
-    { id: 4, name: 'Summer Dress', type: 'product', price: 49.99, store: 'Style Central', category: 'Women', image: '👗' },
-    { id: 5, name: 'Kids Play Shoes', type: 'product', price: 39.99, store: 'Urban Closet', category: 'Kids', image: '👟' },
-    { id: 6, name: 'Designer Handbag', type: 'product', price: 199.99, store: 'Elite Boutique', category: 'Accessories', image: '👜' },
-  ];
 
-  // Fetch sellers from database
-  useEffect(() => {
-    const fetchSellers = async () => {
-      setLoadingSellers(true);
-      try {
-        const usersQuery = query(collection(db, 'users'));
-        const snapshot = await getDocs(usersQuery);
-        
-        const sellersList: any[] = [];
-        snapshot.docs.forEach((doc) => {
-          const userData = doc.data();
-          if (userData.role === 'shop' && userData.status === 'approved') {
-            sellersList.push({
-              id: doc.id,
-              name: userData.name || 'Unknown Seller',
-              email: userData.email || 'No email',
-              phone: userData.phone || 'No phone',
-              businessName: userData.businessName || 'No business name',
-              businessType: userData.businessType || 'No type',
-              address: userData.address || 'No address',
-              stats: userData.stats || {
-                totalProducts: 0,
-                totalSales: 0,
-                totalOrders: 0,
-                rating: 0
-              },
-              createdAt: userData.createdAt
-            });
-          }
-        });
-        
-        setSellers(sellersList);
-      } catch (error) {
-        console.error('Error loading sellers:', error);
-      } finally {
-        setLoadingSellers(false);
-      }
-    };
-
-    fetchSellers();
-  }, []);
-
-
-  // View seller products
-  const viewSellerProducts = (seller: any) => {
-    navigate(`/seller/${seller.id}`);
-  };
-
-  const getCategoryIcon = (cat: string) => {
-    switch(cat) {
-      case 'All': return '🛍️';
-      case 'Men': return '👔';
-      case 'Women': return '👗';
-      case 'Kids': return '👶';
-      case 'Shoes': return '👟';
-      case 'Accessories': return '👜';
-      default: return '👕';
-    }
-  };
-
-  const filteredResults = mockResults.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (item.type === 'product' && item.store?.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-cream via-white to-primary-50">
-      <Navbar userRole="user" />
-      <div className="main-content px-4 py-6 pt-28">
-        <div className="max-w-6xl mx-auto">
-          {/* Hero Section */}
-          <div className="text-center mb-10">
-            <h1 className="text-3xl font-serif font-bold text-neutral-900 mb-3">Explore Nearby Stores</h1>
-            <p className="text-neutral-600 text-lg">Discover local stores and products near you</p>
-          </div>
-          
-          {/* Location Search Bar */}
-          <div className="mb-8">
-            <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Enter your location or use current location"
-                value={currentLocation}
-                onChange={(e) => setCurrentLocation(e.target.value)}
-                className="w-full pl-10 pr-32 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-              />
-              <button 
-                onClick={() => {
-                  if (navigator.geolocation) {
-                    setIsGettingLocation(true);
-                    navigator.geolocation.getCurrentPosition(
-                      (position) => {
-                        const { latitude, longitude } = position.coords;
-                        setCurrentLocation(`Current Location (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`);
-                        setIsGettingLocation(false);
-                      },
-                      (error) => {
-                        console.error('Error getting location:', error);
-                        alert('Unable to get your current location. Please enter manually.');
-                        setIsGettingLocation(false);
-                      }
-                    );
-                  } else {
-                    alert('Geolocation is not supported by this browser.');
-                  }
-                }}
-                disabled={isGettingLocation}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-blue-600 text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors flex items-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isGettingLocation ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                ) : (
-                  <Navigation className="w-4 h-4" />
-                )}
-                <span className="hidden sm:inline">
-                  {isGettingLocation ? 'Getting...' : 'Use Current'}
-                </span>
-              </button>
-            </div>
-          </div>
-          
-          {/* Enhanced Search Bar */}
-          <div className="relative mb-8">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-neutral-400 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Search for stores, products, or categories..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-4 border-2 border-neutral-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent text-lg shadow-lg"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-colors"
-              >
-                ✕
-              </button>
-            )}
-          </div>
-
-          {/* Toggle Buttons */}
-          <div className="flex space-x-4 mb-8">
-            <button
-              onClick={() => setShowNearbyStores(true)}
-              className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-                showNearbyStores 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              Nearby Stores
-            </button>
-            <button
-              onClick={() => setShowNearbyStores(false)}
-              className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-                !showNearbyStores 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              All Results
-            </button>
-          </div>
-
-          {/* Enhanced Category Filter */}
-          <div className="bg-white rounded-2xl p-6 shadow-lg mb-8">
-            <h3 className="text-lg font-semibold text-neutral-900 mb-4">Filter by Category</h3>
-            <div className="flex flex-wrap gap-3">
-              {categories.map((category) => (
-                <button
-                  key={category}
-                  onClick={() => setSelectedCategory(category)}
-                  className={`flex items-center px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 hover:scale-105 ${
-                    selectedCategory === category
-                      ? 'bg-gradient-to-r from-primary-500 to-secondary-500 text-white shadow-lg'
-                      : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200 border border-neutral-300'
-                  }`}
-                >
-                  <span className="mr-2">{getCategoryIcon(category)}</span>
-                  {category}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Results Header */}
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-neutral-900">
-              {filteredResults.length} {filteredResults.length === 1 ? 'Result' : 'Results'} Found
-            </h2>
-            {searchQuery && (
-              <span className="text-neutral-600">for "{searchQuery}"</span>
-            )}
-          </div>
-
-          {/* Nearby Stores Section */}
-          {showNearbyStores && (
-            <div className="mb-8">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-neutral-900">Stores Near You</h2>
-                <div className="flex items-center space-x-2 text-sm text-neutral-600">
-                  <MapPin className="w-4 h-4" />
-                  <span>{currentLocation || 'Location not set'}</span>
-                </div>
-              </div>
-              
-              {loadingSellers ? (
-                <div className="flex justify-center py-8">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                </div>
-              ) : sellers.length === 0 ? (
-                <div className="text-center py-8">
-                  <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No stores found</h3>
-                  <p className="text-gray-600">No approved stores are available at the moment.</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {sellers.map((seller) => (
-                    <div key={seller.id} className="bg-white rounded-xl p-4 shadow-lg hover:shadow-xl transition-shadow cursor-pointer" onClick={() => viewSellerProducts(seller)}>
-                      <div className="flex space-x-4">
-                        {/* Store Image */}
-                        <div className="relative">
-                          <div className="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white text-2xl font-bold">
-                            {seller.businessName.charAt(0).toUpperCase()}
-                          </div>
-                          <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center bg-green-500">
-                            <div className="w-2 h-2 rounded-full bg-white"></div>
-                          </div>
-                        </div>
-
-                        {/* Store Info */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between mb-2">
-                            <div>
-                              <h3 className="font-bold text-gray-900 text-sm md:text-base line-clamp-1">{seller.businessName}</h3>
-                              <p className="text-xs text-gray-600">{seller.address}</p>
-                              <p className="text-xs text-gray-500">Owner: {seller.name}</p>
-                            </div>
-                            <div className="text-right">
-                              <div className="flex items-center space-x-1">
-                                <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                                <span className="text-sm font-semibold text-gray-900">{seller.stats.rating.toFixed(1)}</span>
-                                <span className="text-xs text-gray-500">({seller.stats.totalOrders})</span>
-                              </div>
-                              <p className="text-xs text-gray-600">{seller.stats.totalProducts} products</p>
-                            </div>
-                          </div>
-
-                          {/* Category and Status */}
-                          <div className="flex items-center space-x-2 mb-3">
-                            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">{seller.businessType}</span>
-                            <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                              Active
-                            </span>
-                            <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full">
-                              Verified
-                            </span>
-                          </div>
-
-                          {/* Contact Info */}
-                          <div className="mb-3">
-                            <div className="flex items-center space-x-2 text-xs text-gray-600">
-                              <Phone className="w-3 h-3" />
-                              <span>{seller.phone}</span>
-                            </div>
-                          </div>
-
-                          {/* Action Buttons */}
-                          <div className="flex space-x-2">
-                            <button 
-                              className="flex-1 bg-blue-600 text-white py-2 px-3 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center justify-center"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                viewSellerProducts(seller);
-                              }}
-                            >
-                              <Eye className="w-4 h-4 mr-1" />
-                              View Products
-                            </button>
-                            <button 
-                              className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                              aria-label="Get directions to store"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <Navigation className="w-4 h-4" />
-                            </button>
-                            <button 
-                              className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                              aria-label="Add store to favorites"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <Heart className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Enhanced Search Results */}
-          {!showNearbyStores && (
-          <div className="space-y-4">
-            {filteredResults.map((item) => (
-                <div key={item.id} className="bg-white rounded-2xl p-6 shadow-lg hover-lift border border-neutral-100">
-                <div className="flex items-center space-x-6">
-                    <div className="w-16 h-16 bg-gradient-to-br from-primary-100 to-secondary-100 rounded-xl flex items-center justify-center text-2xl">
-                    {item.type === 'store' ? '🏪' : item.image || '👕'}
-                  </div>
-                  <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-neutral-900 mb-1">{item.name}</h3>
-                      <p className="text-neutral-600 mb-2">
-                      {item.type === 'store' 
-                        ? `${item.distance} • ${item.rating}★`
-                        : `$${item.price} • ${item.store}`
-                      }
-                    </p>
-                    <div className="flex items-center space-x-2">
-                        <span className="text-xs bg-primary-100 text-primary-700 px-2 py-1 rounded-full">
-                        {item.category}
-                      </span>
-                        <span className="text-xs bg-secondary-100 text-secondary-700 px-2 py-1 rounded-full">
-                        {item.type}
-                      </span>
-                    </div>
-                  </div>
-                  <Button variant="outline" size="sm" className="hover:scale-105 transition-transform">
-                    {item.type === 'store' ? 'Visit Store' : 'View Product'}
-                  </Button>
-                </div>
-              </div>
-            ))}
-            
-            {filteredResults.length === 0 && (
-              <div className="text-center py-12">
-                <div className="text-6xl mb-4">🔍</div>
-                  <h3 className="text-xl font-semibold text-neutral-900 mb-2">No results found</h3>
-                  <p className="text-neutral-600 mb-4">Try adjusting your search or filters</p>
-                <Button variant="outline" onClick={() => {setSearchQuery(''); setSelectedCategory('All');}}>
-                  Clear Filters
-                </Button>
-              </div>
-            )}
-          </div>
-          )}
-        </div>
-      </div>
-
-    </div>
-  );
-};
-
-const CartPage = () => {
-  const [cartItems, setCartItems] = useState([
-    { id: 1, name: 'Classic Cotton T-Shirt', price: 29.99, quantity: 2, image: '👕', store: 'Fashion Hub' },
-    { id: 2, name: 'Summer Dress', price: 49.99, quantity: 1, image: '👗', store: 'Style Central' },
-    { id: 3, name: 'Casual Jeans', price: 76.99, quantity: 1, image: '👖', store: 'Urban Closet' },
-  ]);
-
-  const updateQuantity = (id: number, change: number) => {
-    setCartItems(items => items.map(item => 
-      item.id === id 
-        ? { ...item, quantity: Math.max(1, item.quantity + change) }
-        : item
-    ));
-  };
-
-  const removeItem = (id: number) => {
-    setCartItems(items => items.filter(item => item.id !== id));
-  };
-
-  const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-cream via-white to-primary-50">
-      <Navbar userRole="user" />
-      <div className="main-content px-4 py-6 pt-28">
-        <div className="max-w-6xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-10">
-            <h1 className="text-3xl font-serif font-bold text-warm-900 mb-3">Your Shopping Cart</h1>
-            <p className="text-warm-600 text-lg">{cartItems.length} items in your cart</p>
-          </div>
-          
-          {cartItems.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="text-6xl mb-4">🛒</div>
-              <h2 className="text-2xl font-semibold text-warm-900 mb-2">Your cart is empty</h2>
-              <p className="text-warm-600 mb-6">Add some items to get started</p>
-              <Button variant="primary" size="lg">
-                Continue Shopping
-              </Button>
-            </div>
-          ) : (
-            <div className="grid lg:grid-cols-3 gap-8">
-              {/* Cart Items */}
-              <div className="lg:col-span-2 space-y-4">
-                {cartItems.map((item) => (
-                  <div key={item.id} className="bg-white rounded-2xl p-6 shadow-lg hover-lift border border-warm-100">
-                    <div className="flex items-center space-x-6">
-                      <div className="w-20 h-20 bg-gradient-to-br from-warm-100 to-warm-200 rounded-xl flex items-center justify-center text-3xl">
-                        {item.image}
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-warm-900 mb-1">{item.name}</h3>
-                        <p className="text-warm-600 mb-2">{item.store}</p>
-                        <div className="flex items-center justify-between">
-                          <span className="text-xl font-bold text-warm-800">${item.price}</span>
-                          <div className="flex items-center space-x-3">
-                            <button 
-                              onClick={() => updateQuantity(item.id, -1)}
-                              className="w-8 h-8 bg-warm-100 hover:bg-warm-200 rounded-full flex items-center justify-center transition-colors"
-                            >
-                              -
-                            </button>
-                            <span className="w-8 text-center font-semibold">{item.quantity}</span>
-                            <button 
-                              onClick={() => updateQuantity(item.id, 1)}
-                              className="w-8 h-8 bg-warm-100 hover:bg-warm-200 rounded-full flex items-center justify-center transition-colors"
-                            >
-                              +
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <button 
-                          onClick={() => removeItem(item.id)}
-                          className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50 transition-colors"
-                        >
-                          🗑️
-                        </button>
-                        <div className="text-lg font-bold text-warm-800 mt-2">
-                          ${(item.price * item.quantity).toFixed(2)}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Order Summary */}
-              <div className="lg:col-span-1">
-                <div className="bg-white rounded-2xl p-6 shadow-lg sticky top-24">
-                  <h3 className="text-xl font-semibold text-warm-900 mb-6">Order Summary</h3>
-                  
-                  <div className="space-y-4 mb-6">
-                    <div className="flex justify-between">
-                      <span className="text-warm-600">Subtotal</span>
-                      <span className="font-semibold">${total.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-warm-600">Shipping</span>
-                      <span className="font-semibold text-green-600">Free</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-warm-600">Tax</span>
-                      <span className="font-semibold">${(total * 0.08).toFixed(2)}</span>
-                    </div>
-                    <div className="border-t border-warm-200 pt-4">
-                      <div className="flex justify-between text-lg font-bold">
-                        <span>Total</span>
-                        <span className="text-warm-800">${(total * 1.08).toFixed(2)}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <Button variant="primary" size="lg" className="w-full mb-4">
-                    Proceed to Checkout
-                  </Button>
-                  
-                  <Button variant="outline" size="lg" className="w-full">
-                    Continue Shopping
-                  </Button>
-
-                  <div className="mt-6 text-center">
-                    <p className="text-sm text-warm-500">
-                      🔒 Secure checkout guaranteed
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const WishlistPage = () => {
   const [wishlistItems, setWishlistItems] = useState([
@@ -777,8 +273,8 @@ function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/browse" element={<SearchPage />} />
-              <Route path="/trending" element={<SearchPage />} />
-              <Route path="/categories" element={<SearchPage />} />
+              <Route path="/cart" element={<CartPage />} />
+              <Route path="/categories" element={<CategoriesPage />} />
               <Route path="/seller/:sellerId" element={<SellerProductsPage />} />
               <Route path="/login" element={<AuthPage />} />
               <Route path="/auth" element={<AuthPage />} />
