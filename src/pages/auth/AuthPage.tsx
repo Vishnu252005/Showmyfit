@@ -48,7 +48,7 @@ const AuthPage: React.FC = () => {
         }
 
         // Handle signup
-        await signUp(formData.email, formData.password, formData.name, 'user');
+        await signUp(formData.email, formData.password, formData.name, 'user', formData.phone, formData.address);
         navigate('/profile');
       }
     } catch (error: any) {

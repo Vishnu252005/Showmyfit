@@ -12,9 +12,11 @@ import {
 } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { addSellerEmail } from '../../firebase/sellerSetup';
+import { approveSellerApplication, rejectSellerApplication } from '../../firebase/auth';
 
 interface Seller {
-  id: string;
+  id: string; // Application ID
+  userId: string; // User ID for adding products
   name: string;
   email: string;
   phone: string;
@@ -62,51 +64,51 @@ const SellerManagementPageMobile: React.FC = () => {
     
     setLoading(true);
     try {
-      console.log('Loading sellers...');
+      console.log('Loading seller applications...');
       
-      const usersQuery = query(collection(db, 'users'));
-      const snapshot = await getDocs(usersQuery);
+      // Load from sellerApplications collection instead of users
+      const applicationsQuery = query(collection(db, 'sellerApplications'));
+      const snapshot = await getDocs(applicationsQuery);
       
       console.log('Executing Firestore query...');
-      console.log('Query successful, found', snapshot.docs.length, 'users');
+      console.log('Query successful, found', snapshot.docs.length, 'seller applications');
       
       const sellersList: Seller[] = [];
       snapshot.docs.forEach((doc, index) => {
-        const userData = doc.data();
-        console.log(`Processing user ${index + 1}:`, {
+        const applicationData = doc.data();
+        console.log(`Processing application ${index + 1}:`, {
           id: doc.id,
-          name: userData.name,
-          email: userData.email,
-          role: userData.role,
-          status: userData.status
+          name: applicationData.name,
+          email: applicationData.email,
+          status: applicationData.status,
+          businessName: applicationData.businessName
         });
         
-        if (userData.role === 'shop') {
-          sellersList.push({
-            id: doc.id,
-            name: userData.name || 'Unknown Seller',
-            email: userData.email || 'No email',
-            phone: userData.phone || 'No phone',
-            businessName: userData.businessName || 'No business name',
-            businessType: userData.businessType || 'No type',
-            address: userData.address || 'No address',
-            status: userData.status || 'pending',
-            stats: userData.stats || {
-              totalProducts: 0,
-              totalSales: 0,
-              totalOrders: 0,
-              rating: 0
-            },
-            createdAt: userData.createdAt
-          });
-        }
+        sellersList.push({
+          id: doc.id, // Application ID
+          userId: applicationData.userId, // User ID for adding products
+          name: applicationData.name || 'Unknown Seller',
+          email: applicationData.email || 'No email',
+          phone: applicationData.phone || 'No phone',
+          businessName: applicationData.businessName || 'No business name',
+          businessType: applicationData.businessType || 'No type',
+          address: applicationData.businessAddress || 'No address',
+          status: applicationData.status || 'pending',
+          stats: applicationData.stats || {
+            totalProducts: 0,
+            totalSales: 0,
+            totalOrders: 0,
+            rating: 0
+          },
+          createdAt: applicationData.submittedAt
+        });
       });
       
-      console.log('Sellers loaded successfully:', sellersList.length);
+      console.log('Seller applications loaded successfully:', sellersList.length);
       setSellers(sellersList);
     } catch (error: any) {
-      console.error('Error loading sellers:', error);
-      setMessage(`Error loading sellers: ${error.message}`);
+      console.error('Error loading seller applications:', error);
+      setMessage(`Error loading seller applications: ${error.message}`);
       setIsSuccess(false);
     } finally {
       setLoading(false);
@@ -117,21 +119,46 @@ const SellerManagementPageMobile: React.FC = () => {
     loadSellers();
   }, [currentUser]);
 
-  // Update seller status
-  const updateSellerStatus = async (sellerId: string, newStatus: 'approved' | 'rejected') => {
+  // Update seller application status
+  const updateSellerStatus = async (applicationId: string, newStatus: 'approved' | 'rejected') => {
     try {
-      await updateDoc(doc(db, 'users', sellerId), {
-        status: newStatus,
-        updatedAt: new Date()
-      });
-      
-      setSellers(prev => prev.map(seller => 
-        seller.id === sellerId ? { ...seller, status: newStatus } : seller
+      // Get the application data to find the userId
+      const applicationDoc = await getDocs(query(
+        collection(db, 'sellerApplications'),
+        where('__name__', '==', applicationId)
       ));
       
-      setMessage(`Seller ${newStatus} successfully!`);
+      if (applicationDoc.empty) {
+        throw new Error('Application not found');
+      }
+      
+      const applicationData = applicationDoc.docs[0].data();
+      const userId = applicationData.userId;
+      
+      if (!userId) {
+        throw new Error('User ID not found in application');
+      }
+      
+      if (newStatus === 'approved') {
+        await approveSellerApplication(userId, applicationId, currentUser?.email || 'admin');
+        setMessage('Seller application approved successfully!');
+      } else {
+        // For rejection, we'll need a reason - for now using a default
+        const rejectionReason = 'Application did not meet our requirements. Please review and reapply.';
+        await rejectSellerApplication(userId, applicationId, currentUser?.email || 'admin', rejectionReason);
+        setMessage('Seller application rejected successfully!');
+      }
+      
+      // Update local state
+      setSellers(prev => prev.map(seller => 
+        seller.id === applicationId ? { ...seller, status: newStatus } : seller
+      ));
+      
       setIsSuccess(true);
       setTimeout(() => setMessage(''), 3000);
+      
+      // Reload sellers to get updated data
+      await loadSellers();
     } catch (error: any) {
       console.error('Error updating seller status:', error);
       setMessage(`Error updating seller status: ${error.message}`);
@@ -384,7 +411,7 @@ const SellerManagementPageMobile: React.FC = () => {
   const viewSellerProducts = async (seller: Seller) => {
     setSelectedSeller(seller);
     setShowProductsModal(true);
-    await fetchSellerProducts(seller.id);
+    await fetchSellerProducts(seller.userId);
   };
 
   // Edit product
@@ -657,9 +684,9 @@ const SellerManagementPageMobile: React.FC = () => {
             <div>
               <h1 className="text-2xl font-bold text-gray-900 flex items-center">
                 <Users className="w-6 h-6 mr-2 text-red-600" />
-                Seller Management
+                Seller Applications Management
               </h1>
-              <p className="text-gray-600 mt-1 text-sm">Manage seller accounts and approvals</p>
+              <p className="text-gray-600 mt-1 text-sm">Review and manage seller applications</p>
             </div>
             <div className="flex flex-col gap-3">
               <Button
@@ -673,7 +700,7 @@ const SellerManagementPageMobile: React.FC = () => {
               <div className="grid grid-cols-3 gap-2">
                 <div className="bg-white rounded-lg p-3 shadow-sm text-center">
                   <div className="text-lg font-bold text-gray-900">{sellers.length}</div>
-                  <div className="text-xs text-gray-600">Total</div>
+                  <div className="text-xs text-gray-600">Total Applications</div>
                 </div>
                 <div className="bg-white rounded-lg p-3 shadow-sm text-center">
                   <div className="text-lg font-bold text-green-600">
@@ -685,7 +712,13 @@ const SellerManagementPageMobile: React.FC = () => {
                   <div className="text-lg font-bold text-yellow-600">
                     {sellers.filter(s => s.status === 'pending').length}
                   </div>
-                  <div className="text-xs text-gray-600">Pending</div>
+                  <div className="text-xs text-gray-600">Pending Review</div>
+                </div>
+                <div className="bg-white rounded-lg p-3 shadow-sm text-center">
+                  <div className="text-lg font-bold text-red-600">
+                    {sellers.filter(s => s.status === 'rejected').length}
+                  </div>
+                  <div className="text-xs text-gray-600">Rejected</div>
                 </div>
               </div>
             </div>
@@ -816,13 +849,13 @@ const SellerManagementPageMobile: React.FC = () => {
                       </button>
                       
                       {/* Add Products Button */}
-                      {seller.status === 'approved' && (
+                      {seller.status === 'approved' && seller.userId && (
                         <button
-                          onClick={() => addProductsToSeller(seller.id, seller.businessName, seller.businessType)}
-                          disabled={addingProducts === seller.id}
+                          onClick={() => addProductsToSeller(seller.userId, seller.businessName, seller.businessType)}
+                          disabled={addingProducts === seller.userId}
                           className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                         >
-                          {addingProducts === seller.id ? (
+                          {addingProducts === seller.userId ? (
                             <>
                               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                               Adding Products...

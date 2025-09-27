@@ -25,7 +25,7 @@ const CreateUserPage: React.FC = () => {
     setMessage('');
 
     try {
-      await signUp(formData.email, formData.password, formData.displayName, 'admin');
+      await signUp(formData.email, formData.password, formData.displayName, 'admin', formData.phone, formData.address);
       setMessage('User created successfully! You can now sign in.');
       setIsSuccess(true);
     } catch (error: any) {

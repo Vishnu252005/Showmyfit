@@ -1,30 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, Store, CheckCircle, Star, Users, TrendingUp, Shield, 
   CreditCard, Headphones, Zap, Globe, Award, Phone, Mail, MapPin,
-  Upload, Eye, EyeOff, User, Building, FileText, DollarSign
+  Upload, Building, FileText, DollarSign, LogIn, Clock, XCircle, AlertCircle
 } from 'lucide-react';
 import Navbar from '../../components/layout/Navbar';
 import Button from '../../components/ui/Button';
 import { useAuth } from '../../contexts/AuthContext';
-import { signUp } from '../../firebase/auth';
+import { submitSellerApplication, getSellerApplicationStatus } from '../../firebase/auth';
 
 const BecomeSellerPage: React.FC = () => {
-  const { currentUser } = useAuth();
+  // Add safety check for AuthContext during hot reload
+  let currentUser, userData;
+  try {
+    const authData = useAuth();
+    currentUser = authData.currentUser;
+    userData = authData.userData;
+  } catch (error) {
+    console.error('AuthContext not available:', error);
+    // Return loading state if AuthContext is not available
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+  
   const navigate = useNavigate();
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [applicationStatus, setApplicationStatus] = useState<'not_applied' | 'pending' | 'approved' | 'rejected'>('not_applied');
+  const [checkingStatus, setCheckingStatus] = useState(true);
   const [formData, setFormData] = useState({
-    // Personal Information
-    fullName: '',
-    email: '',
-    phone: '',
-    password: '',
-    confirmPassword: '',
-    
     // Business Information
     businessName: '',
     businessType: '',
@@ -53,6 +64,31 @@ const BecomeSellerPage: React.FC = () => {
     agreeToMarketing: false
   });
 
+  // Check application status on component mount
+  useEffect(() => {
+    const checkStatus = async () => {
+      if (currentUser) {
+        try {
+          const status = await getSellerApplicationStatus(currentUser.uid);
+          setApplicationStatus(status);
+          console.log('📋 Current application status:', status);
+        } catch (error) {
+          console.error('Error checking application status:', error);
+        }
+      }
+      setCheckingStatus(false);
+    };
+    
+    checkStatus();
+  }, [currentUser]);
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!loading && !currentUser) {
+      // Don't redirect immediately, show login prompt instead
+    }
+  }, [currentUser, loading]);
+
   const businessTypes = [
     'Fashion & Apparel',
     'Electronics & Gadgets',
@@ -79,8 +115,8 @@ const BecomeSellerPage: React.FC = () => {
       const checked = (e.target as HTMLInputElement).checked;
       setFormData(prev => ({ ...prev, [name]: checked }));
     } else {
-      // Ensure value is never undefined
-      const safeValue = value || '';
+      // Ensure value is never undefined or null
+      const safeValue = value ?? '';
       setFormData(prev => ({ ...prev, [name]: safeValue }));
     }
   };
@@ -102,10 +138,10 @@ const BecomeSellerPage: React.FC = () => {
     try {
       console.log('🚀 Starting seller application process...');
       
-      // Validate passwords match
-      if (formData.password !== formData.confirmPassword) {
-        console.log('❌ Password validation failed');
-        setError('Passwords do not match');
+      // Check if user is authenticated
+      if (!currentUser) {
+        console.log('❌ User not authenticated');
+        setError('Please login to continue with seller application');
         setLoading(false);
         return;
       }
@@ -120,30 +156,14 @@ const BecomeSellerPage: React.FC = () => {
 
       console.log('✅ Form validation passed');
 
-      // Create seller account with pending status
-      if (!currentUser) {
-        console.log('👤 Creating user account...');
-        try {
-          await signUp(formData.email, formData.password, formData.fullName, 'shop');
-          console.log('✅ User account created successfully');
-        } catch (authError: any) {
-          console.error('❌ Auth error:', authError);
-          throw new Error(`Authentication failed: ${authError.message}`);
-        }
-      } else {
-        console.log('👤 User already logged in, skipping account creation');
-      }
-
-      // Store seller application in Firestore with pending status
+      // Prepare seller application data
       console.log('📝 Preparing seller application data...');
-      const { addDoc, collection } = await import('firebase/firestore');
-      const { db } = await import('../../firebase/config');
       
       const sellerApplication = {
-        // Personal Information
-        name: formData.fullName,
-        email: formData.email,
-        phone: formData.phone,
+        // Personal Information (from current user)
+        name: currentUser.displayName || userData?.name || '',
+        email: currentUser.email || '',
+        phone: userData?.phone || '',
         
         // Business Information
         businessName: formData.businessName,
@@ -170,13 +190,6 @@ const BecomeSellerPage: React.FC = () => {
         // Categories
         categories: formData.categories,
         
-        // Application Status
-        role: 'shop',
-        status: 'pending',
-        submittedAt: new Date(),
-        reviewedAt: null,
-        reviewedBy: null,
-        
         // Stats (initialized to 0)
         stats: {
           totalProducts: 0,
@@ -187,11 +200,12 @@ const BecomeSellerPage: React.FC = () => {
       };
 
       console.log('📊 Seller application data:', sellerApplication);
-      console.log('🔥 Attempting to save to Firestore...');
+      console.log('🔥 Attempting to save application...');
 
       try {
-        const docRef = await addDoc(collection(db, 'users'), sellerApplication);
-        console.log('✅ Seller application saved successfully with ID:', docRef.id);
+        const applicationId = await submitSellerApplication(currentUser.uid, sellerApplication);
+        console.log('✅ Seller application saved successfully with ID:', applicationId);
+        setApplicationStatus('pending');
       } catch (firestoreError: any) {
         console.error('❌ Firestore error details:', {
           code: firestoreError.code,
@@ -211,11 +225,176 @@ const BecomeSellerPage: React.FC = () => {
         code: error.code,
         stack: error.stack
       });
-      setError(`Registration failed: ${error.message}`);
+      setError(`Application failed: ${error.message}`);
     } finally {
       setLoading(false);
     }
   };
+
+  // Show loading while checking status
+  if (checkingStatus) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Checking application status...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show application status UI based on current status
+  const renderApplicationStatus = () => {
+    switch (applicationStatus) {
+      case 'pending':
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+            <Navbar userRole="user" />
+            <div className="main-content pt-24">
+              <section className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white py-16">
+                <div className="max-w-4xl mx-auto px-4 text-center">
+                  <Clock className="w-16 h-16 mx-auto mb-6 text-yellow-300" />
+                  <h1 className="text-4xl font-bold mb-6">Application Under Review</h1>
+                  <p className="text-xl text-yellow-100 mb-8 leading-relaxed">
+                    Your seller application has been submitted and is currently under review. 
+                    We'll get back to you within 24-48 hours.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <Link to="/">
+                      <Button variant="secondary" size="lg" className="bg-white text-yellow-600 hover:bg-yellow-50">
+                        <ArrowLeft className="w-5 h-5 mr-2" />
+                        Back to Home
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        );
+
+      case 'approved':
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+            <Navbar userRole="user" />
+            <div className="main-content pt-24">
+              <section className="bg-gradient-to-r from-green-500 to-emerald-500 text-white py-16">
+                <div className="max-w-4xl mx-auto px-4 text-center">
+                  <CheckCircle className="w-16 h-16 mx-auto mb-6 text-green-300" />
+                  <h1 className="text-4xl font-bold mb-6">Application Approved! 🎉</h1>
+                  <p className="text-xl text-green-100 mb-8 leading-relaxed">
+                    Congratulations! Your seller application has been approved. 
+                    You can now access your seller dashboard and start listing products.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <Link to="/profile">
+                      <Button variant="secondary" size="lg" className="bg-white text-green-600 hover:bg-green-50">
+                        <Store className="w-5 h-5 mr-2" />
+                        Go to Seller Dashboard
+                      </Button>
+                    </Link>
+                    <Link to="/">
+                      <Button variant="outline" size="lg" className="border-white text-white hover:bg-white hover:text-green-600">
+                        <ArrowLeft className="w-5 h-5 mr-2" />
+                        Back to Home
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        );
+
+      case 'rejected':
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+            <Navbar userRole="user" />
+            <div className="main-content pt-24">
+              <section className="bg-gradient-to-r from-red-500 to-pink-500 text-white py-16">
+                <div className="max-w-4xl mx-auto px-4 text-center">
+                  <XCircle className="w-16 h-16 mx-auto mb-6 text-red-300" />
+                  <h1 className="text-4xl font-bold mb-6">Application Not Approved</h1>
+                  <p className="text-xl text-red-100 mb-8 leading-relaxed">
+                    Unfortunately, your seller application was not approved at this time. 
+                    You can review our requirements and apply again.
+                  </p>
+                  {userData?.sellerApplication?.rejectionReason && (
+                    <div className="bg-white/20 backdrop-blur-lg rounded-lg p-6 mb-8 text-left">
+                      <h3 className="text-lg font-semibold mb-2">Reason for Rejection:</h3>
+                      <p className="text-red-100">{userData.sellerApplication.rejectionReason}</p>
+                    </div>
+                  )}
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <Button 
+                      onClick={() => setApplicationStatus('not_applied')}
+                      variant="secondary" 
+                      size="lg" 
+                      className="bg-white text-red-600 hover:bg-red-50"
+                    >
+                      <Store className="w-5 h-5 mr-2" />
+                      Apply Again
+                    </Button>
+                    <Link to="/">
+                      <Button variant="outline" size="lg" className="border-white text-white hover:bg-white hover:text-red-600">
+                        <ArrowLeft className="w-5 h-5 mr-2" />
+                        Back to Home
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        );
+
+      default:
+        return null; // Will show the normal form
+    }
+  };
+
+  // Show status UI if not 'not_applied'
+  if (applicationStatus !== 'not_applied') {
+    return renderApplicationStatus();
+  }
+
+  // Show login prompt if not authenticated
+  if (!loading && !currentUser) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <Navbar userRole="user" />
+        
+        <div className="main-content pt-24">
+          <section className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-16">
+            <div className="max-w-4xl mx-auto px-4 text-center">
+              <LogIn className="w-16 h-16 mx-auto mb-6 text-yellow-300" />
+              <h1 className="text-4xl font-bold mb-6">
+                Login Required
+              </h1>
+              <p className="text-xl text-blue-100 mb-8 leading-relaxed">
+                You need to be logged in to apply as a seller. Please login to your account to continue with the seller application process.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link to="/auth">
+                  <Button variant="secondary" size="lg" className="bg-white text-blue-600 hover:bg-blue-50">
+                    <LogIn className="w-5 h-5 mr-2" />
+                    Login to Continue
+                  </Button>
+                </Link>
+                <Link to="/">
+                  <Button variant="outline" size="lg" className="border-white text-white hover:bg-white hover:text-blue-600">
+                    <ArrowLeft className="w-5 h-5 mr-2" />
+                    Back to Home
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -329,31 +508,33 @@ const BecomeSellerPage: React.FC = () => {
                 </div>
               )}
 
+              {/* User Info Display */}
+              {currentUser && (
+                <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <h3 className="text-lg font-semibold text-blue-900 mb-2">Application for: {currentUser.displayName || userData?.name || 'User'}</h3>
+                  <p className="text-blue-700">Email: {currentUser.email}</p>
+                  {userData?.phone && <p className="text-blue-700">Phone: {userData.phone}</p>}
+                </div>
+              )}
+
               {/* Test Fill Button */}
               <div className="mb-6 flex justify-end">
                 <Button
                   type="button"
                   onClick={() => {
                     setFormData({
-                      // Personal Information
-                      fullName: 'John Smith',
-                      email: 'john.smith@example.com',
-                      phone: '+91 9876543210',
-                      password: 'password123',
-                      confirmPassword: 'password123',
-                      
                       // Business Information
                       businessName: 'Smith Electronics Store',
-                      businessType: 'Electronics & Gadgets', // Updated to match dropdown option
+                      businessType: 'Electronics & Gadgets',
                       businessDescription: 'Leading electronics retailer specializing in smartphones, laptops, and accessories with 5+ years of experience.',
                       businessAddress: '123 Business Street, Electronics Market, Mumbai, Maharashtra 400001',
                       businessPhone: '+91 9876543210',
                       businessEmail: 'business@smithstore.com',
                       
                       // Business Details
-                      yearsInBusiness: '5-10', // Updated to match dropdown option
-                      numberOfEmployees: '6-20', // Updated to match dropdown option
-                      annualRevenue: '1Cr-5Cr', // Updated to match dropdown option
+                      yearsInBusiness: '5-10',
+                      numberOfEmployees: '6-20',
+                      annualRevenue: '1Cr-5Cr',
                       website: 'https://smithstore.com',
                       
                       // Documents
@@ -377,93 +558,6 @@ const BecomeSellerPage: React.FC = () => {
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-8">
-                {/* Personal Information */}
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-                    <User className="w-6 h-6 mr-2 text-blue-600" />
-                    Personal Information
-                  </h3>
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
-                      <input
-                        type="text"
-                        name="fullName"
-                        value={formData.fullName}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Enter your full name"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Enter your email"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
-                      <input
-                        type="tel"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="+91 98765 43210"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Password *</label>
-                      <div className="relative">
-                        <input
-                          type={showPassword ? 'text' : 'password'}
-                          name="password"
-                          value={formData.password}
-                          onChange={handleInputChange}
-                          required
-                          className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          placeholder="Create a strong password"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                        >
-                          {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                        </button>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Confirm Password *</label>
-                      <div className="relative">
-                        <input
-                          type={showConfirmPassword ? 'text' : 'password'}
-                          name="confirmPassword"
-                          value={formData.confirmPassword}
-                          onChange={handleInputChange}
-                          required
-                          className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          placeholder="Confirm your password"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                        >
-                          {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
 
                 {/* Business Information */}
                 <div>

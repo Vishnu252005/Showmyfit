@@ -7,7 +7,7 @@ interface AuthContextType {
   currentUser: User | null;
   userData: UserData | null;
   loading: boolean;
-  signUp: (email: string, password: string, displayName: string, role?: 'user' | 'shop' | 'admin') => Promise<any>;
+  signUp: (email: string, password: string, displayName: string, role?: 'user' | 'shop' | 'admin', phone?: string, address?: string) => Promise<any>;
   signIn: (email: string, password: string) => Promise<any>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
@@ -54,9 +54,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return unsubscribe;
   }, []);
 
-  const signUp = async (email: string, password: string, displayName: string, role: 'user' | 'shop' | 'admin' = 'user') => {
+  const signUp = async (email: string, password: string, displayName: string, role: 'user' | 'shop' | 'admin' = 'user', phone?: string, address?: string) => {
     const { signUp: firebaseSignUp } = await import('../firebase/auth');
-    return firebaseSignUp(email, password, displayName, role);
+    return firebaseSignUp(email, password, displayName, role, phone, address);
   };
 
   const signIn = async (email: string, password: string) => {

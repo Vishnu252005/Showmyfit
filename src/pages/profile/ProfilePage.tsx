@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Mail, Phone, MapPin, Edit, LogOut, ShoppingBag, Heart, Star, Settings, ArrowLeft, Calendar, Award, Package, Shield, Eye } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Edit, LogOut, ShoppingBag, Heart, Star, Settings, ArrowLeft, Calendar, Award, Package, Clock, XCircle, CheckCircle } from 'lucide-react';
 import Navbar from '../../components/layout/Navbar';
 import Button from '../../components/ui/Button';
 import { useAuth } from '../../contexts/AuthContext';
-import { updateUserProfile } from '../../firebase/auth';
+import { updateUserProfile, getSellerApplicationStatus } from '../../firebase/auth';
 import AdminProfilePage from './AdminProfilePage';
 import SellerProfilePage from './SellerProfilePage';
-import { collection, getDocs, query, where } from 'firebase/firestore';
-import { db } from '../../firebase/config';
 
 const ProfilePage: React.FC = () => {
   const { currentUser, userData, signOut } = useAuth();
@@ -19,71 +17,25 @@ const ProfilePage: React.FC = () => {
     phone: userData?.phone || '',
     address: userData?.address || ''
   });
-  const [adminEmails, setAdminEmails] = useState<string[]>([]);
-  const [loadingAdmins, setLoadingAdmins] = useState(false);
-  const [isSeller, setIsSeller] = useState(false);
-  const [loadingSeller, setLoadingSeller] = useState(false);
+  const [applicationStatus, setApplicationStatus] = useState<'not_applied' | 'pending' | 'approved' | 'rejected'>('not_applied');
 
-  // Fetch admin emails from user profile
-  const fetchAdminEmails = async () => {
-    setLoadingAdmins(true);
-    try {
-      console.log('ProfilePage - UserData:', userData);
-      console.log('ProfilePage - AdminEmails:', userData?.adminEmails);
-      
-      if (userData?.adminEmails) {
-        setAdminEmails(userData.adminEmails);
-        console.log('ProfilePage - Set admin emails:', userData.adminEmails);
-      } else {
-        setAdminEmails([]);
-        console.log('ProfilePage - No admin emails found');
-      }
-    } catch (error) {
-      console.error('Error fetching admin emails:', error);
-    } finally {
-      setLoadingAdmins(false);
-    }
-  };
 
-  // Check if user is a seller
-  const checkSellerStatus = async () => {
-    if (!currentUser?.email) return;
-    
-    setLoadingSeller(true);
-    try {
-      console.log('ProfilePage - Checking seller status for:', currentUser.email);
-      
-      const sellersQuery = query(
-        collection(db, 'sellers'),
-        where('email', '==', currentUser.email)
-      );
-      const snapshot = await getDocs(sellersQuery);
-      
-      console.log('ProfilePage - Seller query result:', {
-        docsCount: snapshot.docs.length,
-        empty: snapshot.empty
-      });
-      
-      if (!snapshot.empty) {
-        const sellerData = snapshot.docs[0].data();
-        console.log('ProfilePage - Seller data found:', sellerData);
-        setIsSeller(true);
-      } else {
-        console.log('ProfilePage - No seller data found');
-        setIsSeller(false);
-      }
-    } catch (error) {
-      console.error('Error checking seller status:', error);
-      setIsSeller(false);
-    } finally {
-      setLoadingSeller(false);
-    }
-  };
 
+  // Check application status on component mount
   useEffect(() => {
-    fetchAdminEmails();
-    checkSellerStatus();
-  }, [userData, currentUser]);
+    const checkStatus = async () => {
+      if (currentUser) {
+        try {
+          const status = await getSellerApplicationStatus(currentUser.uid);
+          setApplicationStatus(status);
+        } catch (error) {
+          console.error('Error checking application status:', error);
+        }
+      }
+    };
+    
+    checkStatus();
+  }, [currentUser]);
 
   // Handle authentication redirect
   useEffect(() => {
@@ -394,165 +346,46 @@ const ProfilePage: React.FC = () => {
                         My Wishlist
                       </button>
                     </Link>
-                    <Link to="/shop/auth" className="block">
-                      <button className="w-full text-left p-3 rounded-lg bg-white bg-opacity-20 hover:bg-opacity-30 transition-colors">
-                        <Package className="w-5 h-5 mr-3 inline" />
-                        Become a Seller
-                      </button>
-                    </Link>
+                    {/* Dynamic Seller Button based on application status */}
+                    {applicationStatus === 'not_applied' && (
+                      <Link to="/shop/auth" className="block">
+                        <button className="w-full text-left p-3 rounded-lg bg-white bg-opacity-20 hover:bg-opacity-30 transition-colors">
+                          <Package className="w-5 h-5 mr-3 inline" />
+                          Become a Seller
+                        </button>
+                      </Link>
+                    )}
+                    
+                    {applicationStatus === 'pending' && (
+                      <div className="w-full text-left p-3 rounded-lg bg-yellow-500 bg-opacity-20 text-yellow-100">
+                        <Clock className="w-5 h-5 mr-3 inline" />
+                        Application Pending
+                        <div className="text-xs mt-1 text-yellow-200">Under review</div>
+                      </div>
+                    )}
+                    
+                    {applicationStatus === 'approved' && (
+                      <Link to="/profile" className="block">
+                        <button className="w-full text-left p-3 rounded-lg bg-green-500 bg-opacity-20 text-green-100 hover:bg-opacity-30 transition-colors">
+                          <CheckCircle className="w-5 h-5 mr-3 inline" />
+                          Seller Dashboard
+                          <div className="text-xs mt-1 text-green-200">Approved!</div>
+                        </button>
+                      </Link>
+                    )}
+                    
+                    {applicationStatus === 'rejected' && (
+                      <Link to="/shop/auth" className="block">
+                        <button className="w-full text-left p-3 rounded-lg bg-red-500 bg-opacity-20 text-red-100 hover:bg-opacity-30 transition-colors">
+                          <XCircle className="w-5 h-5 mr-3 inline" />
+                          Apply Again
+                          <div className="text-xs mt-1 text-red-200">Application rejected</div>
+                        </button>
+                      </Link>
+                    )}
                   </div>
                 </div>
 
-                {/* Admin Emails Check */}
-                <div className="bg-white rounded-2xl shadow-lg p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <Shield className="w-5 h-5 mr-2 text-red-600" />
-                    Admin Emails Available
-                  </h3>
-                  
-                  {loadingAdmins ? (
-                    <div className="flex items-center justify-center py-4">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                      <span className="ml-2 text-gray-600">Loading admin emails...</span>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {adminEmails.length > 0 ? (
-                        <>
-                          <p className="text-sm text-gray-600 mb-3">
-                            Found {adminEmails.length} admin email(s) in your profile:
-                          </p>
-                          <div className="text-xs text-gray-500 mb-2">
-                            Debug: UserData.adminEmails = {JSON.stringify(userData?.adminEmails)}
-                          </div>
-                          <div className="space-y-2">
-                            {adminEmails.map((email, index) => (
-                              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                <div className="flex items-center">
-                                  <Mail className="w-4 h-4 text-gray-400 mr-2" />
-                                  <span className="font-medium text-gray-900">{email}</span>
-                                </div>
-                                <div className="flex items-center">
-                                  {currentUser?.email === email ? (
-                                    <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                                      Your Email
-                                    </span>
-                                  ) : (
-                                    <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                                      Admin
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                          <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                            <p className="text-sm text-blue-800">
-                              <strong>Note:</strong> If your email is listed above, you should see the admin profile interface. 
-                              If not, contact the system administrator.
-                            </p>
-                          </div>
-                        </>
-                      ) : (
-                        <div className="text-center py-4">
-                          <Shield className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                          <p className="text-gray-600">No admin emails found in the system.</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  
-                  <div className="mt-4 flex space-x-2">
-                    <Button
-                      onClick={fetchAdminEmails}
-                      variant="outline"
-                      size="sm"
-                      disabled={loadingAdmins}
-                    >
-                      <Eye className="w-4 h-4 mr-2" />
-                      Refresh
-                    </Button>
-                    <Link to="/admin/test">
-                      <Button variant="outline" size="sm">
-                        <Shield className="w-4 h-4 mr-2" />
-                        Test Admin
-                      </Button>
-                    </Link>
-                    <Link to="/admin/manage">
-                      <Button variant="outline" size="sm">
-                        <Shield className="w-4 h-4 mr-2" />
-                        Manage Admins
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-
-                {/* Seller Status Check */}
-                <div className="bg-white rounded-2xl shadow-lg p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <Package className="w-5 h-5 mr-2 text-green-600" />
-                    Seller Status Check
-                  </h3>
-                  
-                  {loadingSeller ? (
-                    <div className="flex items-center justify-center py-4">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
-                      <span className="ml-2 text-gray-600">Checking seller status...</span>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {isSeller ? (
-                        <>
-                          <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                            <div className="flex items-center">
-                              <Package className="w-5 h-5 text-green-600 mr-2" />
-                              <div>
-                                <p className="text-sm font-medium text-green-800">
-                                  ✅ You are registered as a seller!
-                                </p>
-                                <p className="text-xs text-green-600 mt-1">
-                                  Your email ({currentUser?.email}) is found in the sellers collection.
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                            <p className="text-sm text-blue-800">
-                              <strong>Note:</strong> You should see the seller profile interface with product management features. 
-                              If you're seeing the regular user profile, there might be a role assignment issue.
-                            </p>
-                          </div>
-                        </>
-                      ) : (
-                        <div className="text-center py-4">
-                          <Package className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                          <p className="text-gray-600 mb-2">You are not registered as a seller.</p>
-                          <p className="text-sm text-gray-500">
-                            Your email ({currentUser?.email}) was not found in the sellers collection.
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  
-                  <div className="mt-4 flex space-x-2">
-                    <Button
-                      onClick={checkSellerStatus}
-                      variant="outline"
-                      size="sm"
-                      disabled={loadingSeller}
-                    >
-                      <Eye className="w-4 h-4 mr-2" />
-                      Refresh
-                    </Button>
-                    <Link to="/become-seller">
-                      <Button variant="outline" size="sm">
-                        <Package className="w-4 h-4 mr-2" />
-                        Become Seller
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
