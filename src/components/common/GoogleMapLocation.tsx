@@ -34,7 +34,7 @@ const GoogleMapLocation: React.FC<GoogleMapLocationProps> = ({
         return;
       }
 
-      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || 'AIzaSyCeyIcYq60rZLMaXRlnU0UwKzDQaonuVwI';
+      const apiKey = 'AIzaSyCeyIcYq60rZLMaXRlnU0UwKzDQaonuVwI';
       console.log('Google Maps API Key:', apiKey);
       console.log('All env vars:', import.meta.env);
       
@@ -59,9 +59,12 @@ const GoogleMapLocation: React.FC<GoogleMapLocationProps> = ({
 
   // Initialize map
   useEffect(() => {
-    if (!isMapLoaded || !mapRef.current) return;
+    if (!isMapLoaded || !mapRef.current || !window.google || !window.google.maps) return;
 
-    const mapInstance = new google.maps.Map(mapRef.current, {
+    const mapElement = mapRef.current;
+    if (!mapElement) return;
+
+    const mapInstance = new google.maps.Map(mapElement, {
       zoom: location ? 15 : 10,
       center: location ? { lat: location.lat, lng: location.lng } : { lat: 12.9716, lng: 77.5946 }, // Default to Bangalore
       mapTypeId: google.maps.MapTypeId.ROADMAP,
@@ -161,9 +164,28 @@ const GoogleMapLocation: React.FC<GoogleMapLocationProps> = ({
         setIsGettingLocation(false);
       },
       (error) => {
-        console.error('Error getting location:', error);
-        alert('Unable to get your location. Please try again.');
+        console.error('Geolocation error:', error);
+        let errorMessage = 'Unable to get your location.';
+        
+        switch(error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = 'Location access denied. Please allow location access in your browser settings.';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = 'Location information is unavailable.';
+            break;
+          case error.TIMEOUT:
+            errorMessage = 'Location request timed out.';
+            break;
+        }
+        
+        alert(errorMessage);
         setIsGettingLocation(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000
       }
     );
   };
