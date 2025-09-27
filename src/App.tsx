@@ -1,8 +1,6 @@
-import { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, ShoppingBag, Heart, MapPin, Navigation, Star, Package, Phone, Eye } from 'lucide-react';
-import { collection, query, getDocs } from 'firebase/firestore';
-import { db } from './firebase/config';
+import { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { ShoppingBag } from 'lucide-react';
 import HomePage from './pages/HomePage';
 import SearchPage from './pages/SearchPage';
 import CategoriesPage from './pages/CategoriesPage';
@@ -24,6 +22,7 @@ import UserManagementPage from './pages/user/UserManagementPage';
 import OrderManagementPage from './pages/order/OrderManagementPage';
 import AdminSettingsPage from './pages/admin/AdminSettingsPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AboutUsPage from './pages/AboutUsPage';
 import Navbar from './components/layout/Navbar';
 import Button from './components/ui/Button';
 import ScrollToTop from './components/layout/ScrollToTop';
@@ -295,6 +294,7 @@ function App() {
             <Route path="/cart" element={<CartPage />} />
             <Route path="/wishlist" element={<WishlistPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/about" element={<AboutUsPage />} />
           </Routes>
             
             {/* Bottom Navigation - Always Visible */}

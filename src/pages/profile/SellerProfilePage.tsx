@@ -5,6 +5,7 @@ import {
   Settings, ArrowLeft, Calendar, Award, Package, Shield, Eye, Plus,
   TrendingUp, DollarSign, Users, BarChart3, Upload, Image, Tag, XCircle, Save
 } from 'lucide-react';
+import GoogleMapLocation from '../../components/common/GoogleMapLocation';
 import Navbar from '../../components/layout/Navbar';
 import Button from '../../components/ui/Button';
 import { useAuth } from '../../contexts/AuthContext';
@@ -42,7 +43,8 @@ const SellerProfilePage: React.FC = () => {
     address: userData?.address || '',
     businessName: userData?.businessName || '',
     businessType: userData?.businessType || '',
-    businessDescription: userData?.businessDescription || ''
+    businessDescription: userData?.businessDescription || '',
+    location: userData?.location || null
   });
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -174,7 +176,8 @@ const SellerProfilePage: React.FC = () => {
       address: userData?.address || '',
       businessName: userData?.businessName || '',
       businessType: userData?.businessType || '',
-      businessDescription: userData?.businessDescription || ''
+      businessDescription: userData?.businessDescription || '',
+      location: userData?.location || null
     });
   };
 
@@ -198,7 +201,8 @@ const SellerProfilePage: React.FC = () => {
       address: userData?.address || '',
       businessName: userData?.businessName || '',
       businessType: userData?.businessType || '',
-      businessDescription: userData?.businessDescription || ''
+      businessDescription: userData?.businessDescription || '',
+      location: userData?.location || null
     });
   };
 
@@ -349,7 +353,7 @@ const SellerProfilePage: React.FC = () => {
                     className="flex items-center"
                   >
                     <Edit className="w-4 h-4 mr-2" />
-                    Edit Profile
+                    Edit Profile & Location
                   </Button>
                   <Button
                     onClick={() => setShowAddProduct(true)}
@@ -371,6 +375,51 @@ const SellerProfilePage: React.FC = () => {
                 {message}
               </div>
             )}
+
+            {/* Quick Actions */}
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl shadow-lg p-6 mb-8">
+              <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                <Settings className="w-5 h-5 mr-2" />
+                Quick Actions
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Button
+                  onClick={handleEdit}
+                  variant="outline"
+                  className="flex items-center justify-center p-4 h-auto bg-white hover:bg-blue-50 border-blue-200"
+                >
+                  <div className="text-center">
+                    <Edit className="w-6 h-6 mx-auto mb-2 text-blue-600" />
+                    <div className="font-medium text-gray-900">Edit Profile</div>
+                    <div className="text-sm text-gray-600">Update your details</div>
+                  </div>
+                </Button>
+                
+                <Button
+                  onClick={handleEdit}
+                  variant="outline"
+                  className="flex items-center justify-center p-4 h-auto bg-white hover:bg-green-50 border-green-200"
+                >
+                  <div className="text-center">
+                    <MapPin className="w-6 h-6 mx-auto mb-2 text-green-600" />
+                    <div className="font-medium text-gray-900">Edit Location</div>
+                    <div className="text-sm text-gray-600">Set store location</div>
+                  </div>
+                </Button>
+                
+                <Button
+                  onClick={() => setShowAddProduct(true)}
+                  variant="outline"
+                  className="flex items-center justify-center p-4 h-auto bg-white hover:bg-purple-50 border-purple-200"
+                >
+                  <div className="text-center">
+                    <Plus className="w-6 h-6 mx-auto mb-2 text-purple-600" />
+                    <div className="font-medium text-gray-900">Add Product</div>
+                    <div className="text-sm text-gray-600">Create new listing</div>
+                  </div>
+                </Button>
+              </div>
+            </div>
 
             {/* Add/Edit Product Form */}
             {showAddProduct && (
@@ -907,6 +956,15 @@ const SellerProfilePage: React.FC = () => {
                         rows={3}
                       />
                     </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Store Location</label>
+                      <GoogleMapLocation
+                        location={editData.location}
+                        onLocationChange={(location) => setEditData({...editData, location})}
+                        isEditing={true}
+                        height="250px"
+                      />
+                    </div>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -936,6 +994,33 @@ const SellerProfilePage: React.FC = () => {
                     </div>
                   </div>
                 )}
+
+                {/* Location Section - Always visible */}
+                <div className="mt-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                      <MapPin className="w-5 h-5 mr-2 text-blue-600" />
+                      Store Location
+                    </h3>
+                    {!isEditing && (
+                      <Button
+                        onClick={handleEdit}
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center"
+                      >
+                        <Edit className="w-4 h-4 mr-1" />
+                        Edit Location
+                      </Button>
+                    )}
+                  </div>
+                  <GoogleMapLocation
+                    location={userData?.location || null}
+                    onLocationChange={() => {}}
+                    isEditing={false}
+                    height="250px"
+                  />
+                </div>
               </div>
             </div>
 
@@ -1030,6 +1115,17 @@ const SellerProfilePage: React.FC = () => {
               >
                 <LogOut className="w-4 h-4 mr-2" />
                 Sign Out
+              </Button>
+            </div>
+
+            {/* Floating Action Button for Mobile */}
+            <div className="fixed bottom-6 right-6 z-50 md:hidden">
+              <Button
+                onClick={handleEdit}
+                variant="primary"
+                className="w-14 h-14 rounded-full shadow-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              >
+                <Edit className="w-6 h-6" />
               </Button>
             </div>
           </div>

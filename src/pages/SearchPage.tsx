@@ -4,6 +4,7 @@ import {
   Search, MapPin, Star, Package, Phone, Eye, Heart, Filter,
   Store, Navigation, Clock, Truck, Shield, Users, TrendingUp
 } from 'lucide-react';
+import GoogleMapLocation from '../components/common/GoogleMapLocation';
 import Navbar from '../components/layout/Navbar';
 import { collection, query, getDocs } from 'firebase/firestore';
 import { db } from '../firebase/config';
@@ -69,6 +70,11 @@ const SearchPage: React.FC = () => {
               businessName: 'Fashion Hub',
               businessType: 'Fashion & Apparel',
               address: '123 MG Road, Bangalore',
+              location: {
+                lat: 12.9716,
+                lng: 77.5946,
+                address: '123 MG Road, Bangalore, Karnataka, India'
+              },
               stats: {
                 totalProducts: 45,
                 totalSales: 1250,
@@ -85,6 +91,11 @@ const SearchPage: React.FC = () => {
               businessName: 'Style Central',
               businessType: 'Beauty & Cosmetics',
               address: '456 Brigade Road, Bangalore',
+              location: {
+                lat: 12.9716,
+                lng: 77.6046,
+                address: '456 Brigade Road, Bangalore, Karnataka, India'
+              },
               stats: {
                 totalProducts: 32,
                 totalSales: 890,
@@ -101,6 +112,11 @@ const SearchPage: React.FC = () => {
               businessName: 'Urban Closet',
               businessType: 'Electronics',
               address: '789 Commercial Street, Bangalore',
+              location: {
+                lat: 12.9816,
+                lng: 77.6146,
+                address: '789 Commercial Street, Bangalore, Karnataka, India'
+              },
               stats: {
                 totalProducts: 28,
                 totalSales: 2100,
@@ -117,6 +133,11 @@ const SearchPage: React.FC = () => {
               businessName: 'Home Decor Plus',
               businessType: 'Home & Living',
               address: '321 Indiranagar, Bangalore',
+              location: {
+                lat: 12.9616,
+                lng: 77.6246,
+                address: '321 Indiranagar, Bangalore, Karnataka, India'
+              },
               stats: {
                 totalProducts: 38,
                 totalSales: 750,
@@ -133,6 +154,11 @@ const SearchPage: React.FC = () => {
               businessName: 'Sports Zone',
               businessType: 'Sports & Fitness',
               address: '654 Koramangala, Bangalore',
+              location: {
+                lat: 12.9916,
+                lng: 77.6346,
+                address: '654 Koramangala, Bangalore, Karnataka, India'
+              },
               stats: {
                 totalProducts: 52,
                 totalSales: 1680,
@@ -149,6 +175,11 @@ const SearchPage: React.FC = () => {
               businessName: 'Book Corner',
               businessType: 'Books & Stationery',
               address: '987 Jayanagar, Bangalore',
+              location: {
+                lat: 12.9516,
+                lng: 77.6446,
+                address: '987 Jayanagar, Bangalore, Karnataka, India'
+              },
               stats: {
                 totalProducts: 125,
                 totalSales: 3200,
@@ -174,6 +205,11 @@ const SearchPage: React.FC = () => {
             businessName: 'Fashion Hub',
             businessType: 'Fashion & Apparel',
             address: '123 MG Road, Bangalore',
+            location: {
+              lat: 12.9716,
+              lng: 77.5946,
+              address: '123 MG Road, Bangalore, Karnataka, India'
+            },
             stats: {
               totalProducts: 45,
               totalSales: 1250,
@@ -190,6 +226,11 @@ const SearchPage: React.FC = () => {
             businessName: 'Style Central',
             businessType: 'Beauty & Cosmetics',
             address: '456 Brigade Road, Bangalore',
+            location: {
+              lat: 12.9716,
+              lng: 77.6046,
+              address: '456 Brigade Road, Bangalore, Karnataka, India'
+            },
             stats: {
               totalProducts: 32,
               totalSales: 890,
@@ -502,6 +543,20 @@ const SearchPage: React.FC = () => {
                         <div className="text-lg font-bold text-gray-900">{seller.stats.totalSales}</div>
                         <div className="text-xs text-gray-600">Sales</div>
                       </div>
+                    </div>
+
+                    {/* Store Location Map */}
+                    <div className="mb-4">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <MapPin className="w-4 h-4 text-blue-600" />
+                        <span className="text-sm font-medium text-gray-700">Store Location</span>
+                      </div>
+                      <GoogleMapLocation
+                        location={seller.location || null}
+                        onLocationChange={() => {}}
+                        isEditing={false}
+                        height="150px"
+                      />
                     </div>
 
                     {/* Action Buttons */}

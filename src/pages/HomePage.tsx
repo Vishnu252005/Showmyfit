@@ -1578,16 +1578,13 @@ const HomePage: React.FC = () => {
                   Your ultimate destination for local shopping. Connect with nearby stores, discover amazing products, and enjoy seamless shopping experiences.
                 </p>
                 <div className="flex space-x-4">
-                  <a href="#" className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center hover:bg-blue-600 transition-all duration-300 hover:scale-110" title="Facebook">
+                  <a href="https://www.facebook.com/showmyfitofficial?mibextid=ZbWKwL" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center hover:bg-blue-600 transition-all duration-300 hover:scale-110" title="Facebook">
                     <span className="text-sm font-bold">f</span>
                   </a>
-                  <a href="#" className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center hover:bg-blue-600 transition-all duration-300 hover:scale-110" title="Twitter">
-                    <span className="text-sm font-bold">t</span>
+                  <a href="https://youtube.com/@showmyfit?si=RO9OiJLBUUXiOFJX" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center hover:bg-red-600 transition-all duration-300 hover:scale-110" title="YouTube">
+                    <span className="text-sm font-bold">YT</span>
                   </a>
-                  <a href="#" className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center hover:bg-blue-600 transition-all duration-300 hover:scale-110" title="LinkedIn">
-                    <span className="text-sm font-bold">in</span>
-                  </a>
-                  <a href="#" className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center hover:bg-blue-600 transition-all duration-300 hover:scale-110" title="Instagram">
+                  <a href="https://www.instagram.com/showmyfit?utm_source=qr" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center hover:bg-pink-600 transition-all duration-300 hover:scale-110" title="Instagram">
                     <span className="text-sm font-bold">ig</span>
                   </a>
                 </div>
@@ -1597,7 +1594,7 @@ const HomePage: React.FC = () => {
               <div>
                 <h4 className="text-lg font-semibold text-white mb-4">Quick Links</h4>
                 <ul className="space-y-3">
-                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors text-sm">About Us</a></li>
+                  <li><Link to="/about" className="text-gray-300 hover:text-white transition-colors text-sm">About Us</Link></li>
                   <li><a href="#" className="text-gray-300 hover:text-white transition-colors text-sm">How It Works</a></li>
                   <li><a href="#" className="text-gray-300 hover:text-white transition-colors text-sm">Find Stores</a></li>
                   <li><a href="#" className="text-gray-300 hover:text-white transition-colors text-sm">Become a Partner</a></li>
