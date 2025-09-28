@@ -527,7 +527,7 @@ const HomePageManagement: React.FC = () => {
                           <div className="flex justify-between items-start mb-4">
                             <div className="flex items-center space-x-3">
                               <div className={`w-10 h-10 ${sectionType?.color} rounded-lg flex items-center justify-center`}>
-                                <sectionType?.icon className="w-5 h-5 text-white" />
+                                {sectionType?.icon && <sectionType.icon className="w-5 h-5 text-white" />}
                               </div>
                               <div>
                                 <h3 className="text-lg font-semibold text-gray-900">{section.title}</h3>
