@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import GoogleMapLocation from '../components/common/GoogleMapLocation';
 import Navbar from '../components/layout/Navbar';
-import { collection, query, getDocs } from 'firebase/firestore';
+import { collection, query, getDocs, where } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
 const SearchPage: React.FC = () => {
@@ -16,231 +16,177 @@ const SearchPage: React.FC = () => {
   const [loadingSellers, setLoadingSellers] = useState(true);
   const [currentLocation, setCurrentLocation] = useState<string>('');
   const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
 
   const categories = [
     'All', 'Fashion', 'Electronics', 'Beauty', 'Home', 'Sports', 'Books', 'Food'
   ];
+
+  // Calculate distance between two coordinates using Haversine formula
+  const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
+    const R = 6371; // Earth's radius in kilometers
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c; // Distance in kilometers
+  };
+
+  // Re-sort sellers when user location changes
+  useEffect(() => {
+    if (userLocation && sellers.length > 0) {
+      const sellersWithDistance = sellers.map(seller => {
+        if (seller.location && seller.location.lat && seller.location.lng) {
+          const distance = calculateDistance(
+            userLocation.lat, 
+            userLocation.lng, 
+            seller.location.lat, 
+            seller.location.lng
+          );
+          return { ...seller, distance };
+        }
+        return { ...seller, distance: null };
+      });
+      
+      // Sort by distance (nearest first), then by rating for sellers without location
+      const sortedSellers = sellersWithDistance.sort((a, b) => {
+        if (a.distance === null && b.distance === null) {
+          return (b.stats?.rating || 0) - (a.stats?.rating || 0);
+        }
+        if (a.distance === null) return 1;
+        if (b.distance === null) return -1;
+        return a.distance - b.distance;
+      });
+      
+      console.log('Re-sorting sellers by distance:', sortedSellers.map(s => ({ 
+        name: s.businessName, 
+        distance: s.distance ? `${s.distance.toFixed(2)} km` : 'No location' 
+      })));
+      setSellers(sortedSellers);
+    }
+  }, [userLocation]);
 
   // Fetch sellers from database
   useEffect(() => {
     const fetchSellers = async () => {
       setLoadingSellers(true);
       try {
-        const usersQuery = query(collection(db, 'users'));
+        console.log('Loading approved sellers from users collection in SearchPage...');
+        
+        // Query users collection for approved sellers (shop role with approved status)
+        const usersQuery = query(
+          collection(db, 'users'),
+          where('role', '==', 'shop')
+        );
         const snapshot = await getDocs(usersQuery);
         
-        console.log('Total users found in SearchPage:', snapshot.docs.length);
+        console.log('Total users with shop role found in SearchPage:', snapshot.docs.length);
         
         const sellersList: any[] = [];
         snapshot.docs.forEach((doc) => {
           const userData = doc.data();
-          console.log('User data in SearchPage:', { id: doc.id, role: userData.role, status: userData.status, businessName: userData.businessName });
+          console.log('User data in SearchPage:', { 
+            id: doc.id, 
+            role: userData.role, 
+            businessName: userData.businessName,
+            address: userData.address 
+          });
           
-          if (userData.role === 'shop' && userData.status === 'approved') {
+          // Only include users who are approved sellers
+          if (userData.role === 'shop' && userData.sellerApplication?.status === 'approved') {
+            // Format location data for GoogleMapLocation component
+            let locationData = null;
+            if (userData.location) {
+              // If location is already in the correct format
+              if (userData.location.lat && userData.location.lng) {
+                locationData = {
+                  lat: userData.location.lat,
+                  lng: userData.location.lng,
+                  address: userData.location.address || userData.address
+                };
+              }
+              // If location has latitude/longitude properties
+              else if (userData.location.latitude && userData.location.longitude) {
+                locationData = {
+                  lat: userData.location.latitude,
+                  lng: userData.location.longitude,
+                  address: userData.location.address || userData.address
+                };
+              }
+            }
+
             sellersList.push({
               id: doc.id,
-              name: userData.name || 'Unknown Seller',
+              userId: doc.id,
+              name: userData.displayName || userData.name || 'Unknown Seller',
               email: userData.email || 'No email',
               phone: userData.phone || 'No phone',
               businessName: userData.businessName || 'No business name',
               businessType: userData.businessType || 'No type',
-              address: userData.address || 'No address',
+              address: userData.address || userData.businessAddress || 'No address',
+              location: locationData, // Properly formatted location data
               stats: userData.stats || {
                 totalProducts: Math.floor(Math.random() * 50) + 10,
                 totalSales: Math.floor(Math.random() * 1000) + 100,
                 totalOrders: Math.floor(Math.random() * 200) + 20,
-                rating: Math.random() * 2 + 3
+                rating: Math.random() * 2 + 3 // Random rating between 3-5
               },
-              createdAt: userData.createdAt
+              createdAt: userData.createdAt || new Date()
             });
           }
         });
         
         console.log('Approved sellers found in SearchPage:', sellersList.length);
         
-        // If no sellers found, use sample data
+        // If no sellers found, show empty state
         if (sellersList.length === 0) {
-          console.log('No sellers found in SearchPage, using sample data');
-          const sampleSellers = [
-            {
-              id: 'demo1',
-              name: 'Rajesh Kumar',
-              email: 'rajesh@example.com',
-              phone: '+91 98765 43210',
-              businessName: 'Fashion Hub',
-              businessType: 'Fashion & Apparel',
-              address: '123 MG Road, Bangalore',
-              location: {
-                lat: 12.9716,
-                lng: 77.5946,
-                address: '123 MG Road, Bangalore, Karnataka, India'
-              },
-              stats: {
-                totalProducts: 45,
-                totalSales: 1250,
-                totalOrders: 180,
-                rating: 4.5
-              },
-              createdAt: new Date()
-            },
-            {
-              id: 'demo2',
-              name: 'Priya Sharma',
-              email: 'priya@example.com',
-              phone: '+91 98765 43211',
-              businessName: 'Style Central',
-              businessType: 'Beauty & Cosmetics',
-              address: '456 Brigade Road, Bangalore',
-              location: {
-                lat: 12.9716,
-                lng: 77.6046,
-                address: '456 Brigade Road, Bangalore, Karnataka, India'
-              },
-              stats: {
-                totalProducts: 32,
-                totalSales: 890,
-                totalOrders: 120,
-                rating: 4.2
-              },
-              createdAt: new Date()
-            },
-            {
-              id: 'demo3',
-              name: 'Amit Patel',
-              email: 'amit@example.com',
-              phone: '+91 98765 43212',
-              businessName: 'Urban Closet',
-              businessType: 'Electronics',
-              address: '789 Commercial Street, Bangalore',
-              location: {
-                lat: 12.9816,
-                lng: 77.6146,
-                address: '789 Commercial Street, Bangalore, Karnataka, India'
-              },
-              stats: {
-                totalProducts: 28,
-                totalSales: 2100,
-                totalOrders: 95,
-                rating: 4.7
-              },
-              createdAt: new Date()
-            },
-            {
-              id: 'demo4',
-              name: 'Sunita Reddy',
-              email: 'sunita@example.com',
-              phone: '+91 98765 43213',
-              businessName: 'Home Decor Plus',
-              businessType: 'Home & Living',
-              address: '321 Indiranagar, Bangalore',
-              location: {
-                lat: 12.9616,
-                lng: 77.6246,
-                address: '321 Indiranagar, Bangalore, Karnataka, India'
-              },
-              stats: {
-                totalProducts: 38,
-                totalSales: 750,
-                totalOrders: 85,
-                rating: 4.3
-              },
-              createdAt: new Date()
-            },
-            {
-              id: 'demo5',
-              name: 'Vikram Singh',
-              email: 'vikram@example.com',
-              phone: '+91 98765 43214',
-              businessName: 'Sports Zone',
-              businessType: 'Sports & Fitness',
-              address: '654 Koramangala, Bangalore',
-              location: {
-                lat: 12.9916,
-                lng: 77.6346,
-                address: '654 Koramangala, Bangalore, Karnataka, India'
-              },
-              stats: {
-                totalProducts: 52,
-                totalSales: 1680,
-                totalOrders: 145,
-                rating: 4.6
-              },
-              createdAt: new Date()
-            },
-            {
-              id: 'demo6',
-              name: 'Anita Gupta',
-              email: 'anita@example.com',
-              phone: '+91 98765 43215',
-              businessName: 'Book Corner',
-              businessType: 'Books & Stationery',
-              address: '987 Jayanagar, Bangalore',
-              location: {
-                lat: 12.9516,
-                lng: 77.6446,
-                address: '987 Jayanagar, Bangalore, Karnataka, India'
-              },
-              stats: {
-                totalProducts: 125,
-                totalSales: 3200,
-                totalOrders: 210,
-                rating: 4.8
-              },
-              createdAt: new Date()
-            }
-          ];
-          setSellers(sampleSellers);
+          console.log('No approved sellers found in SearchPage');
+          setSellers([]);
         } else {
-          setSellers(sellersList);
+          // Sort sellers by distance if user location is available
+          if (userLocation) {
+            const sellersWithDistance = sellersList.map(seller => {
+              if (seller.location && seller.location.lat && seller.location.lng) {
+                const distance = calculateDistance(
+                  userLocation.lat, 
+                  userLocation.lng, 
+                  seller.location.lat, 
+                  seller.location.lng
+                );
+                return { ...seller, distance };
+              }
+              return { ...seller, distance: null };
+            });
+            
+            // Sort by distance (nearest first), then by rating for sellers without location
+            const sortedSellers = sellersWithDistance.sort((a, b) => {
+              if (a.distance === null && b.distance === null) {
+                return (b.stats?.rating || 0) - (a.stats?.rating || 0); // Sort by rating if no distance
+              }
+              if (a.distance === null) return 1; // Sellers without location go to end
+              if (b.distance === null) return -1;
+              return a.distance - b.distance; // Sort by distance (nearest first)
+            });
+            
+            console.log('Sellers sorted by distance:', sortedSellers.map(s => ({ 
+              name: s.businessName, 
+              distance: s.distance ? `${s.distance.toFixed(2)} km` : 'No location' 
+            })));
+            setSellers(sortedSellers);
+          } else {
+            // If no user location, sort by rating
+            const sortedSellers = sellersList.sort((a, b) => 
+              (b.stats?.rating || 0) - (a.stats?.rating || 0)
+            );
+            setSellers(sortedSellers);
+          }
         }
       } catch (error) {
         console.error('Error loading sellers in SearchPage:', error);
-        // Use sample data on error
-        const sampleSellers = [
-          {
-            id: 'demo1',
-            name: 'Rajesh Kumar',
-            email: 'rajesh@example.com',
-            phone: '+91 98765 43210',
-            businessName: 'Fashion Hub',
-            businessType: 'Fashion & Apparel',
-            address: '123 MG Road, Bangalore',
-            location: {
-              lat: 12.9716,
-              lng: 77.5946,
-              address: '123 MG Road, Bangalore, Karnataka, India'
-            },
-            stats: {
-              totalProducts: 45,
-              totalSales: 1250,
-              totalOrders: 180,
-              rating: 4.5
-            },
-            createdAt: new Date()
-          },
-          {
-            id: 'demo2',
-            name: 'Priya Sharma',
-            email: 'priya@example.com',
-            phone: '+91 98765 43211',
-            businessName: 'Style Central',
-            businessType: 'Beauty & Cosmetics',
-            address: '456 Brigade Road, Bangalore',
-            location: {
-              lat: 12.9716,
-              lng: 77.6046,
-              address: '456 Brigade Road, Bangalore, Karnataka, India'
-            },
-            stats: {
-              totalProducts: 32,
-              totalSales: 890,
-              totalOrders: 120,
-              rating: 4.2
-            },
-            createdAt: new Date()
-          }
-        ];
-        setSellers(sampleSellers);
+        // Show empty state on error
+        setSellers([]);
       } finally {
         setLoadingSellers(false);
       }
@@ -280,6 +226,9 @@ const SearchPage: React.FC = () => {
       (position) => {
         const { latitude, longitude } = position.coords;
         console.log('Location obtained:', { latitude, longitude });
+        
+        // Store user location for distance calculations
+        setUserLocation({ lat: latitude, lng: longitude });
         
         // Try to get city name using reverse geocoding
         fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`)
@@ -367,6 +316,12 @@ const SearchPage: React.FC = () => {
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">Explore Nearby Stores</h1>
             <p className="text-gray-600 text-lg">Discover local stores and products near you</p>
+            {userLocation && (
+              <div className="mt-3 inline-flex items-center space-x-2 bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium">
+                <Navigation className="w-4 h-4" />
+                <span>Sorted by distance (nearest first)</span>
+              </div>
+            )}
           </div>
 
           {/* Location Bar */}
@@ -483,98 +438,161 @@ const SearchPage: React.FC = () => {
               <p className="text-gray-600">Try adjusting your search or location filters.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredSellers.map((seller) => (
-                <div key={seller.id} className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group cursor-pointer">
-                  {/* Store Header */}
-                  <div className="relative h-32 bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                    <div className="absolute inset-0 bg-black/20"></div>
-                    <div className="relative text-center text-white">
-                      <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-2 backdrop-blur-sm">
-                        <span className="text-2xl font-bold">{seller.businessName.charAt(0).toUpperCase()}</span>
-                      </div>
-                      <h3 className="font-bold text-lg">{seller.businessName}</h3>
-                      <p className="text-sm opacity-90">Owner: {seller.name}</p>
-                    </div>
-                    <div className="absolute top-3 right-3 w-6 h-6 rounded-full flex items-center justify-center bg-green-500">
-                      <div className="w-2 h-2 rounded-full bg-white"></div>
-                    </div>
-                  </div>
-
-                  {/* Store Info */}
-                  <div className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-1">
-                        <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                        <span className="font-semibold text-gray-900">{seller.stats.rating.toFixed(1)}</span>
-                        <span className="text-sm text-gray-500">({seller.stats.totalOrders})</span>
-                      </div>
-                      <span className="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">
-                        {seller.businessType}
-                      </span>
-                    </div>
-
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center space-x-2 text-sm text-gray-600">
-                        <MapPin className="w-4 h-4" />
-                        <span className="line-clamp-1">{seller.address}</span>
-                      </div>
-                      <div className="flex items-center space-x-2 text-sm text-gray-600">
-                        <Phone className="w-4 h-4" />
-                        <span>{seller.phone}</span>
-                      </div>
-                      <div className="flex items-center space-x-2 text-sm text-gray-600">
-                        <Package className="w-4 h-4" />
-                        <span>{seller.stats.totalProducts} products available</span>
-                      </div>
-                    </div>
-
-                    {/* Stats */}
-                    <div className="grid grid-cols-3 gap-4 mb-4">
-                      <div className="text-center p-3 bg-gray-50 rounded-lg">
-                        <div className="text-lg font-bold text-gray-900">{seller.stats.totalProducts}</div>
-                        <div className="text-xs text-gray-600">Products</div>
-                      </div>
-                      <div className="text-center p-3 bg-gray-50 rounded-lg">
-                        <div className="text-lg font-bold text-gray-900">{seller.stats.totalOrders}</div>
-                        <div className="text-xs text-gray-600">Orders</div>
-                      </div>
-                      <div className="text-center p-3 bg-gray-50 rounded-lg">
-                        <div className="text-lg font-bold text-gray-900">{seller.stats.totalSales}</div>
-                        <div className="text-xs text-gray-600">Sales</div>
+                <div key={seller.id} className="group">
+                  {/* Modern Card Container */}
+                  <div className="bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 hover:border-blue-200 transform hover:-translate-y-2">
+                    
+                    {/* Hero Section with Gradient */}
+                    <div className="relative h-48 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 overflow-hidden">
+                      {/* Animated Background Pattern */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20"></div>
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
+                      <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-12 -translate-x-12"></div>
+                      
+                      {/* Store Avatar & Info */}
+                      <div className="relative z-10 h-full flex flex-col justify-between p-6">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/30">
+                              <span className="text-2xl font-bold text-white">{seller.businessName.charAt(0).toUpperCase()}</span>
+                            </div>
+                            <div>
+                              <h3 className="text-xl font-bold text-white mb-1">{seller.businessName}</h3>
+                              <p className="text-white/80 text-sm">by {seller.name}</p>
+                            </div>
+                          </div>
+                          
+                          {/* Status Badge */}
+                          <div className="flex flex-col items-end space-y-2">
+                            <div className="flex items-center space-x-1 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
+                              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                              <span className="text-white text-xs font-medium">Online</span>
+                            </div>
+                            {seller.distance && (
+                              <div className="bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
+                                <span className="text-white text-xs font-medium">{seller.distance.toFixed(1)} km</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {/* Rating & Business Type */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <div className="flex items-center space-x-1 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
+                              <Star className="w-4 h-4 text-yellow-300 fill-current" />
+                              <span className="text-white font-semibold">{seller.stats.rating.toFixed(1)}</span>
+                              <span className="text-white/70 text-sm">({seller.stats.totalOrders})</span>
+                            </div>
+                          </div>
+                          <div className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1">
+                            <span className="text-white text-sm font-medium">{seller.businessType}</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Store Location Map */}
-                    <div className="mb-4">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <MapPin className="w-4 h-4 text-blue-600" />
-                        <span className="text-sm font-medium text-gray-700">Store Location</span>
+                    {/* Content Section */}
+                    <div className="p-6">
+                      {/* Key Info Cards */}
+                      <div className="grid grid-cols-3 gap-3 mb-6">
+                        <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl border border-blue-200">
+                          <div className="text-2xl font-bold text-blue-600 mb-1">{seller.stats.totalProducts}</div>
+                          <div className="text-xs font-medium text-blue-700">Products</div>
+                        </div>
+                        <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-2xl border border-green-200">
+                          <div className="text-2xl font-bold text-green-600 mb-1">{seller.stats.totalOrders}</div>
+                          <div className="text-xs font-medium text-green-700">Orders</div>
+                        </div>
+                        <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl border border-purple-200">
+                          <div className="text-2xl font-bold text-purple-600 mb-1">₹{seller.stats.totalSales.toLocaleString()}</div>
+                          <div className="text-xs font-medium text-purple-700">Sales</div>
+                        </div>
                       </div>
-                      <GoogleMapLocation
-                        location={seller.location || null}
-                        onLocationChange={() => {}}
-                        isEditing={false}
-                        height="150px"
-                      />
-                    </div>
 
-                    {/* Action Buttons */}
-                    <div className="flex space-x-2">
-                      <Link
-                        to={`/seller/${seller.id}`}
-                        className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-xl font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center"
-                      >
-                        <Eye className="w-4 h-4 mr-2" />
-                        View Store
-                      </Link>
-                      <button 
-                        className="px-4 py-3 border border-gray-300 rounded-xl font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                        aria-label="Add to favorites"
-                        title="Add to favorites"
-                      >
-                        <Heart className="w-4 h-4" />
-                      </button>
+                      {/* Contact Info */}
+                      <div className="space-y-3 mb-6">
+                        <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
+                          <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                            <MapPin className="w-5 h-5 text-blue-600" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">{seller.address}</p>
+                            {seller.location && (
+                              <div className="flex items-center space-x-2 mt-1">
+                                <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
+                                  ✓ Verified
+                                </span>
+                                <button
+                                  onClick={() => {
+                                    const { lat, lng } = seller.location;
+                                    const mapsUrl = `https://www.google.com/maps?q=${lat},${lng}&z=15&t=m&hl=en&gl=IN&mapclient=embed`;
+                                    window.open(mapsUrl, '_blank');
+                                  }}
+                                  className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                                >
+                                  View on Maps →
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
+                          <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+                            <Phone className="w-5 h-5 text-green-600" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-900">{seller.phone}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Map Section */}
+                      {seller.location && (
+                        <div className="mb-6">
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="text-sm font-semibold text-gray-700 flex items-center">
+                              <MapPin className="w-4 h-4 mr-2 text-blue-600" />
+                              Store Location
+                            </h4>
+                            <button
+                              onClick={() => {
+                                const { lat, lng } = seller.location;
+                                const mapsUrl = `https://www.google.com/maps?q=${lat},${lng}&z=15&t=m&hl=en&gl=IN&mapclient=embed`;
+                                window.open(mapsUrl, '_blank');
+                              }}
+                              className="text-xs text-blue-600 hover:text-blue-700 font-medium bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded-full transition-colors"
+                            >
+                              Open in Maps
+                            </button>
+                          </div>
+                          <div className="rounded-2xl overflow-hidden border border-gray-200">
+                            <GoogleMapLocation
+                              location={seller.location}
+                              onLocationChange={() => {}}
+                              isEditing={false}
+                              height="120px"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Action Buttons */}
+                      <div className="flex space-x-3">
+                        <Link
+                          to={`/seller/${seller.id}`}
+                          className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-6 rounded-2xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-105"
+                        >
+                          <Eye className="w-5 h-5 mr-2" />
+                          Visit Store
+                        </Link>
+                        <button className="w-14 h-14 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-2xl transition-all duration-300 flex items-center justify-center group">
+                          <Heart className="w-5 h-5 group-hover:text-red-500 transition-colors" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>

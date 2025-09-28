@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Package, Plus, Edit, Trash2, Search, Filter, Star, 
@@ -63,121 +63,136 @@ const ProductManagementPage: React.FC = () => {
   });
 
   const [categorySpecificData, setCategorySpecificData] = useState<Record<string, any>>({});
+  const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const statusDropdownRef = useRef<HTMLDivElement>(null);
 
   const categories = [
-    { value: 'electronics', label: 'Electronics', icon: '📱' },
-    { value: 'fashion', label: 'Fashion & Clothing', icon: '👕' },
-    { value: 'home', label: 'Home & Garden', icon: '🏠' },
-    { value: 'beauty', label: 'Beauty & Personal Care', icon: '💄' },
-    { value: 'sports', label: 'Sports & Fitness', icon: '⚽' },
-    { value: 'books', label: 'Books & Media', icon: '📚' },
-    { value: 'toys', label: 'Toys & Games', icon: '🧸' },
-    { value: 'automotive', label: 'Automotive', icon: '🚗' },
-    { value: 'health', label: 'Health & Wellness', icon: '🏥' },
-    { value: 'food', label: 'Food & Beverages', icon: '🍎' },
-    { value: 'jewelry', label: 'Jewelry & Accessories', icon: '💍' },
-    { value: 'furniture', label: 'Furniture', icon: '🪑' }
+    { value: 'women', label: 'Women', icon: '👗' },
+    { value: 'footwear', label: 'Footwear', icon: '👟' },
+    { value: 'jewellery', label: 'Jewellery', icon: '💍' },
+    { value: 'lingerie', label: 'Lingerie', icon: '👙' },
+    { value: 'watches', label: 'Watches', icon: '⌚' },
+    { value: 'gifting-guide', label: 'Gifting Guide', icon: '🎁' },
+    { value: 'kids', label: 'Kids', icon: '👶' },
+    { value: 'home-lifestyle', label: 'Home & Lifestyle', icon: '🏠' },
+    { value: 'accessories', label: 'Accessories', icon: '👜' },
+    { value: 'beauty', label: 'Beauty by Tira', icon: '💄' },
+    { value: 'sportswear', label: 'Sportswear', icon: '⚽' }
+  ];
+
+  const statusOptions = [
+    { value: 'active', label: 'Active', icon: '✅', color: 'text-green-600' },
+    { value: 'inactive', label: 'Inactive', icon: '❌', color: 'text-red-600' },
+    { value: 'draft', label: 'Draft', icon: '📝', color: 'text-yellow-600' }
   ];
 
   // Dynamic form fields based on category
   const getCategorySpecificFields = (category: string) => {
     switch (category) {
-      case 'fashion':
+      case 'women':
         return {
           size: { type: 'select', options: ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'], label: 'Size' },
           color: { type: 'text', label: 'Color' },
           material: { type: 'text', label: 'Material' },
-          gender: { type: 'select', options: ['Men', 'Women', 'Unisex', 'Kids'], label: 'Gender' },
+          occasion: { type: 'select', options: ['Casual', 'Formal', 'Party', 'Wedding', 'Office'], label: 'Occasion' },
           season: { type: 'select', options: ['Summer', 'Winter', 'All Season'], label: 'Season' }
         };
-      case 'electronics':
+      case 'footwear':
+        return {
+          size: { type: 'select', options: ['5', '6', '7', '8', '9', '10', '11', '12'], label: 'Size' },
+          color: { type: 'text', label: 'Color' },
+          material: { type: 'text', label: 'Material' },
+          heelHeight: { type: 'select', options: ['Flat', 'Low (1-2 inches)', 'Medium (2-3 inches)', 'High (3+ inches)'], label: 'Heel Height' },
+          closure: { type: 'select', options: ['Lace-up', 'Slip-on', 'Buckle', 'Velcro'], label: 'Closure' }
+        };
+      case 'jewellery':
+        return {
+          material: { type: 'select', options: ['Gold', 'Silver', 'Platinum', 'Diamond', 'Pearl', 'Gemstone'], label: 'Material' },
+          type: { type: 'select', options: ['Ring', 'Necklace', 'Earrings', 'Bracelet', 'Anklet'], label: 'Type' },
+          occasion: { type: 'select', options: ['Daily Wear', 'Formal', 'Party', 'Wedding'], label: 'Occasion' },
+          gender: { type: 'select', options: ['Women', 'Men', 'Unisex'], label: 'Gender' }
+        };
+      case 'lingerie':
+        return {
+          size: { type: 'select', options: ['XS', 'S', 'M', 'L', 'XL', 'XXL'], label: 'Size' },
+          color: { type: 'text', label: 'Color' },
+          material: { type: 'text', label: 'Material' },
+          type: { type: 'select', options: ['Bra', 'Panties', 'Lingerie Set', 'Sleepwear'], label: 'Type' }
+        };
+      case 'watches':
         return {
           brand: { type: 'text', label: 'Brand' },
-          model: { type: 'text', label: 'Model' },
-          screenSize: { type: 'text', label: 'Screen Size (inches)' },
-          storage: { type: 'text', label: 'Storage Capacity' },
-          color: { type: 'text', label: 'Color' },
-          warranty: { type: 'text', label: 'Warranty Period' },
-          connectivity: { type: 'text', label: 'Connectivity Options' }
+          type: { type: 'select', options: ['Analog', 'Digital', 'Smartwatch', 'Chronograph'], label: 'Type' },
+          material: { type: 'select', options: ['Stainless Steel', 'Leather', 'Rubber', 'Gold', 'Silver'], label: 'Band Material' },
+          waterResistance: { type: 'select', options: ['30m', '50m', '100m', '200m', 'Not Water Resistant'], label: 'Water Resistance' }
         };
-      case 'automotive':
+      case 'kids':
         return {
-          year: { type: 'number', label: 'Year' },
-          mileage: { type: 'text', label: 'Mileage' },
-          fuelType: { type: 'select', options: ['Petrol', 'Diesel', 'Electric', 'Hybrid'], label: 'Fuel Type' },
-          transmission: { type: 'select', options: ['Manual', 'Automatic', 'CVT'], label: 'Transmission' },
-          bodyType: { type: 'select', options: ['Sedan', 'SUV', 'Hatchback', 'Coupe', 'Convertible'], label: 'Body Type' },
-          engine: { type: 'text', label: 'Engine Details' }
+          ageGroup: { type: 'select', options: ['0-2 years', '3-5 years', '6-8 years', '9-12 years', '13+ years'], label: 'Age Group' },
+          size: { type: 'select', options: ['XS', 'S', 'M', 'L', 'XL'], label: 'Size' },
+          gender: { type: 'select', options: ['Boys', 'Girls', 'Unisex'], label: 'Gender' },
+          occasion: { type: 'select', options: ['Casual', 'School', 'Party', 'Sports'], label: 'Occasion' }
         };
-      case 'home':
+      case 'home-lifestyle':
         return {
+          room: { type: 'select', options: ['Living Room', 'Bedroom', 'Kitchen', 'Bathroom', 'Dining Room'], label: 'Room' },
+          material: { type: 'text', label: 'Material' },
           dimensions: { type: 'text', label: 'Dimensions (L x W x H)' },
+          color: { type: 'text', label: 'Color' }
+        };
+      case 'accessories':
+        return {
+          type: { type: 'select', options: ['Handbag', 'Wallet', 'Belt', 'Scarf', 'Hat', 'Sunglasses'], label: 'Type' },
           material: { type: 'text', label: 'Material' },
           color: { type: 'text', label: 'Color' },
-          room: { type: 'select', options: ['Living Room', 'Bedroom', 'Kitchen', 'Bathroom', 'Office'], label: 'Room Type' },
-          assembly: { type: 'select', options: ['Ready to Use', 'Assembly Required'], label: 'Assembly' }
+          gender: { type: 'select', options: ['Women', 'Men', 'Unisex'], label: 'Gender' }
         };
       case 'beauty':
         return {
-          skinType: { type: 'select', options: ['All Skin Types', 'Dry', 'Oily', 'Combination', 'Sensitive'], label: 'Skin Type' },
-          volume: { type: 'text', label: 'Volume/Size' },
-          ingredients: { type: 'text', label: 'Key Ingredients' },
-          ageGroup: { type: 'select', options: ['All Ages', 'Teen', 'Adult', 'Senior'], label: 'Age Group' }
+          skinType: { type: 'select', options: ['Dry', 'Oily', 'Combination', 'Sensitive', 'Normal'], label: 'Skin Type' },
+          finish: { type: 'select', options: ['Matte', 'Dewy', 'Satin', 'Natural'], label: 'Finish' },
+          coverage: { type: 'select', options: ['Light', 'Medium', 'Full'], label: 'Coverage' },
+          shade: { type: 'text', label: 'Shade' }
         };
-      case 'sports':
+      case 'sportswear':
         return {
-          sport: { type: 'text', label: 'Sport/Activity' },
-          level: { type: 'select', options: ['Beginner', 'Intermediate', 'Advanced', 'Professional'], label: 'Skill Level' },
-          ageGroup: { type: 'select', options: ['Kids', 'Youth', 'Adult', 'Senior'], label: 'Age Group' },
+          activity: { type: 'select', options: ['Running', 'Gym', 'Yoga', 'Swimming', 'Cycling', 'Tennis'], label: 'Activity' },
+          size: { type: 'select', options: ['XS', 'S', 'M', 'L', 'XL', 'XXL'], label: 'Size' },
           gender: { type: 'select', options: ['Men', 'Women', 'Unisex'], label: 'Gender' },
-          size: { type: 'text', label: 'Size' }
+          season: { type: 'select', options: ['Summer', 'Winter', 'All Season'], label: 'Season' }
         };
-      case 'books':
+      case 'gifting-guide':
         return {
-          author: { type: 'text', label: 'Author' },
-          publisher: { type: 'text', label: 'Publisher' },
-          language: { type: 'text', label: 'Language' },
-          pages: { type: 'number', label: 'Number of Pages' },
-          format: { type: 'select', options: ['Hardcover', 'Paperback', 'E-book', 'Audiobook'], label: 'Format' },
-          genre: { type: 'text', label: 'Genre' }
-        };
-      case 'toys':
-        return {
-          ageRange: { type: 'text', label: 'Age Range' },
-          gender: { type: 'select', options: ['Boys', 'Girls', 'Unisex'], label: 'Gender' },
-          material: { type: 'text', label: 'Material' },
-          batteryRequired: { type: 'select', options: ['Yes', 'No'], label: 'Battery Required' },
-          educational: { type: 'select', options: ['Yes', 'No'], label: 'Educational' }
-        };
-      case 'food':
-        return {
-          weight: { type: 'text', label: 'Weight/Volume' },
-          expiryDate: { type: 'date', label: 'Expiry Date' },
-          ingredients: { type: 'text', label: 'Ingredients' },
-          dietaryInfo: { type: 'text', label: 'Dietary Information' },
-          origin: { type: 'text', label: 'Country of Origin' }
-        };
-      case 'jewelry':
-        return {
-          metal: { type: 'select', options: ['Gold', 'Silver', 'Platinum', 'Rose Gold', 'Other'], label: 'Metal Type' },
-          gemstone: { type: 'text', label: 'Gemstone' },
-          size: { type: 'text', label: 'Size' },
-          gender: { type: 'select', options: ['Men', 'Women', 'Unisex'], label: 'Gender' },
-          occasion: { type: 'text', label: 'Occasion' }
-        };
-      case 'furniture':
-        return {
-          dimensions: { type: 'text', label: 'Dimensions (L x W x H)' },
-          material: { type: 'text', label: 'Material' },
-          color: { type: 'text', label: 'Color' },
-          room: { type: 'select', options: ['Living Room', 'Bedroom', 'Kitchen', 'Dining Room', 'Office'], label: 'Room Type' },
-          assembly: { type: 'select', options: ['Ready to Use', 'Assembly Required'], label: 'Assembly' },
-          weight: { type: 'text', label: 'Weight Capacity' }
+          occasion: { type: 'select', options: ['Birthday', 'Anniversary', 'Wedding', 'Holiday', 'Graduation'], label: 'Occasion' },
+          recipient: { type: 'select', options: ['Men', 'Women', 'Kids', 'Couples', 'Family'], label: 'Recipient' },
+          priceRange: { type: 'select', options: ['Under ₹1000', '₹1000-5000', '₹5000-10000', '₹10000+'], label: 'Price Range' }
         };
       default:
         return {};
     }
   };
+
+  // Handle click outside dropdowns
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setCategoryDropdownOpen(false);
+      }
+      if (statusDropdownRef.current && !statusDropdownRef.current.contains(event.target as Node)) {
+        setStatusDropdownOpen(false);
+      }
+    };
+
+    if (categoryDropdownOpen || statusDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [categoryDropdownOpen, statusDropdownOpen]);
 
   // Load products
   const loadProducts = async () => {
@@ -534,51 +549,99 @@ const ProductManagementPage: React.FC = () => {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Price *
+                        Price (₹) *
                       </label>
                       <input
                         type="number"
+                        min="0"
+                        step="0.01"
                         value={formData.price}
-                        onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
+                        onChange={(e) => {
+                          const value = Math.max(0, parseFloat(e.target.value) || 0);
+                          setFormData({...formData, price: value});
+                        }}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                         placeholder="0.00"
                         required
                       />
+                      <p className="text-xs text-gray-500 mt-1">Enter price in rupees (0 or more)</p>
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Original Price
+                        Original Price (₹)
                       </label>
                       <input
                         type="number"
+                        min="0"
+                        step="0.01"
                         value={formData.originalPrice}
-                        onChange={(e) => setFormData({...formData, originalPrice: parseFloat(e.target.value) || 0})}
+                        onChange={(e) => {
+                          const value = Math.max(0, parseFloat(e.target.value) || 0);
+                          setFormData({...formData, originalPrice: value});
+                        }}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                         placeholder="0.00"
                       />
+                      <p className="text-xs text-gray-500 mt-1">Enter original price for discount calculation (optional)</p>
                     </div>
 
                     <div>
                       <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
                         Category *
                       </label>
-                      <select
-                        id="category"
-                        value={formData.category}
-                        onChange={(e) => {
-                          setFormData({...formData, category: e.target.value});
+                      <div className="relative" ref={dropdownRef}>
+                        <button
+                          type="button"
+                          onClick={() => setCategoryDropdownOpen(!categoryDropdownOpen)}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white text-left flex items-center justify-between hover:border-gray-400 transition-colors duration-200"
+                        >
+                          <span className="flex items-center space-x-2">
+                            {formData.category ? (
+                              <>
+                                <span className="text-lg">
+                                  {categories.find(c => c.value === formData.category)?.icon}
+                                </span>
+                                <span className="text-gray-900">
+                                  {categories.find(c => c.value === formData.category)?.label}
+                                </span>
+                              </>
+                            ) : (
+                              <span className="text-gray-500">Select Category</span>
+                            )}
+                          </span>
+                          <svg
+                            className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${
+                              categoryDropdownOpen ? 'rotate-180' : ''
+                            }`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                        
+                        {categoryDropdownOpen && (
+                          <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                            {categories.map(category => (
+                              <button
+                                key={category.value}
+                                type="button"
+                                onClick={() => {
+                                  setFormData({...formData, category: category.value});
                           setCategorySpecificData({}); // Reset category-specific data
-                        }}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                        required
-                      >
-                        {categories.map(category => (
-                          <option key={category.value} value={category.value}>
-                            {category.icon} {category.label}
-                          </option>
-                        ))}
-                      </select>
+                                  setCategoryDropdownOpen(false);
+                                }}
+                                className="w-full px-4 py-3 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none flex items-center space-x-3 transition-colors duration-150"
+                              >
+                                <span className="text-lg">{category.icon}</span>
+                                <span className="text-gray-900 font-medium">{category.label}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     <div>
@@ -587,12 +650,18 @@ const ProductManagementPage: React.FC = () => {
                       </label>
                       <input
                         type="number"
+                        min="0"
+                        step="1"
                         value={formData.stock}
-                        onChange={(e) => setFormData({...formData, stock: parseInt(e.target.value) || 0})}
+                        onChange={(e) => {
+                          const value = Math.max(0, parseInt(e.target.value) || 0);
+                          setFormData({...formData, stock: value});
+                        }}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                        placeholder="0"
+                        placeholder="Enter quantity (0 or more)"
                         required
                       />
+                      <p className="text-xs text-gray-500 mt-1">Enter 0 or a positive number</p>
                     </div>
 
                     <div>
@@ -612,16 +681,57 @@ const ProductManagementPage: React.FC = () => {
                       <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
                         Status
                       </label>
-                      <select
-                        id="status"
-                        value={formData.status}
-                        onChange={(e) => setFormData({...formData, status: e.target.value as 'active' | 'inactive' | 'draft'})}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      >
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                        <option value="draft">Draft</option>
-                      </select>
+                      <div className="relative" ref={statusDropdownRef}>
+                        <button
+                          type="button"
+                          onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white text-left flex items-center justify-between hover:border-gray-400 transition-colors duration-200"
+                        >
+                          <span className="flex items-center space-x-2">
+                            {formData.status ? (
+                              <>
+                                <span className="text-lg">
+                                  {statusOptions.find(s => s.value === formData.status)?.icon}
+                                </span>
+                                <span className={`font-medium ${statusOptions.find(s => s.value === formData.status)?.color}`}>
+                                  {statusOptions.find(s => s.value === formData.status)?.label}
+                                </span>
+                              </>
+                            ) : (
+                              <span className="text-gray-500">Select Status</span>
+                            )}
+                          </span>
+                          <svg
+                            className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${
+                              statusDropdownOpen ? 'rotate-180' : ''
+                            }`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                        
+                        {statusDropdownOpen && (
+                          <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
+                            {statusOptions.map(status => (
+                              <button
+                                key={status.value}
+                                type="button"
+                                onClick={() => {
+                                  setFormData({...formData, status: status.value as 'active' | 'inactive' | 'draft'});
+                                  setStatusDropdownOpen(false);
+                                }}
+                                className="w-full px-4 py-3 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none flex items-center space-x-3 transition-colors duration-150"
+                              >
+                                <span className="text-lg">{status.icon}</span>
+                                <span className={`font-medium ${status.color}`}>{status.label}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 

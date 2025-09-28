@@ -153,6 +153,14 @@ const AdminDashboard: React.FC = () => {
       stats: stats.totalProducts
     },
     {
+      title: 'Home Page Management',
+      description: 'Manage featured products, deals, and offers',
+      icon: BarChart3,
+      link: '/admin/homepage',
+      color: 'bg-pink-500',
+      stats: null
+    },
+    {
       title: 'Order Management',
       description: 'Track and manage orders',
       icon: ShoppingBag,

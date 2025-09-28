@@ -11,6 +11,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<any>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  refreshUserData: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -74,6 +75,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return firebaseResetPassword(email);
   };
 
+  const refreshUserData = async () => {
+    if (currentUser) {
+      try {
+        console.log('Refreshing user data for:', currentUser.uid);
+        const userData = await getUserData(currentUser.uid, currentUser.email || undefined);
+        console.log('Refreshed user data:', userData);
+        setUserData(userData);
+      } catch (error) {
+        console.error('Error refreshing user data:', error);
+      }
+    }
+  };
+
   const value: AuthContextType = {
     currentUser,
     userData,
@@ -81,7 +95,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signUp,
     signIn,
     signOut,
-    resetPassword
+    resetPassword,
+    refreshUserData
   };
 
   return (

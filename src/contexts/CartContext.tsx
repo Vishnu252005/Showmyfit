@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useAuth } from './AuthContext';
 
 export interface CartItem {
   id: string;
@@ -60,7 +59,6 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   const [lastAddedProducts, setLastAddedProducts] = useState<LastAddedProduct[]>([]);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [showAddNotification, setShowAddNotification] = useState(false);
-  const { currentUser } = useAuth();
 
   // Load cart from localStorage on mount
   useEffect(() => {

@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   MapPin, Package, Star, Heart, Clock, 
-  ArrowRight, Sparkles, Eye, ShoppingCart, Phone, MapIcon, ThumbsUp, X
+  ArrowRight, Sparkles, Eye, ShoppingCart, Phone, MapIcon, ThumbsUp, X,
+  DollarSign, Percent, TrendingUp
 } from 'lucide-react';
 import Navbar from '../components/layout/Navbar';
 import AddToCartButton from '../components/common/AddToCartButton';
-import { collection, query, getDocs } from 'firebase/firestore';
+import { collection, query, getDocs, where, orderBy } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { getCurrentLocationWithDetails, sortStoresByDistance, parseAddressToCoordinates } from '../utils/distance';
 
@@ -25,144 +26,117 @@ const HomePage: React.FC = () => {
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [sellers, setSellers] = useState<any[]>([]);
   const [loadingSellers, setLoadingSellers] = useState(true);
+  const [homePageSections, setHomePageSections] = useState<any[]>([]);
+  const [loadingSections, setLoadingSections] = useState(true);
+  const [allProducts, setAllProducts] = useState<any[]>([]);
 
   useEffect(() => {
     setIsLoaded(true);
   }, []);
 
+  // Fetch home page sections and products
+  useEffect(() => {
+    const fetchHomePageData = async () => {
+      setLoadingSections(true);
+      try {
+        // Load home page sections
+        const sectionsQuery = query(
+          collection(db, 'homePageSections'),
+          where('isActive', '==', true),
+          orderBy('displayOrder', 'asc')
+        );
+        const sectionsSnapshot = await getDocs(sectionsQuery);
+        const sectionsData = sectionsSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          createdAt: doc.data().createdAt?.toDate() || new Date(),
+          updatedAt: doc.data().updatedAt?.toDate() || new Date()
+        }));
+        setHomePageSections(sectionsData);
+
+        // Load all products
+        const productsQuery = query(collection(db, 'products'), orderBy('createdAt', 'desc'));
+        const productsSnapshot = await getDocs(productsQuery);
+        const productsData = productsSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          createdAt: doc.data().createdAt?.toDate() || new Date(),
+          updatedAt: doc.data().updatedAt?.toDate() || new Date()
+        }));
+        setAllProducts(productsData);
+      } catch (error) {
+        console.error('Error loading home page data:', error);
+      } finally {
+        setLoadingSections(false);
+      }
+    };
+
+    fetchHomePageData();
+  }, []);
+
   // Fetch sellers from database
   useEffect(() => {
-    const fetchSellers = async () => {
-      setLoadingSellers(true);
-      try {
-        const usersQuery = query(collection(db, 'users'));
-        const snapshot = await getDocs(usersQuery);
-        
-        console.log('Total users found:', snapshot.docs.length);
-        
-        const sellersList: any[] = [];
-        snapshot.docs.forEach((doc) => {
-          const userData = doc.data();
-          console.log('User data:', { id: doc.id, role: userData.role, status: userData.status, businessName: userData.businessName });
-          
-          if (userData.role === 'shop' && userData.status === 'approved') {
-            sellersList.push({
-              id: doc.id,
-              name: userData.name || 'Unknown Seller',
-              email: userData.email || 'No email',
-              phone: userData.phone || 'No phone',
-              businessName: userData.businessName || 'No business name',
-              businessType: userData.businessType || 'No type',
-              address: userData.address || 'No address',
-              stats: userData.stats || {
-                totalProducts: Math.floor(Math.random() * 50) + 10,
-                totalSales: Math.floor(Math.random() * 1000) + 100,
-                totalOrders: Math.floor(Math.random() * 200) + 20,
-                rating: Math.random() * 2 + 3 // Random rating between 3-5
-              },
-              createdAt: userData.createdAt
-            });
-          }
+  const fetchSellers = async () => {
+    setLoadingSellers(true);
+    try {
+      console.log('Loading approved sellers from users collection...');
+      
+      // Query users collection for approved sellers (shop role with approved status)
+      const usersQuery = query(
+        collection(db, 'users'),
+        where('role', '==', 'shop')
+      );
+      const snapshot = await getDocs(usersQuery);
+      
+      console.log('Total users with shop role found:', snapshot.docs.length);
+      
+      const sellersList: any[] = [];
+      snapshot.docs.forEach((doc) => {
+        const userData = doc.data();
+        console.log('User data:', { 
+          id: doc.id, 
+          role: userData.role, 
+          businessName: userData.businessName,
+          address: userData.address 
         });
         
-        console.log('Approved sellers found:', sellersList.length);
+        // Only include users who are approved sellers
+        if (userData.role === 'shop' && userData.sellerApplication?.status === 'approved') {
+          sellersList.push({
+            id: doc.id,
+            userId: doc.id,
+            name: userData.displayName || userData.name || 'Unknown Seller',
+            email: userData.email || 'No email',
+            phone: userData.phone || 'No phone',
+            businessName: userData.businessName || 'No business name',
+            businessType: userData.businessType || 'No type',
+            address: userData.address || userData.businessAddress || 'No address',
+            location: userData.location || null, // Real location data
+            stats: userData.stats || {
+              totalProducts: Math.floor(Math.random() * 50) + 10,
+              totalSales: Math.floor(Math.random() * 1000) + 100,
+              totalOrders: Math.floor(Math.random() * 200) + 20,
+              rating: Math.random() * 2 + 3 // Random rating between 3-5
+            },
+            createdAt: userData.createdAt || new Date()
+          });
+        }
+      });
+      
+      console.log('Approved sellers found:', sellersList.length);
         
-        // If no sellers found, use sample data for demo
+        // If no sellers found, show empty state
         if (sellersList.length === 0) {
-          console.log('No sellers found, using sample data');
-          const sampleSellers = [
-            {
-              id: 'demo1',
-              name: 'Rajesh Kumar',
-              email: 'rajesh@example.com',
-              phone: '+91 98765 43210',
-              businessName: 'Fashion Hub',
-              businessType: 'Fashion & Apparel',
-              address: '123 MG Road, Bangalore',
-              stats: {
-                totalProducts: 45,
-                totalSales: 1250,
-                totalOrders: 180,
-                rating: 4.5
-              },
-              createdAt: new Date()
-            },
-            {
-              id: 'demo2',
-              name: 'Priya Sharma',
-              email: 'priya@example.com',
-              phone: '+91 98765 43211',
-              businessName: 'Style Central',
-              businessType: 'Beauty & Cosmetics',
-              address: '456 Brigade Road, Bangalore',
-              stats: {
-                totalProducts: 32,
-                totalSales: 890,
-                totalOrders: 120,
-                rating: 4.2
-              },
-              createdAt: new Date()
-            },
-            {
-              id: 'demo3',
-              name: 'Amit Patel',
-              email: 'amit@example.com',
-              phone: '+91 98765 43212',
-              businessName: 'Urban Closet',
-              businessType: 'Electronics',
-              address: '789 Commercial Street, Bangalore',
-              stats: {
-                totalProducts: 28,
-                totalSales: 2100,
-                totalOrders: 95,
-                rating: 4.7
-              },
-              createdAt: new Date()
-            }
-          ];
-          setSellers(sampleSellers);
+          console.log('No approved sellers found');
+          setSellers([]);
         } else {
-          // Limit to 6 sellers for home page
-          setSellers(sellersList.slice(0, 6));
+          // Show all real sellers
+          setSellers(sellersList);
         }
       } catch (error) {
         console.error('Error loading sellers:', error);
-        // Use sample data on error too
-        const sampleSellers = [
-          {
-            id: 'demo1',
-            name: 'Rajesh Kumar',
-            email: 'rajesh@example.com',
-            phone: '+91 98765 43210',
-            businessName: 'Fashion Hub',
-            businessType: 'Fashion & Apparel',
-            address: '123 MG Road, Bangalore',
-            stats: {
-              totalProducts: 45,
-              totalSales: 1250,
-              totalOrders: 180,
-              rating: 4.5
-            },
-            createdAt: new Date()
-          },
-          {
-            id: 'demo2',
-            name: 'Priya Sharma',
-            email: 'priya@example.com',
-            phone: '+91 98765 43211',
-            businessName: 'Style Central',
-            businessType: 'Beauty & Cosmetics',
-            address: '456 Brigade Road, Bangalore',
-            stats: {
-              totalProducts: 32,
-              totalSales: 890,
-              totalOrders: 120,
-              rating: 4.2
-            },
-            createdAt: new Date()
-          }
-        ];
-        setSellers(sampleSellers);
+        // Show empty state on error
+        setSellers([]);
       } finally {
         setLoadingSellers(false);
       }
@@ -270,6 +244,43 @@ const HomePage: React.FC = () => {
     setShowQuickView(true);
   };
 
+  // Get products for a specific section
+  const getSectionProducts = (productIds: string[]) => {
+    return allProducts.filter(product => productIds.includes(product.id));
+  };
+
+  // Render section icon based on type
+  const getSectionIcon = (type: string) => {
+    switch (type) {
+      case 'featured':
+        return <Sparkles className="w-8 h-8 text-white" />;
+      case 'bestDeals':
+        return <DollarSign className="w-8 h-8 text-white" />;
+      case 'offers':
+        return <Percent className="w-8 h-8 text-white" />;
+      case 'trending':
+        return <TrendingUp className="w-8 h-8 text-white" />;
+      default:
+        return <Package className="w-8 h-8 text-white" />;
+    }
+  };
+
+  // Render section background gradient based on type
+  const getSectionGradient = (type: string) => {
+    switch (type) {
+      case 'featured':
+        return 'from-purple-500 to-pink-600';
+      case 'bestDeals':
+        return 'from-green-500 to-emerald-600';
+      case 'offers':
+        return 'from-orange-500 to-red-600';
+      case 'trending':
+        return 'from-red-500 to-pink-600';
+      default:
+        return 'from-blue-500 to-purple-600';
+    }
+  };
+
   const featuredProducts = [
     { 
       id: '1',
@@ -339,82 +350,6 @@ const HomePage: React.FC = () => {
       
       {/* Main Content */}
       <div className="main-content pt-24">
-        {/* Location Section */}
-        <section className="bg-white border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <MapPin className="w-5 h-5 text-blue-600" />
-                  <span className="text-sm text-gray-600">Your Location:</span>
-                  <span className="text-sm font-medium text-gray-900">
-                    {currentLocation || 'Not detected'}
-                  </span>
-                </div>
-                {locationError && (
-                  <div className="text-xs text-red-600 bg-red-50 px-3 py-2 rounded-lg border border-red-200">
-                    <div className="font-medium">{locationError}</div>
-                    {locationError.includes('unavailable') && (
-                      <div className="mt-1 text-red-500">
-                        💡 Try entering your city manually below
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-              
-              <div className="flex flex-col space-y-2">
-                <button
-                  onClick={getCurrentLocation}
-                  disabled={isGettingLocation}
-                  className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors"
-                >
-                  {isGettingLocation ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      <span className="text-sm">Getting Location...</span>
-                    </>
-                  ) : (
-                    <>
-                      <MapIcon className="w-4 h-4" />
-                      <span className="text-sm">Find Nearby Stores</span>
-                    </>
-                  )}
-                </button>
-                
-                {/* Manual Location Input - Show when GPS fails */}
-                {showManualLocation && (
-                  <div className="flex items-center space-x-2 bg-gray-50 p-3 rounded-lg border">
-                    <input
-                      type="text"
-                      placeholder="Enter city name (e.g., Mumbai, Delhi)"
-                      value={manualLocation}
-                      onChange={(e) => setManualLocation(e.target.value)}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      onKeyPress={(e) => e.key === 'Enter' && handleManualLocation()}
-                    />
-                    <button
-                      onClick={handleManualLocation}
-                      className="bg-green-600 text-white px-3 py-2 rounded-md text-sm hover:bg-green-700 transition-colors"
-                    >
-                      Use
-                    </button>
-                    <button
-                      onClick={() => {
-                        setShowManualLocation(false);
-                        setLocationError('');
-                        setManualLocation('');
-                      }}
-                      className="bg-gray-500 text-white px-3 py-2 rounded-md text-sm hover:bg-gray-600 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </section>
 
         {/* Quick Category Bar */}
         <section className="bg-white border-b border-gray-200 mt-8">
@@ -635,132 +570,159 @@ const HomePage: React.FC = () => {
           </div>
         </section>
 
-        {/* Featured Products Section */}
-        <section className="py-16 bg-gradient-to-br from-gray-50 to-white">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="text-center mb-12">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mb-4">
-                <Sparkles className="w-8 h-8 text-white" />
+        {/* Dynamic Admin-Managed Sections */}
+        {loadingSections ? (
+          <section className="py-16 bg-gradient-to-br from-gray-50 to-white">
+            <div className="max-w-7xl mx-auto px-4">
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
               </div>
-              <h2 className="text-4xl font-bold text-gray-900 mb-4">Featured Products</h2>
-              <p className="text-gray-600 text-lg max-w-2xl mx-auto">Discover our handpicked selection of premium products that our customers love</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {featuredProducts.map((product) => (
-                <div key={product.id} className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-100">
-                  <div className="p-5">
-                    <div className="relative mb-4 group/image">
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        className="w-full h-48 object-cover rounded-xl transition-transform duration-300 group-hover:scale-105"
-                      />
-                      
-                      {/* Action Buttons */}
-                      <div className="absolute top-3 right-3 flex flex-col space-y-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <button
-                          onClick={() => toggleWishlist(product.id)}
-                          className="p-2 bg-white rounded-full shadow-lg hover:shadow-xl transition-all"
-                          title={wishlist.includes(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
-                          aria-label={wishlist.includes(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
-                        >
-                          <Heart className={`w-4 h-4 ${
-                            wishlist.includes(product.id) ? 'text-red-500 fill-current' : 'text-gray-600'
-                          }`} />
-                        </button>
-                        <button
-                          onClick={() => quickViewProduct(product)}
-                          className="p-2 bg-white rounded-full shadow-lg hover:shadow-xl transition-all"
-                          title="Quick view"
-                          aria-label="Quick view product"
-                        >
-                          <Eye className="w-4 h-4 text-gray-600" />
-                        </button>
-        </div>
-
-                      {/* Badges */}
-                      <div className="absolute top-3 left-3 flex flex-col space-y-2">
-                        {product.featured && (
-                          <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
-                            ⭐ Featured
-                          </span>
-                        )}
-                        {product.originalPrice && product.originalPrice > product.price && (
-                          <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-                            {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
-                          </span>
-                        )}
-      </div>
+          </section>
+        ) : (
+          homePageSections.map((section) => {
+            const sectionProducts = getSectionProducts(section.products);
+            
+            return (
+              <section key={section.id} className="py-16 bg-gradient-to-br from-gray-50 to-white">
+                <div className="max-w-7xl mx-auto px-4">
+                  <div className="text-center mb-12">
+                    <div className={`inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br ${getSectionGradient(section.type)} rounded-full mb-4`}>
+                      {getSectionIcon(section.type)}
                     </div>
-
-                    <div className="space-y-3">
-                      <div>
-                        <h3 className="font-bold text-gray-900 line-clamp-2 text-lg mb-1 group-hover:text-blue-600 transition-colors">
-                          {product.name}
-                        </h3>
-                        <p className="text-sm text-gray-600 font-medium">{product.brand}</p>
-                      </div>
-                      
-                      {/* Rating */}
-                      <div className="flex items-center space-x-2">
-                        <div className="flex items-center bg-yellow-50 px-2 py-1 rounded-full">
-                          <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                          <span className="text-sm font-bold ml-1">{product.rating.toFixed(1)}</span>
-                        </div>
-                        <span className="text-sm text-gray-500">({product.reviews} reviews)</span>
-                      </div>
-
-                      {/* Price */}
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <span className="text-2xl font-bold text-gray-900">₹{product.price.toLocaleString()}</span>
-                          {product.originalPrice && product.originalPrice > product.price && (
-                            <div className="text-sm text-gray-500 line-through">
-                              ₹{product.originalPrice.toLocaleString()}
-                            </div>
-                          )}
-                        </div>
-                        <span className="text-xs bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">
-                          {product.category}
-                        </span>
-                      </div>
-
-                      {/* Stock Status */}
-                      <div className="flex items-center justify-between text-sm">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          product.stock > 10 ? 'bg-green-100 text-green-800' :
-                          product.stock > 0 ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
-                          {product.stock > 10 ? 'In Stock' : product.stock > 0 ? 'Low Stock' : 'Out of Stock'}
-                        </span>
-                        <span className="text-gray-500">{product.stock} left</span>
-                      </div>
-
-                      {/* Add to Cart Button */}
-                      <AddToCartButton
-                        product={{
-                          id: product.id,
-                          name: product.name,
-                          price: product.price,
-                          originalPrice: product.originalPrice,
-                          image: product.image,
-                          brand: product.brand,
-                          size: product.size,
-                          color: product.color,
-                          category: product.category
-                        }}
-                        variant="primary"
-                        size="lg"
-                        className="w-full"
-                      />
-                    </div>
+                    <h2 className="text-4xl font-bold text-gray-900 mb-4">{section.title}</h2>
+                    {section.subtitle && (
+                      <p className="text-gray-600 text-lg max-w-2xl mx-auto">{section.subtitle}</p>
+                    )}
                   </div>
-              </div>
-            ))}
+                  
+                  {sectionProducts.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                      {sectionProducts.map((product) => (
+                        <div key={product.id} className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-100">
+                          <div className="p-5">
+                            <div className="relative mb-4 group/image">
+                              <img
+                                src={product.image}
+                                alt={product.name}
+                                className="w-full h-48 object-cover rounded-xl transition-transform duration-300 group-hover:scale-105"
+                              />
+                              
+                              {/* Action Buttons */}
+                              <div className="absolute top-3 right-3 flex flex-col space-y-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                <button
+                                  onClick={() => toggleWishlist(product.id)}
+                                  className="p-2 bg-white rounded-full shadow-lg hover:shadow-xl transition-all"
+                                  title={wishlist.includes(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                                  aria-label={wishlist.includes(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                                >
+                                  <Heart className={`w-4 h-4 ${
+                                    wishlist.includes(product.id) ? 'text-red-500 fill-current' : 'text-gray-600'
+                                  }`} />
+                                </button>
+                                <button
+                                  onClick={() => quickViewProduct(product)}
+                                  className="p-2 bg-white rounded-full shadow-lg hover:shadow-xl transition-all"
+                                  title="Quick view"
+                                  aria-label="Quick view product"
+                                >
+                                  <Eye className="w-4 h-4 text-gray-600" />
+                                </button>
+                              </div>
+
+                              {/* Badges */}
+                              <div className="absolute top-3 left-3 flex flex-col space-y-2">
+                                {product.featured && (
+                                  <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                                    ⭐ Featured
+                                  </span>
+                                )}
+                                {product.originalPrice && product.originalPrice > product.price && (
+                                  <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+                                    {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="space-y-3">
+                              <div>
+                                <h3 className="font-bold text-gray-900 line-clamp-2 text-lg mb-1 group-hover:text-blue-600 transition-colors">
+                                  {product.name}
+                                </h3>
+                                <p className="text-sm text-gray-600 font-medium">{product.brand}</p>
+                              </div>
+                              
+                              {/* Rating */}
+                              <div className="flex items-center space-x-2">
+                                <div className="flex items-center bg-yellow-50 px-2 py-1 rounded-full">
+                                  <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                                  <span className="text-sm font-bold ml-1">{product.rating?.toFixed(1) || '0.0'}</span>
+                                </div>
+                                <span className="text-sm text-gray-500">({product.reviews || 0} reviews)</span>
+                              </div>
+
+                              {/* Price */}
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <span className="text-2xl font-bold text-gray-900">₹{product.price?.toLocaleString() || '0'}</span>
+                                  {product.originalPrice && product.originalPrice > product.price && (
+                                    <div className="text-sm text-gray-500 line-through">
+                                      ₹{product.originalPrice.toLocaleString()}
+                                    </div>
+                                  )}
+                                </div>
+                                <span className="text-xs bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">
+                                  {product.category}
+                                </span>
+                              </div>
+
+                              {/* Stock Status */}
+                              <div className="flex items-center justify-between text-sm">
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                  (product.stock || 0) > 10 ? 'bg-green-100 text-green-800' :
+                                  (product.stock || 0) > 0 ? 'bg-yellow-100 text-yellow-800' :
+                                  'bg-red-100 text-red-800'
+                                }`}>
+                                  {(product.stock || 0) > 10 ? 'In Stock' : (product.stock || 0) > 0 ? 'Low Stock' : 'Out of Stock'}
+                                </span>
+                                <span className="text-gray-500">{product.stock || 0} left</span>
+                              </div>
+
+                              {/* Add to Cart Button */}
+                              <AddToCartButton
+                                product={{
+                                  id: product.id,
+                                  name: product.name,
+                                  price: product.price,
+                                  originalPrice: product.originalPrice,
+                                  image: product.image,
+                                  brand: product.brand,
+                                  size: product.size,
+                                  color: product.color,
+                                  category: product.category
+                                }}
+                                variant="primary"
+                                size="lg"
+                                className="w-full"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                      <p className="text-gray-500 text-lg">No products in this section</p>
+                      <p className="text-gray-400">Admin needs to add products to this section</p>
+                    </div>
+                  )}
                 </div>
-              </div>
-        </section>
+              </section>
+            );
+          })
+        )}
 
         {/* Enhanced Deals Section */}
         <section className="py-12 bg-white">

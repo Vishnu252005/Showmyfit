@@ -8,6 +8,7 @@ import {
   Users, ShoppingBag, ThumbsUp, MessageCircle, ExternalLink
 } from 'lucide-react';
 import Navbar from '../../components/layout/Navbar';
+import { useCart } from '../../contexts/CartContext';
 import { collection, query, getDocs, where, doc, getDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 
@@ -27,7 +28,8 @@ interface Product {
   tags: string[];
   featured: boolean;
   status: 'active' | 'inactive' | 'draft';
-  storeId: string;
+  sellerId: string;
+  sellerName?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -52,6 +54,7 @@ interface Seller {
 const SellerProductsPage: React.FC = () => {
   const { sellerId } = useParams<{ sellerId: string }>();
   const navigate = useNavigate();
+  const { addToCart, cartItems, updateQuantity, removeFromCart, getCartItemCount } = useCart();
   const [seller, setSeller] = useState<Seller | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,7 +68,7 @@ const SellerProductsPage: React.FC = () => {
   const [compareList, setCompareList] = useState<string[]>([]);
   const [showQuickView, setShowQuickView] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [cartItems, setCartItems] = useState<{[key: string]: number}>({});
+  const [selectedOptions, setSelectedOptions] = useState<{[productId: string]: {size?: string, color?: string}}>({});
 
   // Fetch seller data
   useEffect(() => {
@@ -79,6 +82,13 @@ const SellerProductsPage: React.FC = () => {
           setSeller({
             id: sellerDoc.id,
             ...sellerData,
+            stats: {
+              totalProducts: 0,
+              totalOrders: 0,
+              totalSales: 0,
+              rating: 0,
+              ...sellerData.stats
+            },
             createdAt: sellerData.createdAt?.toDate() || new Date()
           } as Seller);
         }
@@ -97,18 +107,37 @@ const SellerProductsPage: React.FC = () => {
       
       setLoading(true);
       try {
+        console.log('Fetching products for sellerId:', sellerId);
+        // First try to get all products for this seller (without status filter)
+        const allProductsQuery = query(
+          collection(db, 'products'),
+          where('sellerId', '==', sellerId)
+        );
+        const allSnapshot = await getDocs(allProductsQuery);
+        console.log('All products for seller:', allSnapshot.docs.length);
+        allSnapshot.docs.forEach(doc => {
+          const data = doc.data();
+          console.log('All product:', { id: doc.id, sellerId: data.sellerId, name: data.name, status: data.status });
+        });
+        
+        // Then filter for active products
         const productsQuery = query(
           collection(db, 'products'),
-          where('storeId', '==', sellerId),
+          where('sellerId', '==', sellerId),
           where('status', '==', 'active')
         );
         const snapshot = await getDocs(productsQuery);
-        const productsData = snapshot.docs.map(doc => ({
+        console.log('Products found:', snapshot.docs.length);
+        const productsData = snapshot.docs.map(doc => {
+          const data = doc.data();
+          console.log('Product data:', { id: doc.id, sellerId: data.sellerId, name: data.name, status: data.status });
+          return {
           id: doc.id,
-          ...doc.data(),
-          createdAt: doc.data().createdAt?.toDate() || new Date(),
-          updatedAt: doc.data().updatedAt?.toDate() || new Date()
-        })) as Product[];
+            ...data,
+            createdAt: data.createdAt?.toDate() || new Date(),
+            updatedAt: data.updatedAt?.toDate() || new Date()
+          };
+        }) as Product[];
         setProducts(productsData);
       } catch (error) {
         console.error('Error fetching products:', error);
@@ -156,23 +185,62 @@ const SellerProductsPage: React.FC = () => {
     );
   };
 
-  const addToCart = (product: Product) => {
-    setCartItems(prev => ({
+  const handleAddToCart = (product: Product) => {
+    const options = selectedOptions[product.id] || {};
+    
+    // Check if size selection is required
+    if (product.categorySpecificData?.sizes && !options.size) {
+      alert('Please select a size before adding to cart');
+      return;
+    }
+    
+    // Check if color selection is required
+    if (product.categorySpecificData?.colors && !options.color) {
+      alert('Please select a color before adding to cart');
+      return;
+    }
+    
+    addToCart({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      originalPrice: product.originalPrice,
+      image: product.image,
+      brand: product.brand,
+      quantity: 1,
+      sellerId: seller?.id,
+      sellerName: seller?.businessName,
+      category: product.category,
+      size: options.size,
+      color: options.color
+    });
+  };
+
+  const handleUpdateQuantity = (productId: string, quantity: number) => {
+    if (quantity <= 0) {
+      removeFromCart(productId);
+      } else {
+      updateQuantity(productId, quantity);
+    }
+  };
+
+  const getProductQuantity = (productId: string) => {
+    const cartItem = cartItems.find(item => item.id === productId);
+    return cartItem ? cartItem.quantity : 0;
+  };
+
+  const updateSelectedOption = (productId: string, option: 'size' | 'color', value: string) => {
+    setSelectedOptions(prev => ({
       ...prev,
-      [product.id]: (prev[product.id] || 0) + 1
+      [productId]: {
+        ...prev[productId],
+        [option]: value
+      }
     }));
   };
 
-  const removeFromCart = (productId: string) => {
-    setCartItems(prev => {
-      const newItems = { ...prev };
-      if (newItems[productId] > 1) {
-        newItems[productId]--;
-      } else {
-        delete newItems[productId];
-      }
-      return newItems;
-    });
+  const getSelectedOption = (productId: string, option: 'size' | 'color') => {
+    return selectedOptions[productId]?.[option] || '';
   };
 
   const toggleCompare = (productId: string) => {
@@ -314,8 +382,8 @@ const SellerProductsPage: React.FC = () => {
                     <div className="flex flex-wrap items-center gap-4 text-sm">
                       <div className="flex items-center bg-yellow-50 px-3 py-1 rounded-full">
                         <Star className="w-4 h-4 text-yellow-500 mr-1" />
-                        <span className="font-medium">{seller.stats.rating.toFixed(1)}</span>
-                        <span className="text-gray-500 ml-1">({seller.stats.totalOrders} orders)</span>
+                        <span className="font-medium">{(seller.stats?.rating || 0).toFixed(1)}</span>
+                        <span className="text-gray-500 ml-1">({seller.stats?.totalOrders || 0} orders)</span>
                       </div>
                       <div className="flex items-center bg-blue-50 px-3 py-1 rounded-full">
                         <Package className="w-4 h-4 text-blue-500 mr-1" />
@@ -336,15 +404,15 @@ const SellerProductsPage: React.FC = () => {
                 {/* Enhanced Seller Stats */}
                 <div className="grid grid-cols-3 gap-6">
                   <div className="text-center bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-xl">
-                    <div className="text-3xl font-bold text-blue-600">{seller.stats.totalProducts}</div>
+                    <div className="text-3xl font-bold text-blue-600">{seller.stats?.totalProducts || 0}</div>
                     <div className="text-sm text-blue-700 font-medium">Products</div>
                   </div>
                   <div className="text-center bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-xl">
-                    <div className="text-3xl font-bold text-green-600">{seller.stats.totalOrders}</div>
+                    <div className="text-3xl font-bold text-green-600">{seller.stats?.totalOrders || 0}</div>
                     <div className="text-sm text-green-700 font-medium">Orders</div>
                   </div>
                   <div className="text-center bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-xl">
-                    <div className="text-3xl font-bold text-purple-600">₹{seller.stats.totalSales.toLocaleString()}</div>
+                    <div className="text-3xl font-bold text-purple-600">₹{(seller.stats?.totalSales || 0).toLocaleString()}</div>
                     <div className="text-sm text-purple-700 font-medium">Sales</div>
                   </div>
                 </div>
@@ -507,10 +575,10 @@ const SellerProductsPage: React.FC = () => {
                   </div>
                   
                   {/* Cart Summary */}
-                  {Object.keys(cartItems).length > 0 && (
+                  {getCartItemCount() > 0 && (
                     <div className="flex items-center bg-green-50 text-green-700 px-3 py-2 rounded-lg">
                       <ShoppingCart className="w-4 h-4 mr-2" />
-                      <span className="font-medium">{Object.values(cartItems).reduce((a, b) => a + b, 0)} items</span>
+                      <span className="font-medium">{getCartItemCount()} items</span>
                     </div>
                   )}
                 </div>
@@ -547,11 +615,13 @@ const SellerProductsPage: React.FC = () => {
                         // Enhanced Grid View
                         <div className="p-5">
                           <div className="relative mb-4 group/image">
+                            <Link to={`/product/${product.id}`}>
                             <img
                               src={product.image}
                               alt={product.name}
-                              className="w-full h-56 object-cover rounded-xl transition-transform duration-300 group-hover:scale-105"
+                                className="w-full h-56 object-cover rounded-xl transition-transform duration-300 group-hover:scale-105 cursor-pointer"
                             />
+                            </Link>
                             
                             {/* Action Buttons */}
                             <div className="absolute top-3 right-3 flex flex-col space-y-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -617,12 +687,14 @@ const SellerProductsPage: React.FC = () => {
                           </div>
 
                           <div className="space-y-3">
+                            <Link to={`/product/${product.id}`} className="block">
                             <div>
                               <h3 className="font-bold text-gray-900 line-clamp-2 text-lg mb-1 group-hover:text-blue-600 transition-colors">
                                 {product.name}
                               </h3>
                               <p className="text-sm text-gray-600 font-medium">{product.brand}</p>
                             </div>
+                            </Link>
                             
                             {/* Rating */}
                             <div className="flex items-center space-x-2">
@@ -648,6 +720,54 @@ const SellerProductsPage: React.FC = () => {
                               </span>
                             </div>
 
+                            {/* Size Selection */}
+                            {product.categorySpecificData?.sizes && (
+                              <div>
+                                <label className="text-sm font-medium text-gray-700 mb-2 block">
+                                  Size <span className="text-red-500">*</span>
+                                </label>
+                                <div className="flex flex-wrap gap-1">
+                                  {product.categorySpecificData.sizes.map((size: string) => (
+                                    <button
+                                      key={size}
+                                      onClick={() => updateSelectedOption(product.id, 'size', size)}
+                                      className={`px-2 py-1 text-xs rounded border transition-colors ${
+                                        getSelectedOption(product.id, 'size') === size
+                                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                          : 'border-gray-200 hover:border-gray-300'
+                                      }`}
+                                    >
+                                      {size}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Color Selection */}
+                            {product.categorySpecificData?.colors && (
+                              <div>
+                                <label className="text-sm font-medium text-gray-700 mb-2 block">
+                                  Color <span className="text-red-500">*</span>
+                                </label>
+                                <div className="flex flex-wrap gap-1">
+                                  {product.categorySpecificData.colors.split(',').map((color: string) => (
+                                    <button
+                                      key={color.trim()}
+                                      onClick={() => updateSelectedOption(product.id, 'color', color.trim())}
+                                      className={`px-2 py-1 text-xs rounded border transition-colors ${
+                                        getSelectedOption(product.id, 'color') === color.trim()
+                                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                          : 'border-gray-200 hover:border-gray-300'
+                                      }`}
+                                    >
+                                      {color.trim()}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
                             {/* Stock Status */}
                             <div className="flex items-center justify-between text-sm">
                               <span className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -662,33 +782,40 @@ const SellerProductsPage: React.FC = () => {
 
                             {/* Cart Actions */}
                             <div className="space-y-2">
-                              {cartItems[product.id] ? (
+                              {getProductQuantity(product.id) > 0 ? (
                                 <div className="flex items-center justify-between bg-gray-50 rounded-lg p-2">
                                   <button
-                                    onClick={() => removeFromCart(product.id)}
+                                    onClick={() => handleUpdateQuantity(product.id, getProductQuantity(product.id) - 1)}
                                     className="p-1 text-gray-600 hover:text-red-600 transition-colors"
                                     title="Decrease quantity"
                                     aria-label="Decrease quantity"
                                   >
                                     <Minus className="w-4 h-4" />
                                   </button>
-                                  <span className="font-semibold">{cartItems[product.id]}</span>
+                                  <span className="font-semibold">{getProductQuantity(product.id)}</span>
                                   <button
-                                    onClick={() => addToCart(product)}
-                                    className="p-1 text-gray-600 hover:text-green-600 transition-colors"
+                                    onClick={() => handleUpdateQuantity(product.id, getProductQuantity(product.id) + 1)}
+                                    className="p-1 text-gray-600 hover:text-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     title="Increase quantity"
                                     aria-label="Increase quantity"
+                                    disabled={getProductQuantity(product.id) >= product.stock - 1}
                                   >
                                     <Plus className="w-4 h-4" />
                                   </button>
                                 </div>
                               ) : (
                                 <button
-                                  onClick={() => addToCart(product)}
-                                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 flex items-center justify-center font-semibold shadow-lg hover:shadow-xl"
+                                  onClick={() => handleAddToCart(product)}
+                                  disabled={product.stock <= 1 || (product.categorySpecificData?.sizes && !getSelectedOption(product.id, 'size')) || (product.categorySpecificData?.colors && !getSelectedOption(product.id, 'color'))}
+                                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 flex items-center justify-center font-semibold shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                   <ShoppingCart className="w-5 h-5 mr-2" />
-                                  Add to Cart
+                                  {product.stock <= 1 
+                                    ? 'Out of Stock' 
+                                    : (product.categorySpecificData?.sizes && !getSelectedOption(product.id, 'size')) || (product.categorySpecificData?.colors && !getSelectedOption(product.id, 'color'))
+                                      ? 'Select Options'
+                                      : 'Add to Cart'
+                                  }
                                 </button>
                               )}
                             </div>
@@ -699,11 +826,13 @@ const SellerProductsPage: React.FC = () => {
                         <div className="p-6">
                           <div className="flex space-x-4">
                             <div className="relative">
+                              <Link to={`/product/${product.id}`}>
                               <img
                                 src={product.image}
                                 alt={product.name}
-                                className="w-32 h-32 object-cover rounded-lg"
+                                  className="w-32 h-32 object-cover rounded-lg cursor-pointer"
                               />
+                              </Link>
                               <button
                                 onClick={() => toggleWishlist(product.id)}
                                 className="absolute top-2 right-2 p-1 bg-white rounded-full shadow-sm"
@@ -719,9 +848,11 @@ const SellerProductsPage: React.FC = () => {
                             <div className="flex-1">
                               <div className="flex items-start justify-between">
                                 <div className="flex-1">
-                                  <h3 className="text-lg font-semibold text-gray-900 mb-1">{product.name}</h3>
+                                  <Link to={`/product/${product.id}`}>
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-1 hover:text-blue-600 transition-colors">{product.name}</h3>
                                   <p className="text-gray-600 mb-2">{product.brand}</p>
                                   <p className="text-sm text-gray-500 mb-3 line-clamp-2">{product.description}</p>
+                                  </Link>
                                   
                                   <div className="flex items-center space-x-4 mb-3">
                                     <div className="flex items-center">
@@ -734,6 +865,54 @@ const SellerProductsPage: React.FC = () => {
                                     </span>
                                     <span className="text-sm text-gray-500">Stock: {product.stock}</span>
                                   </div>
+
+                                  {/* Size Selection */}
+                                  {product.categorySpecificData?.sizes && (
+                                    <div className="mb-3">
+                                      <label className="text-sm font-medium text-gray-700 mb-1 block">
+                                        Size <span className="text-red-500">*</span>
+                                      </label>
+                                      <div className="flex flex-wrap gap-1">
+                                        {product.categorySpecificData.sizes.map((size: string) => (
+                                          <button
+                                            key={size}
+                                            onClick={() => updateSelectedOption(product.id, 'size', size)}
+                                            className={`px-2 py-1 text-xs rounded border transition-colors ${
+                                              getSelectedOption(product.id, 'size') === size
+                                                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                                : 'border-gray-200 hover:border-gray-300'
+                                            }`}
+                                          >
+                                            {size}
+                                          </button>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Color Selection */}
+                                  {product.categorySpecificData?.colors && (
+                                    <div className="mb-3">
+                                      <label className="text-sm font-medium text-gray-700 mb-1 block">
+                                        Color <span className="text-red-500">*</span>
+                                      </label>
+                                      <div className="flex flex-wrap gap-1">
+                                        {product.categorySpecificData.colors.split(',').map((color: string) => (
+                                          <button
+                                            key={color.trim()}
+                                            onClick={() => updateSelectedOption(product.id, 'color', color.trim())}
+                                            className={`px-2 py-1 text-xs rounded border transition-colors ${
+                                              getSelectedOption(product.id, 'color') === color.trim()
+                                                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                                : 'border-gray-200 hover:border-gray-300'
+                                            }`}
+                                          >
+                                            {color.trim()}
+                                          </button>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
 
                                 <div className="text-right ml-4">
@@ -746,11 +925,17 @@ const SellerProductsPage: React.FC = () => {
                                     )}
                                   </div>
                                   <button
-                                    onClick={() => addToCart(product)}
-                                    className="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+                                    onClick={() => handleAddToCart(product)}
+                                    disabled={product.stock <= 1 || (product.categorySpecificData?.sizes && !getSelectedOption(product.id, 'size')) || (product.categorySpecificData?.colors && !getSelectedOption(product.id, 'color'))}
+                                    className="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
                                   >
                                     <ShoppingCart className="w-4 h-4 mr-2" />
-                                    Add to Cart
+                                    {product.stock <= 1 
+                                      ? 'Out of Stock' 
+                                      : (product.categorySpecificData?.sizes && !getSelectedOption(product.id, 'size')) || (product.categorySpecificData?.colors && !getSelectedOption(product.id, 'color'))
+                                        ? 'Select Options'
+                                        : 'Add to Cart'
+                                    }
                                   </button>
                                 </div>
                               </div>
@@ -840,11 +1025,12 @@ const SellerProductsPage: React.FC = () => {
                   
                   <div className="flex space-x-4">
                     <button
-                      onClick={() => addToCart(selectedProduct)}
-                      className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-6 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 flex items-center justify-center font-semibold"
+                      onClick={() => selectedProduct && handleAddToCart(selectedProduct)}
+                      disabled={selectedProduct && selectedProduct.stock <= 1}
+                      className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-6 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 flex items-center justify-center font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <ShoppingCart className="w-5 h-5 mr-2" />
-                      Add to Cart
+                      {selectedProduct && selectedProduct.stock <= 1 ? 'Out of Stock' : 'Add to Cart'}
                     </button>
                     <button
                       onClick={() => toggleWishlist(selectedProduct.id)}

@@ -20,11 +20,18 @@ export interface UserData {
   address?: string;
   profileImage?: string;
   adminEmails?: string[]; // Array of admin emails
-  createdAt: Date;
-  updatedAt: Date;
-  lastLoginAt?: Date;
-  isEmailVerified: boolean;
-  // Seller application status
+  // Business-related properties for sellers
+  businessName?: string;
+  businessType?: string;
+  businessDescription?: string;
+  businessAddress?: string;
+  location?: any;
+  stats?: {
+    totalProducts?: number;
+    totalSales?: number;
+    totalOrders?: number;
+    rating?: number;
+  };
   sellerApplication?: {
     status: 'not_applied' | 'pending' | 'approved' | 'rejected';
     submittedAt?: Date;
@@ -33,6 +40,10 @@ export interface UserData {
     rejectionReason?: string;
     applicationId?: string;
   };
+  createdAt: Date;
+  updatedAt: Date;
+  lastLoginAt?: Date;
+  isEmailVerified: boolean;
 }
 
 // Sign up with email and password
@@ -244,20 +255,32 @@ export const updateUserProfile = async (uid: string, profileData: {
   phone?: string;
   address?: string;
   profileImage?: string;
+  businessName?: string;
+  businessType?: string;
+  businessDescription?: string;
+  businessAddress?: string;
+  location?: any;
 }): Promise<void> => {
   try {
+    console.log('updateUserProfile called with:', { uid, profileData });
+    
     // Update Firebase Auth profile
     if (profileData.displayName) {
       await updateProfile(auth.currentUser!, {
         displayName: profileData.displayName
       });
+      console.log('Firebase Auth profile updated');
     }
 
     // Update Firestore document
-    await updateUserData(uid, {
+    const updateData = {
       ...profileData,
       updatedAt: new Date()
-    });
+    };
+    console.log('Updating Firestore with:', updateData);
+    
+    await updateUserData(uid, updateData);
+    console.log('Firestore update completed');
   } catch (error) {
     console.error('Error updating user profile:', error);
     throw error;
@@ -329,9 +352,20 @@ export const approveSellerApplication = async (uid: string, applicationId: strin
       throw new Error('User email not found');
     }
 
-    // Add email to sellers collection (like admin emails system)
-    const { setDoc, doc } = await import('firebase/firestore');
+    // Get the seller application data to copy business information
+    const { getDoc } = await import('firebase/firestore');
     const { db } = await import('./config');
+    const applicationDoc = await getDoc(doc(db, 'sellerApplications', applicationId));
+    
+    if (!applicationDoc.exists()) {
+      throw new Error('Seller application not found');
+    }
+    
+    const applicationData = applicationDoc.data();
+    console.log('Application data to copy:', applicationData);
+
+    // Add email to sellers collection (like admin emails system)
+    const { setDoc } = await import('firebase/firestore');
     await setDoc(doc(db, 'sellers', userData.email), {
       email: userData.email,
       uid: uid,
@@ -342,9 +376,18 @@ export const approveSellerApplication = async (uid: string, applicationId: strin
       isActive: true
     });
 
-    // Update user's role to 'shop' and application status to 'approved'
+    // Update user's profile with business information from the application
     await updateUserData(uid, {
       role: 'shop',
+      // Copy business information from application
+      businessName: applicationData.businessName || userData.businessName || '',
+      businessType: applicationData.businessType || userData.businessType || '',
+      businessDescription: applicationData.businessDescription || userData.businessDescription || '',
+      businessAddress: applicationData.businessAddress || userData.businessAddress || userData.address || '',
+      phone: applicationData.phone || userData.phone || '',
+      address: applicationData.businessAddress || userData.address || '',
+      location: applicationData.location || userData.location || null,
+      // Keep existing seller application info
       sellerApplication: {
         status: 'approved',
         reviewedAt: new Date(),
@@ -362,7 +405,7 @@ export const approveSellerApplication = async (uid: string, applicationId: strin
       reviewedBy: approvedBy
     });
 
-    console.log(`✅ Seller application approved for user: ${uid}, email added to sellers collection: ${userData.email}`);
+    console.log(`✅ Seller application approved for user: ${uid}, business data copied to user profile`);
   } catch (error) {
     console.error('Error approving seller application:', error);
     throw error;

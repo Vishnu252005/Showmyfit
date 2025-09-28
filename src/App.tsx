@@ -17,11 +17,13 @@ import DebugAdminPage from './pages/admin/DebugAdminPage';
 import CreateUserPage from './pages/user/CreateUserPage';
 import ManageAdminsPage from './pages/admin/ManageAdminsPage';
 import ProductManagementPage from './pages/product/ProductManagementPage';
+import ProductDetailPage from './pages/product/ProductDetailPage';
 import SellerManagementPage from './pages/seller/SellerManagementPage';
 import UserManagementPage from './pages/user/UserManagementPage';
 import OrderManagementPage from './pages/order/OrderManagementPage';
 import AdminSettingsPage from './pages/admin/AdminSettingsPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import HomePageManagement from './pages/admin/HomePageManagement';
 import AboutUsPage from './pages/AboutUsPage';
 import Navbar from './components/layout/Navbar';
 import Button from './components/ui/Button';
@@ -266,9 +268,9 @@ const WishlistPage = () => {
 function App() {
   return (
     <AuthProvider>
-    <AppProvider>
-    <CartProvider>
-      <Router>
+      <AppProvider>
+        <CartProvider>
+          <Router>
           <div className="min-h-screen bg-gradient-to-br from-cream via-white to-primary-50 font-sans">
           <ScrollToTop />
           <Routes>
@@ -277,6 +279,7 @@ function App() {
               <Route path="/cart" element={<CartPage />} />
               <Route path="/categories" element={<CategoriesPage />} />
               <Route path="/seller/:sellerId" element={<SellerProductsPage />} />
+              <Route path="/product/:productId" element={<ProductDetailPage />} />
               <Route path="/login" element={<AuthPage />} />
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/shop/auth" element={<BecomeSellerPage />} />
@@ -292,6 +295,7 @@ function App() {
             <Route path="/admin/sellers" element={<SellerManagementPage />} />
             <Route path="/admin/users" element={<UserManagementPage />} />
             <Route path="/admin/orders" element={<OrderManagementPage />} />
+            <Route path="/admin/homepage" element={<HomePageManagement />} />
             <Route path="/admin/settings" element={<AdminSettingsPage />} />
             <Route path="/cart" element={<CartPage />} />
             <Route path="/wishlist" element={<WishlistPage />} />
@@ -301,10 +305,10 @@ function App() {
             
             {/* Bottom Navigation - Always Visible */}
             <BottomNavigation />
-        </div>
-      </Router>
-    </CartProvider>
-    </AppProvider>
+          </div>
+          </Router>
+        </CartProvider>
+      </AppProvider>
     </AuthProvider>
   );
 }
