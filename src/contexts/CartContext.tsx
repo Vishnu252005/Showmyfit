@@ -28,15 +28,15 @@ export interface LastAddedProduct {
 interface CartContextType {
   cartItems: CartItem[];
   lastAddedProducts: LastAddedProduct[];
-  addToCart: (product: Omit<CartItem, 'addedAt' | 'quantity'>) => void;
+  addToCart: (product: Omit<CartItem, 'addedAt' | 'quantity'>) => void; // This adds reserved items to cart
   removeFromCart: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
   moveToWishlist: (item: CartItem) => void;
   getCartTotal: () => number;
   getCartItemCount: () => number;
-  isAddingToCart: boolean;
-  showAddNotification: boolean;
+  isAddingToCart: boolean; // This shows "Reserving..." state
+  showAddNotification: boolean; // This shows reservation notification
   setShowAddNotification: (show: boolean) => void;
 }
 
@@ -101,37 +101,54 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   }, [lastAddedProducts]);
 
   const addToCart = (product: Omit<CartItem, 'addedAt' | 'quantity'>) => {
+    if (!product) {
+      console.error('Product is undefined in addToCart');
+      return;
+    }
+    
     setIsAddingToCart(true);
+    
+    // Ensure required fields are present with defaults
+    const safeProduct = {
+      ...product,
+      price: product.price || 0,
+      originalPrice: product.originalPrice || undefined,
+      image: product.image || '',
+      name: product.name || 'Unknown Product',
+      brand: product.brand || 'Unknown Brand',
+      sellerId: product.sellerId || '',
+      sellerName: product.sellerName || 'Unknown Seller'
+    };
     
     // Show notification
     setShowAddNotification(true);
     setTimeout(() => setShowAddNotification(false), 3000);
 
     setCartItems(prevItems => {
-      const existingItem = prevItems.find(item => item.id === product.id);
+      const existingItem = prevItems.find(item => item.id === safeProduct.id);
       
       if (existingItem) {
         // Update quantity if item already exists
         const updatedItems = prevItems.map(item =>
-          item.id === product.id
+          item.id === safeProduct.id
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
         
         // Update last added products
         setLastAddedProducts(prev => [
-          { ...product, addedAt: new Date(), quantity: existingItem.quantity + 1 },
+          { ...safeProduct, addedAt: new Date(), quantity: existingItem.quantity + 1 },
           ...prev.slice(0, 4) // Keep only last 5 products
         ]);
         
         return updatedItems;
       } else {
         // Add new item
-        const newItem = { ...product, addedAt: new Date(), quantity: 1 };
+        const newItem = { ...safeProduct, addedAt: new Date(), quantity: 1 };
         
         // Update last added products
         setLastAddedProducts(prev => [
-          { ...product, addedAt: new Date(), quantity: 1 },
+          { ...safeProduct, addedAt: new Date(), quantity: 1 },
           ...prev.slice(0, 4) // Keep only last 5 products
         ]);
         

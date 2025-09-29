@@ -1364,7 +1364,7 @@ const HomePage: React.FC = () => {
                     className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-6 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 flex items-center justify-center font-semibold"
                         >
                     <ShoppingCart className="w-5 h-5 mr-2" />
-                    Add to Cart
+                    Reserve
                         </button>
                         <button 
                     onClick={() => toggleWishlist(selectedProduct.id)}

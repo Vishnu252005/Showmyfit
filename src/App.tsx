@@ -97,11 +97,13 @@ const BottomNavigation = () => {
         >
           <div className="w-6 h-6 mb-1 flex items-center justify-center">
             <div className="w-6 h-6 flex items-center justify-center">
-              <span className="text-lg">🛒</span>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path d="M19 21L12 16L5 21V5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V21Z"/>
+              </svg>
             </div>
           </div>
           <div className="text-center">
-            <div className="text-xs font-medium">Cart</div>
+            <div className="text-xs font-medium">Reserved</div>
           </div>
           {location.pathname === '/cart' && (
             <div className="w-8 h-0.5 bg-black mt-1"></div>
@@ -166,7 +168,7 @@ const WishlistPage = () => {
   };
 
   const addToCart = (item: any) => {
-    // Mock add to cart functionality
+    // Mock reserve functionality
     console.log('Added to cart:', item);
   };
 
@@ -231,7 +233,7 @@ const WishlistPage = () => {
                         onClick={() => addToCart(item)}
                       >
                         <ShoppingBag className="w-4 h-4 mr-2" />
-                        Add to Cart
+                        Reserve
                       </Button>
                       <Button variant="outline" size="sm" className="w-full">
                         View Details

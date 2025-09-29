@@ -1,135 +1,96 @@
-import React, { useState } from 'react';
-import { Clock, Check } from 'lucide-react';
-import { collection, addDoc, doc, updateDoc, increment } from 'firebase/firestore';
-import { db } from '../../firebase/config';
-import { useAuth } from '../../contexts/AuthContext';
+import React from 'react';
+import { Bookmark, Plus } from 'lucide-react';
+import { useCart } from '../../contexts/CartContext';
 
 interface ReserveButtonProps {
-  productId: string;
-  productName: string;
-  sellerId: string;
-  sellerName: string;
-  price: number;
-  image: string;
+  product: {
+    id: string;
+    name: string;
+    price: number;
+    originalPrice?: number;
+    image: string;
+    brand: string;
+    size?: string;
+    color?: string;
+    sellerId?: string;
+    sellerName?: string;
+    category?: string;
+  };
+  variant?: 'primary' | 'outline' | 'icon';
   size?: 'sm' | 'md' | 'lg';
   className?: string;
-  variant?: 'primary' | 'secondary';
 }
 
 const ReserveButton: React.FC<ReserveButtonProps> = ({
-  productId,
-  productName,
-  sellerId,
-  sellerName,
-  price,
-  image,
+  product,
+  variant = 'primary',
   size = 'md',
-  className = '',
-  variant = 'primary'
+  className = ''
 }) => {
-  const { user } = useAuth();
-  const [isReserving, setIsReserving] = useState(false);
-  const [isReserved, setIsReserved] = useState(false);
+  const { addToCart, isAddingToCart } = useCart();
 
-  const handleReserve = async () => {
-    if (!user) {
-      alert('Please login to reserve products');
+  const handleReserve = () => {
+    if (!product) {
+      console.error('Product is undefined in ReserveButton');
       return;
     }
-
-    setIsReserving(true);
-    try {
-      // Add to reserved products collection
-      await addDoc(collection(db, 'reservedProducts'), {
-        productId,
-        productName,
-        sellerId,
-        sellerName,
-        price,
-        image,
-        userId: user.uid,
-        userEmail: user.email,
-        reservedAt: new Date(),
-        status: 'reserved', // reserved, confirmed, cancelled
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
-        createdAt: new Date(),
-        updatedAt: new Date()
-      });
-
-      // Update product reserved count
-      await updateDoc(doc(db, 'products', productId), {
-        reservedCount: increment(1),
-        updatedAt: new Date()
-      });
-
-      setIsReserved(true);
-      
-      // Show success message
-      alert('Product reserved successfully! You have 24 hours to confirm your reservation.');
-      
-    } catch (error) {
-      console.error('Error reserving product:', error);
-      alert('Failed to reserve product. Please try again.');
-    } finally {
-      setIsReserving(false);
-    }
+    addToCart(product);
   };
 
-  const getButtonClasses = () => {
-    const baseClasses = 'flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2';
-    
-    const sizeClasses = {
-      sm: 'px-3 py-1.5 text-xs',
-      md: 'px-4 py-2 text-sm',
-      lg: 'px-6 py-3 text-base'
-    };
-
-    const variantClasses = {
-      primary: isReserved 
-        ? 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500' 
-        : 'bg-orange-600 text-white hover:bg-orange-700 focus:ring-orange-500',
-      secondary: isReserved
-        ? 'bg-green-100 text-green-800 border border-green-300 hover:bg-green-200 focus:ring-green-500'
-        : 'bg-orange-100 text-orange-800 border border-orange-300 hover:bg-orange-200 focus:ring-orange-500'
-    };
-
-    return `${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${className}`;
+  const baseClasses = 'flex items-center justify-center font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed';
+  
+  const variantClasses = {
+    primary: 'bg-gradient-to-r from-emerald-600 to-blue-600 text-white hover:from-emerald-700 hover:to-blue-700 shadow-sm',
+    outline: 'border border-emerald-600 text-emerald-600 hover:bg-emerald-50',
+    icon: 'bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-full'
   };
 
-  const getButtonContent = () => {
-    if (isReserving) {
-      return (
-        <>
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-          Reserving...
-        </>
-      );
-    }
+  const sizeClasses = {
+    sm: 'px-3 py-1.5 text-sm rounded-lg',
+    md: 'px-4 py-2 text-sm rounded-lg',
+    lg: 'px-6 py-3 text-base rounded-xl'
+  };
 
-    if (isReserved) {
-      return (
-        <>
-          <Check className="w-4 h-4 mr-2" />
-          Reserved
-        </>
-      );
-    }
+  const iconSizes = {
+    sm: 'w-4 h-4',
+    md: 'w-4 h-4',
+    lg: 'w-5 h-5'
+  };
 
+  if (variant === 'icon') {
     return (
-      <>
-        <Clock className="w-4 h-4 mr-2" />
-        Reserve Now
-      </>
+      <button
+        onClick={handleReserve}
+        disabled={isAddingToCart}
+        className={`${baseClasses} ${variantClasses.icon} w-10 h-10 ${className}`}
+        title="Reserve Item"
+      >
+        {isAddingToCart ? (
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
+        ) : (
+          <Bookmark className={iconSizes[size]} />
+        )}
+      </button>
     );
-  };
+  }
 
   return (
     <button
       onClick={handleReserve}
-      disabled={isReserving || isReserved}
-      className={getButtonClasses()}
+      disabled={isAddingToCart}
+      className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
     >
-      {getButtonContent()}
+      {isAddingToCart ? (
+        <>
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+          Reserving...
+        </>
+      ) : (
+        <>
+          <Bookmark className={`${iconSizes[size]} mr-2`} />
+          Reserve
+        </>
+      )}
     </button>
   );
 };

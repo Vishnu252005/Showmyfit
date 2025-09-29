@@ -814,7 +814,7 @@ const SellerProductsPage: React.FC = () => {
                                     ? 'Out of Stock' 
                                     : (product.categorySpecificData?.sizes && !getSelectedOption(product.id, 'size')) || (product.categorySpecificData?.colors && !getSelectedOption(product.id, 'color'))
                                       ? 'Select Options'
-                                      : 'Add to Cart'
+                                      : 'Reserve'
                                   }
                                 </button>
                               )}
@@ -934,7 +934,7 @@ const SellerProductsPage: React.FC = () => {
                                       ? 'Out of Stock' 
                                       : (product.categorySpecificData?.sizes && !getSelectedOption(product.id, 'size')) || (product.categorySpecificData?.colors && !getSelectedOption(product.id, 'color'))
                                         ? 'Select Options'
-                                        : 'Add to Cart'
+                                        : 'Reserve'
                                     }
                                   </button>
                                 </div>
@@ -1030,7 +1030,7 @@ const SellerProductsPage: React.FC = () => {
                       className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-6 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 flex items-center justify-center font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <ShoppingCart className="w-5 h-5 mr-2" />
-                      {selectedProduct && selectedProduct.stock <= 1 ? 'Out of Stock' : 'Add to Cart'}
+                      {selectedProduct && selectedProduct.stock <= 1 ? 'Out of Stock' : 'Reserve'}
                     </button>
                     <button
                       onClick={() => toggleWishlist(selectedProduct.id)}

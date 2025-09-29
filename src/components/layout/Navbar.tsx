@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Search, User, Store, Shield, Heart, ShoppingBag, Menu, X, LogOut } from 'lucide-react';
+import { Home, Search, User, Store, Shield, Heart, ShoppingBag, Bookmark, Menu, X, LogOut } from 'lucide-react';
 import Sidebar from './Sidebar';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
@@ -80,8 +80,8 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
                   to="/cart"
                   className="relative text-gray-700 hover:text-blue-600 font-medium text-sm transition-colors flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100"
                 >
-                  <ShoppingBag className="w-5 h-5" />
-                  <span className="hidden md:block">Cart</span>
+                  <Bookmark className="w-5 h-5" />
+                  <span className="hidden md:block">Reserved</span>
                   {getCartItemCount() > 0 && (
                     <span className={`absolute -top-1 -right-1 w-5 h-5 text-white text-xs rounded-full flex items-center justify-center font-bold transition-all duration-300 ${
                       showAddNotification ? 'bg-green-500 animate-pulse' : 'bg-red-500'

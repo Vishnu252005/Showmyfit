@@ -331,12 +331,17 @@ const CategoriesPage: React.FC = () => {
 
                         {/* Reserve Button */}
                         <ReserveButton
-                          productId={product.id}
-                          productName={product.name}
-                          sellerId={product.sellerId}
-                          sellerName={seller?.businessName || 'Unknown Seller'}
-                          price={product.price}
-                          image={product.image}
+                          product={{
+                            id: product.id,
+                            name: product.name,
+                            price: product.price || 0,
+                            originalPrice: product.originalPrice,
+                            image: product.image,
+                            brand: product.brand,
+                            sellerId: product.sellerId,
+                            sellerName: seller?.businessName || 'Unknown Seller',
+                            category: product.category
+                          }}
                           size="sm"
                           className="w-full text-xs md:text-sm"
                           variant="primary"

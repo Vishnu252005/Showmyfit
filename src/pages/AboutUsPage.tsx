@@ -102,7 +102,7 @@ const AboutUsPage: React.FC = () => {
                       <div>
                         <h3 className="text-xl font-bold text-gray-800 mb-3 flex items-center">
                           <Zap className="w-5 h-5 mr-2 text-blue-600" />
-                          Add to Cart
+                          Reserve
                         </h3>
                         <p className="text-gray-600 leading-relaxed">
                           Select your style and size in one click with our intuitive shopping experience.

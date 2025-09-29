@@ -558,7 +558,7 @@ const ProductDetailPage: React.FC = () => {
                       ? 'Out of Stock' 
                       : (product.categorySpecificData?.sizes && !selectedSize) || (product.categorySpecificData?.colors && !selectedColor)
                         ? 'Please Select Options'
-                        : 'Add to Cart'
+                        : 'Reserve'
                     }
                   </button>
                 )}

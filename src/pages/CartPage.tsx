@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  ShoppingCart, Minus, Plus, Trash2, ArrowLeft, 
+  Bookmark, Minus, Plus, Trash2, ArrowLeft, 
   CreditCard, Truck, Shield, Heart, Clock, Package
 } from 'lucide-react';
 import Navbar from '../components/layout/Navbar';
@@ -29,7 +29,7 @@ const CartPage: React.FC = () => {
   }, [lastAddedProducts]);
 
   const subtotal = getCartTotal();
-  const discount = cartItems.reduce((sum, item) => sum + ((item.originalPrice || item.price) - item.price) * item.quantity, 0);
+  const discount = cartItems.reduce((sum, item) => sum + ((item.originalPrice || 0) - (item.price || 0)) * item.quantity, 0);
   const shipping = subtotal > 50000 ? 0 : 99;
   const total = subtotal + shipping;
 
@@ -60,14 +60,14 @@ const CartPage: React.FC = () => {
                 <ArrowLeft className="w-6 h-6 text-gray-600" />
               </Link>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Shopping Cart</h1>
-                <p className="text-gray-600">{getCartItemCount()} item(s) in your cart</p>
+                <h1 className="text-2xl font-bold text-gray-900">Reserved Items</h1>
+                <p className="text-gray-600">{getCartItemCount()} item(s) reserved</p>
               </div>
             </div>
             
             <div className="flex items-center space-x-2 text-blue-600">
-              <ShoppingCart className="w-6 h-6" />
-              <span className="font-medium">Cart</span>
+              <Bookmark className="w-6 h-6" />
+              <span className="font-medium">Reserved</span>
             </div>
           </div>
 
@@ -76,7 +76,7 @@ const CartPage: React.FC = () => {
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
               <div className="flex items-center space-x-2 mb-3">
                 <Clock className="w-5 h-5 text-blue-600" />
-                <h3 className="text-lg font-semibold text-blue-900">Recently Added</h3>
+                <h3 className="text-lg font-semibold text-blue-900">Recently Reserved</h3>
               </div>
               <div className="flex space-x-3 overflow-x-auto pb-2">
                 {lastAddedProducts.slice(0, 5).map((product, index) => (
@@ -92,7 +92,7 @@ const CartPage: React.FC = () => {
                           {product.name}
                         </p>
                         <p className="text-xs text-gray-600">
-                          ₹{product.price.toLocaleString()} • Qty: {product.quantity}
+                          ₹{(product.price || 0).toLocaleString()} • Qty: {product.quantity}
                         </p>
                         <p className="text-xs text-blue-600">
                           {new Date(product.addedAt).toLocaleTimeString()}
@@ -109,15 +109,15 @@ const CartPage: React.FC = () => {
             /* Empty Cart */
             <div className="text-center py-16">
               <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <ShoppingCart className="w-12 h-12 text-gray-400" />
+                <Bookmark className="w-12 h-12 text-gray-400" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Your cart is empty</h3>
-              <p className="text-gray-600 mb-8">Looks like you haven't added any items to your cart yet.</p>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">No reserved items</h3>
+              <p className="text-gray-600 mb-8">Looks like you haven't reserved any items yet.</p>
               <Link
                 to="/"
                 className="inline-flex items-center bg-blue-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
               >
-                Start Shopping
+                Start Browsing
               </Link>
             </div>
           ) : (
@@ -189,16 +189,16 @@ const CartPage: React.FC = () => {
                       {/* Price */}
                       <div className="text-right">
                         <div className="text-xl font-bold text-gray-900">
-                          ₹{item.price.toLocaleString()}
+                          ₹{(item.price || 0).toLocaleString()}
                         </div>
-                        {item.originalPrice > item.price && (
+                        {item.originalPrice && item.originalPrice > (item.price || 0) && (
                           <div className="text-sm text-gray-500 line-through">
-                            ₹{item.originalPrice.toLocaleString()}
+                            ₹{(item.originalPrice || 0).toLocaleString()}
                           </div>
                         )}
                         {item.quantity > 1 && (
                           <div className="text-sm text-gray-600 mt-1">
-                            Total: ₹{(item.price * item.quantity).toLocaleString()}
+                            Total: ₹{((item.price || 0) * item.quantity).toLocaleString()}
                           </div>
                         )}
                       </div>
@@ -215,13 +215,13 @@ const CartPage: React.FC = () => {
                   <div className="space-y-3 mb-6">
                     <div className="flex justify-between text-gray-600">
                       <span>Subtotal ({cartItems.reduce((sum, item) => sum + item.quantity, 0)} items)</span>
-                      <span>₹{subtotal.toLocaleString()}</span>
+                      <span>₹{(subtotal || 0).toLocaleString()}</span>
                     </div>
                     
                     {discount > 0 && (
                       <div className="flex justify-between text-green-600">
                         <span>Discount</span>
-                        <span>-₹{discount.toLocaleString()}</span>
+                        <span>-₹{(discount || 0).toLocaleString()}</span>
                       </div>
                     )}
                     
@@ -233,7 +233,7 @@ const CartPage: React.FC = () => {
                     <div className="border-t border-gray-200 pt-3">
                       <div className="flex justify-between text-lg font-semibold text-gray-900">
                         <span>Total</span>
-                        <span>₹{total.toLocaleString()}</span>
+                        <span>₹{(total || 0).toLocaleString()}</span>
                       </div>
                     </div>
                   </div>
