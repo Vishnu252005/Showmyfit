@@ -18,7 +18,7 @@ import {
 import Navbar from '../../components/layout/Navbar';
 import Button from '../../components/ui/Button';
 import { useAuth } from '../../contexts/AuthContext';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 
 interface HomePageSection {
@@ -29,6 +29,9 @@ interface HomePageSection {
   products: string[]; // Array of product IDs
   displayOrder: number;
   isActive: boolean;
+  discountPercentage?: number; // For deals and offers
+  discountType?: 'percentage' | 'fixed'; // Type of discount
+  discountValue?: number; // Fixed discount amount
   createdAt: Date;
   updatedAt: Date;
 }
@@ -57,6 +60,11 @@ const HomePageManagement: React.FC = () => {
   const [message, setMessage] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
   const [selectedType, setSelectedType] = useState<'featured' | 'bestDeals' | 'offers' | 'trending'>('featured');
+  const [promotionalCards, setPromotionalCards] = useState({
+    electronics: '',
+    fashion: '',
+    home: ''
+  });
 
   const [formData, setFormData] = useState<HomePageSection>({
     type: 'featured',
@@ -65,6 +73,9 @@ const HomePageManagement: React.FC = () => {
     products: [],
     displayOrder: 0,
     isActive: true,
+    discountPercentage: 0,
+    discountType: 'percentage',
+    discountValue: 0,
     createdAt: new Date(),
     updatedAt: new Date()
   });
@@ -154,7 +165,25 @@ const HomePageManagement: React.FC = () => {
 
   useEffect(() => {
     loadData();
+    loadPromotionalSettings();
   }, []);
+
+  // Load promotional card settings
+  const loadPromotionalSettings = async () => {
+    try {
+      const settingsDoc = await getDoc(doc(db, 'settings', 'promotionalCards'));
+      if (settingsDoc.exists()) {
+        const data = settingsDoc.data();
+        setPromotionalCards({
+          electronics: data.electronics?.discountPercentage?.toString() || '',
+          fashion: data.fashion?.discountPercentage?.toString() || '',
+          home: data.home?.discountPercentage?.toString() || ''
+        });
+      }
+    } catch (error) {
+      console.log('Promotional settings not found, using defaults');
+    }
+  };
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
@@ -201,6 +230,9 @@ const HomePageManagement: React.FC = () => {
       products: [],
       displayOrder: 0,
       isActive: true,
+      discountPercentage: 0,
+      discountType: 'percentage',
+      discountValue: 0,
       createdAt: new Date(),
       updatedAt: new Date()
     });
@@ -229,6 +261,7 @@ const HomePageManagement: React.FC = () => {
     }
   };
 
+
   // Toggle section active status
   const toggleActive = async (section: HomePageSection) => {
     try {
@@ -243,6 +276,116 @@ const HomePageManagement: React.FC = () => {
       console.error('Error updating section:', error);
       setMessage('Error updating section');
       setIsSuccess(false);
+    }
+  };
+
+  // Create sample sections if none exist
+  const createSampleSections = async () => {
+    setLoading(true);
+    try {
+      const sampleSections = [
+        {
+          type: 'bestDeals',
+          title: 'Best Deals',
+          subtitle: 'Amazing discounts on top products',
+          products: [],
+          displayOrder: 1,
+          isActive: true,
+          discountPercentage: 0,
+          discountType: 'percentage',
+          discountValue: 0,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          type: 'offers',
+          title: 'Special Offers',
+          subtitle: 'Limited time offers you can\'t miss',
+          products: [],
+          displayOrder: 2,
+          isActive: true,
+          discountPercentage: 0,
+          discountType: 'percentage',
+          discountValue: 0,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          type: 'trending',
+          title: 'Trending Deals',
+          subtitle: 'What\'s hot right now',
+          products: [],
+          displayOrder: 3,
+          isActive: true,
+          discountPercentage: 0,
+          discountType: 'percentage',
+          discountValue: 0,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+      ];
+
+      for (const section of sampleSections) {
+        await addDoc(collection(db, 'homePageSections'), section);
+      }
+
+      setMessage('Sample sections created successfully!');
+      setIsSuccess(true);
+      loadData();
+    } catch (error) {
+      console.error('Error creating sample sections:', error);
+      setMessage('Error creating sample sections');
+      setIsSuccess(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Apply promotional card discount
+  const applyPromotionalDiscount = async (cardType: 'electronics' | 'fashion' | 'home') => {
+    const discountValue = promotionalCards[cardType];
+    console.log('Applying promotional discount:', { cardType, discountValue });
+    
+    if (!discountValue || isNaN(Number(discountValue))) {
+      setMessage('Please enter a valid discount percentage');
+      setIsSuccess(false);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // First try to update existing document
+      const settingsRef = doc(db, 'settings', 'promotionalCards');
+      
+      try {
+        await updateDoc(settingsRef, {
+          [cardType]: {
+            discountPercentage: Number(discountValue),
+            updatedAt: new Date()
+          }
+        });
+      } catch (updateError) {
+        // If document doesn't exist, create it
+        console.log('Document does not exist, creating new one...');
+        await setDoc(settingsRef, {
+          [cardType]: {
+            discountPercentage: Number(discountValue),
+            updatedAt: new Date()
+          }
+        }, { merge: true });
+      }
+
+      setMessage(`Applied ${discountValue}% discount to ${cardType} promotional card!`);
+      setIsSuccess(true);
+      
+      // Clear the input
+      setPromotionalCards({...promotionalCards, [cardType]: ''});
+    } catch (error) {
+      console.error('Error applying promotional discount:', error);
+      setMessage(`Error applying discount: ${error.message}`);
+      setIsSuccess(false);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -300,23 +443,125 @@ const HomePageManagement: React.FC = () => {
                 </Button>
               </div>
 
-              {/* Section Type Tabs */}
-              <div className="flex flex-wrap gap-2">
-                {sectionTypes.map((type) => (
-                  <button
-                    key={type.value}
-                    onClick={() => setSelectedType(type.value as any)}
-                    className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
-                      selectedType === type.value
-                        ? 'bg-red-100 text-red-700 border-2 border-red-300'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    <type.icon className="w-4 h-4 mr-2" />
-                    {type.label}
-                  </button>
-                ))}
+
+            {/* Promotional Cards Management */}
+            <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-6 mb-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <Percent className="w-5 h-5 mr-2 text-indigo-600" />
+                Promotional Cards Management
+                <span className="ml-2 text-sm text-gray-500">(Home Page Cards)</span>
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white rounded-lg p-4 border border-blue-200">
+                  <h4 className="font-medium text-gray-900 mb-2">Electronics Sale</h4>
+                  <p className="text-sm text-gray-600 mb-3">Control the promotional card percentage</p>
+                  {promotionalCards.electronics && (
+                    <div className="mb-2">
+                      <span className="text-xs text-green-600 font-medium">
+                        Current: {promotionalCards.electronics}% OFF
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      placeholder="%"
+                      value={promotionalCards.electronics}
+                      onChange={(e) => setPromotionalCards({...promotionalCards, electronics: e.target.value})}
+                      className="w-16 px-2 py-1 border border-gray-300 rounded text-sm"
+                    />
+                    <button 
+                      onClick={() => applyPromotionalDiscount('electronics')}
+                      disabled={loading}
+                      className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {loading ? '...' : 'Apply'}
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="bg-white rounded-lg p-4 border border-purple-200">
+                  <h4 className="font-medium text-gray-900 mb-2">Fashion Week</h4>
+                  <p className="text-sm text-gray-600 mb-3">Control the promotional card percentage</p>
+                  {promotionalCards.fashion && (
+                    <div className="mb-2">
+                      <span className="text-xs text-green-600 font-medium">
+                        Current: {promotionalCards.fashion}% OFF
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      placeholder="%"
+                      value={promotionalCards.fashion}
+                      onChange={(e) => setPromotionalCards({...promotionalCards, fashion: e.target.value})}
+                      className="w-16 px-2 py-1 border border-gray-300 rounded text-sm"
+                    />
+                    <button 
+                      onClick={() => applyPromotionalDiscount('fashion')}
+                      disabled={loading}
+                      className="bg-purple-600 text-white px-3 py-1 rounded text-sm hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {loading ? '...' : 'Apply'}
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="bg-white rounded-lg p-4 border border-green-200">
+                  <h4 className="font-medium text-gray-900 mb-2">Home & Living</h4>
+                  <p className="text-sm text-gray-600 mb-3">Control the promotional card percentage</p>
+                  {promotionalCards.home && (
+                    <div className="mb-2">
+                      <span className="text-xs text-green-600 font-medium">
+                        Current: {promotionalCards.home}% OFF
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      placeholder="%"
+                      value={promotionalCards.home}
+                      onChange={(e) => setPromotionalCards({...promotionalCards, home: e.target.value})}
+                      className="w-16 px-2 py-1 border border-gray-300 rounded text-sm"
+                    />
+                    <button 
+                      onClick={() => applyPromotionalDiscount('home')}
+                      disabled={loading}
+                      className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {loading ? '...' : 'Apply'}
+                    </button>
+                  </div>
+                </div>
               </div>
+            </div>
+
+            {/* Section Type Tabs */}
+            <div className="flex flex-wrap gap-2">
+              {sectionTypes.map((type) => (
+                <button
+                  key={type.value}
+                  onClick={() => setSelectedType(type.value as any)}
+                  className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
+                    selectedType === type.value
+                      ? 'bg-red-100 text-red-700 border-2 border-red-300'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  <type.icon className="w-4 h-4 mr-2" />
+                  {type.label}
+                </button>
+              ))}
+            </div>
             </div>
 
             {/* Add/Edit Section Form */}
@@ -349,6 +594,7 @@ const HomePageManagement: React.FC = () => {
                         value={formData.type}
                         onChange={(e) => setFormData({...formData, type: e.target.value as any})}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        aria-label="Section type"
                         required
                       >
                         {sectionTypes.map((type) => (
@@ -369,6 +615,7 @@ const HomePageManagement: React.FC = () => {
                         value={formData.displayOrder}
                         onChange={(e) => setFormData({...formData, displayOrder: parseInt(e.target.value) || 0})}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        placeholder="Enter display order"
                         required
                       />
                     </div>
@@ -399,6 +646,48 @@ const HomePageManagement: React.FC = () => {
                         placeholder="Enter section subtitle (optional)"
                       />
                     </div>
+
+                    {/* Discount Settings - Only for deals and offers */}
+                    {(formData.type === 'bestDeals' || formData.type === 'offers') && (
+                      <>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Discount Type
+                          </label>
+                        <select
+                          value={formData.discountType}
+                          onChange={(e) => setFormData({...formData, discountType: e.target.value as 'percentage' | 'fixed'})}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                          aria-label="Discount type"
+                        >
+                            <option value="percentage">Percentage (%)</option>
+                            <option value="fixed">Fixed Amount (₹)</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            {formData.discountType === 'percentage' ? 'Discount Percentage' : 'Discount Amount (₹)'}
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            max={formData.discountType === 'percentage' ? 100 : undefined}
+                            value={formData.discountType === 'percentage' ? formData.discountPercentage : formData.discountValue}
+                            onChange={(e) => {
+                              const value = parseInt(e.target.value) || 0;
+                              if (formData.discountType === 'percentage') {
+                                setFormData({...formData, discountPercentage: value});
+                              } else {
+                                setFormData({...formData, discountValue: value});
+                              }
+                            }}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                            placeholder={formData.discountType === 'percentage' ? 'Enter percentage (0-100)' : 'Enter amount in ₹'}
+                          />
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   {/* Product Selection */}

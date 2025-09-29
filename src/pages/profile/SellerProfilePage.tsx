@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { 
   Mail, Phone, MapPin, Edit, LogOut, Star, 
   ArrowLeft, Calendar, Package, Plus,
-  TrendingUp, DollarSign, Tag, XCircle, Save, X
+  TrendingUp, DollarSign, Tag, XCircle, Save, X, Clock
 } from 'lucide-react';
 import GoogleMapLocation from '../../components/common/GoogleMapLocation';
 import Navbar from '../../components/layout/Navbar';
@@ -12,6 +12,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { updateUserProfile } from '../../firebase/auth';
 import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, query, where } from 'firebase/firestore';
 import { db } from '../../firebase/config';
+import ReservedProducts from '../../components/seller/ReservedProducts';
 
 interface Product {
   id?: string;
@@ -580,6 +581,20 @@ const SellerProfilePage: React.FC = () => {
                       </div>
                     </div>
                   </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                        <Clock className="w-5 h-5 text-orange-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Reserved</p>
+                        <p className="text-xl font-bold text-gray-900">
+                          {userData?.stats?.reservedCount || '0'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -825,6 +840,11 @@ const SellerProfilePage: React.FC = () => {
                 )}
               </div>
             </div>
+          </div>
+
+          {/* Reserved Products Section */}
+          <div className="mb-8">
+            <ReservedProducts sellerId={currentUser?.uid || ''} />
           </div>
 
           {/* Add/Edit Product Form */}

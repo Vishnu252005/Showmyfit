@@ -53,6 +53,7 @@ const BecomeSellerPage: React.FC = () => {
     // Documents
     gstNumber: '',
     panNumber: '',
+    aadhaarNumber: '',
     bankAccountNumber: '',
     ifscCode: '',
     
@@ -741,30 +742,53 @@ const BecomeSellerPage: React.FC = () => {
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
                     <FileText className="w-6 h-6 mr-2 text-red-600" />
-                    Legal Documents
+                    Legal Documents <span className="text-red-500 ml-2">* Required</span>
                   </h3>
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">GST Number</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        GST Number <span className="text-red-500">*</span>
+                      </label>
                       <input
                         type="text"
                         name="gstNumber"
                         value={formData.gstNumber}
                         onChange={handleInputChange}
+                        required
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder="22ABCDE1234F1Z5"
                       />
+                      <p className="text-xs text-gray-500 mt-1">Required for tax compliance</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">PAN Number</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        PAN Number <span className="text-red-500">*</span>
+                      </label>
                       <input
                         type="text"
                         name="panNumber"
                         value={formData.panNumber}
                         onChange={handleInputChange}
+                        required
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder="ABCDE1234F"
                       />
+                      <p className="text-xs text-gray-500 mt-1">Required for identity verification</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Aadhaar Number <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="aadhaarNumber"
+                        value={formData.aadhaarNumber || ''}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="1234 5678 9012"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Required for KYC verification</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Bank Account Number</label>

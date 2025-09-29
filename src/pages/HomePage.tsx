@@ -6,8 +6,9 @@ import {
   DollarSign, Percent, TrendingUp
 } from 'lucide-react';
 import Navbar from '../components/layout/Navbar';
-import AddToCartButton from '../components/common/AddToCartButton';
-import { collection, query, getDocs, where, orderBy } from 'firebase/firestore';
+import ReserveButton from '../components/common/ReserveButton';
+import Chatbot from '../components/common/Chatbot';
+import { collection, query, getDocs, where, orderBy, getDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { getCurrentLocationWithDetails, sortStoresByDistance, parseAddressToCoordinates } from '../utils/distance';
 
@@ -29,6 +30,11 @@ const HomePage: React.FC = () => {
   const [homePageSections, setHomePageSections] = useState<any[]>([]);
   const [loadingSections, setLoadingSections] = useState(true);
   const [allProducts, setAllProducts] = useState<any[]>([]);
+  const [promotionalCards, setPromotionalCards] = useState({
+    electronics: { discountPercentage: 50 },
+    fashion: { discountPercentage: 30 },
+    home: { discountPercentage: 40 }
+  });
 
   useEffect(() => {
     setIsLoaded(true);
@@ -64,6 +70,22 @@ const HomePage: React.FC = () => {
           updatedAt: doc.data().updatedAt?.toDate() || new Date()
         }));
         setAllProducts(productsData);
+
+        // Load promotional card settings
+        try {
+          const promotionalDoc = await getDoc(doc(db, 'settings', 'promotionalCards'));
+          if (promotionalDoc.exists()) {
+            const data = promotionalDoc.data();
+            setPromotionalCards({
+              electronics: data.electronics || { discountPercentage: 50 },
+              fashion: data.fashion || { discountPercentage: 30 },
+              home: data.home || { discountPercentage: 40 }
+            });
+          }
+        } catch (error) {
+          console.log('Promotional cards settings not found, using defaults');
+        }
+
       } catch (error) {
         console.error('Error loading home page data:', error);
       } finally {
@@ -281,6 +303,23 @@ const HomePage: React.FC = () => {
     }
   };
 
+  // Helper function to calculate discounted price
+  const calculateDiscountedPrice = (product: any, section: any) => {
+    if (!section.discountPercentage && !section.discountValue) {
+      return product.price;
+    }
+
+    if (section.discountType === 'percentage' && section.discountPercentage) {
+      return Math.round(product.price * (1 - section.discountPercentage / 100));
+    }
+
+    if (section.discountType === 'fixed' && section.discountValue) {
+      return Math.max(0, product.price - section.discountValue);
+    }
+
+    return product.price;
+  };
+
   const featuredProducts = [
     { 
       id: '1',
@@ -338,10 +377,36 @@ const HomePage: React.FC = () => {
 
 
   const featuredBrands = [
-    { name: 'NOISE', image: 'https://via.placeholder.com/120x60/000000/FFFFFF?text=NOISE' },
-    { name: 'Pigeon', image: 'https://via.placeholder.com/120x60/000000/FFFFFF?text=Pigeon' },
-    { name: 'boat', image: 'https://via.placeholder.com/120x60/000000/FFFFFF?text=boat' },
-    { name: 'motorola', image: 'https://via.placeholder.com/120x60/000000/FFFFFF?text=motorola' }
+    { 
+      name: 'Apple', 
+      image: 'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=120&h=60&fit=crop&crop=center',
+      description: 'Premium Technology'
+    },
+    { 
+      name: 'Samsung', 
+      image: 'https://images.unsplash.com/photo-1511707171631-9ad203683d6d?w=120&h=60&fit=crop&crop=center',
+      description: 'Innovation & Quality'
+    },
+    { 
+      name: 'Nike', 
+      image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=120&h=60&fit=crop&crop=center',
+      description: 'Just Do It'
+    },
+    { 
+      name: 'Adidas', 
+      image: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=120&h=60&fit=crop&crop=center',
+      description: 'Impossible is Nothing'
+    },
+    { 
+      name: 'Sony', 
+      image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=120&h=60&fit=crop&crop=center',
+      description: 'Be Moved'
+    },
+    { 
+      name: 'LG', 
+      image: 'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=120&h=60&fit=crop&crop=center',
+      description: 'Life\'s Good'
+    }
   ];
 
   return (
@@ -349,291 +414,263 @@ const HomePage: React.FC = () => {
       <Navbar userRole="user" />
       
       {/* Main Content */}
-      <div className="main-content pt-24">
+      <div className="main-content pt-20 md:pt-24">
+        {/* Mobile-optimized Search Bar */}
+        <div className="bg-white border-b border-gray-200 md:hidden">
+          <div className="max-w-7xl mx-auto px-3 py-3">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search for products, brands, and more..."
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              />
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
 
-        {/* Quick Category Bar */}
-        <section className="bg-white border-b border-gray-200 mt-8">
-          <div className="max-w-7xl mx-auto px-4 py-3">
-            <div className="flex items-center space-x-6 overflow-x-auto scrollbar-hide pb-1">
-              <div className="flex flex-col items-center space-y-1 flex-shrink-0">
-                <div className="w-8 h-8 flex items-center justify-center">
-                  <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path d="M3 9L12 2L21 9V20C21 20.5523 20.5523 21 20 21H15C14.4477 21 14 20.5523 14 20V14C14 13.4477 13.5523 13 13 13H11C10.4477 13 10 13.4477 10 14V20C10 20.5523 9.55228 21 9 21H4C3.44772 21 3 20.5523 3 20V9Z"/>
-                  </svg>
-                </div>
-                <span className="text-xs text-gray-600">Home</span>
-              </div>
-              
-              <div className="flex flex-col items-center space-y-1 flex-shrink-0">
-                <div className="w-8 h-8 rounded-full overflow-hidden">
-                  <img
-                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face"
-                    alt="Men"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <span className="text-xs text-gray-600">Men</span>
-              </div>
-              
-              <div className="flex flex-col items-center space-y-1 flex-shrink-0">
-                <div className="w-8 h-8 rounded-full overflow-hidden">
-                  <img
-                    src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face"
-                    alt="Women"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <span className="text-xs text-gray-600">Women</span>
-              </div>
-              
-              <div className="flex flex-col items-center space-y-1 flex-shrink-0">
-                <div className="w-8 h-8 rounded-full overflow-hidden">
-                  <img
-                    src="https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=100&h=100&fit=crop&crop=face"
-                    alt="Kids"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <span className="text-xs text-gray-600">Kids</span>
-              </div>
-              
-              <div className="flex flex-col items-center space-y-1 flex-shrink-0">
-                <div className="w-8 h-8 rounded-full overflow-hidden">
-                  <img
-                    src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=100&h=100&fit=crop&crop=face"
-                    alt="Beauty"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <span className="text-xs text-gray-600">Beauty</span>
-              </div>
-              
-              <div className="flex flex-col items-center space-y-1 flex-shrink-0">
-                <div className="w-8 h-8 rounded-full overflow-hidden">
-                  <img
-                    src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=100&h=100&fit=crop&crop=face"
-                    alt="Sports"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <span className="text-xs text-gray-600">Sports</span>
-              </div>
+        {/* Enhanced Quick Category Bar - Mobile First */}
+        <section className="bg-white border-b border-gray-200 mt-4 md:mt-8">
+          <div className="max-w-7xl mx-auto px-3 md:px-4 py-2 md:py-3">
+            <div className="flex items-center space-x-3 md:space-x-6 overflow-x-auto scrollbar-hide pb-1">
+              {[
+                { name: 'Home', icon: '🏠', color: 'bg-blue-100' },
+                { name: 'Men', icon: '👨', color: 'bg-blue-100' },
+                { name: 'Women', icon: '👩', color: 'bg-pink-100' },
+                { name: 'Kids', icon: '👶', color: 'bg-yellow-100' },
+                { name: 'Electronics', icon: '📱', color: 'bg-gray-100' },
+                { name: 'Beauty', icon: '💄', color: 'bg-purple-100' },
+                { name: 'Sports', icon: '⚽', color: 'bg-green-100' },
+                { name: 'Home', icon: '🏡', color: 'bg-orange-100' }
+              ].map((category, index) => (
+                <Link
+                  key={index}
+                  to="/categories"
+                  className="flex flex-col items-center space-y-1 flex-shrink-0 group"
+                >
+                  <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full ${category.color} flex items-center justify-center group-hover:scale-110 transition-transform duration-200`}>
+                    <span className="text-lg md:text-xl">{category.icon}</span>
+                  </div>
+                  <span className="text-xs md:text-sm text-gray-600 group-hover:text-blue-600 transition-colors font-medium">{category.name}</span>
+                </Link>
+              ))}
             </div>
           </div>
         </section>
 
-        {/* Enhanced Categories Section */}
+        {/* Enhanced Categories Section - Mobile First */}
         <section className="bg-white shadow-sm border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 py-8 pt-4">
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-3">Shop by Category</h2>
-                <p className="text-gray-600">Discover amazing products across all categories</p>
+          <div className="max-w-7xl mx-auto px-3 md:px-4 py-6 md:py-8">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 md:mb-8">
+              <div className="mb-4 sm:mb-0">
+                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Shop by Category</h2>
+                <p className="text-gray-600 text-sm md:text-base">Discover amazing products across all categories</p>
               </div>
               <Link 
                 to="/categories" 
-                className="text-blue-600 font-medium hover:text-blue-700 transition-colors"
+                className="text-blue-600 font-medium hover:text-blue-700 transition-colors text-sm md:text-base"
               >
                 View All →
               </Link>
             </div>
             
-            {/* Mobile-style Category Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {categories.slice(0, 8).map((category) => (
+            {/* Mobile-optimized Category Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4">
+              {categories.map((category) => (
                 <Link
                   key={category.name}
                   to="/categories"
-                  className="group bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-all duration-300 transform hover:scale-105"
+                  className="group bg-gray-50 rounded-xl p-3 md:p-4 hover:bg-gray-100 transition-all duration-300 transform hover:scale-105"
                 >
-                  <div className="flex items-center space-x-4">
-                    <div className="flex-1">
-                      <h3 className="text-sm font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
-                        {category.name}
-                      </h3>
-                      <p className="text-xs text-gray-600">
-                        {category.description}
-                      </p>
-                    </div>
-                    <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+                  <div className="text-center">
+                    <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl overflow-hidden mb-2 md:mb-3 mx-auto shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-110">
                       <img
                         src={category.image}
                         alt={category.name}
                         className="w-full h-full object-cover"
                       />
                     </div>
+                    <h3 className="text-xs md:text-sm font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors leading-tight">
+                      {category.name}
+                    </h3>
+                    <p className="text-xs text-gray-600 hidden sm:block">
+                      {category.description}
+                    </p>
                   </div>
-                </Link>
-              ))}
-            </div>
-            
-            {/* Show more categories on larger screens */}
-            <div className="hidden lg:grid grid-cols-6 gap-4 mt-6">
-              {categories.slice(8).map((category) => (
-                <Link
-                  key={category.name}
-                  to="/categories"
-                  className="group text-center touch-manipulation transform hover:scale-105 transition-all duration-300"
-                >
-                  <div className="w-16 h-16 rounded-2xl overflow-hidden mb-3 mx-auto shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110">
-                    <img
-                      src={category.image}
-                      alt={category.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <p className="text-sm font-semibold text-gray-700 group-hover:text-blue-600 transition-colors duration-300 leading-tight">{category.name}</p>
-                  <p className="text-xs text-gray-500 mt-1">{category.description}</p>
                 </Link>
               ))}
             </div>
           </div>
         </section>
 
-        {/* Enhanced Hero Banner */}
-        <section className="bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 py-12 md:py-16 relative overflow-hidden">
+        {/* Enhanced Hero Banner - Mobile First */}
+        <section className="bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 py-8 md:py-16 relative overflow-hidden">
           <div className="absolute inset-0 bg-black opacity-10"></div>
-          <div className="max-w-7xl mx-auto px-4 relative">
+          <div className="max-w-7xl mx-auto px-3 md:px-4 relative">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-              <div className="flex-1 mb-8 md:mb-0">
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 md:mb-6 leading-tight">
-                  THE BIG BILLION DAYS
+              <div className="flex-1 mb-6 md:mb-0 text-center md:text-left">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-3 md:mb-6 leading-tight">
+                  SHOWMYFIT MEGA SALE
                 </h1>
-                <p className="text-xl md:text-2xl text-white/90 mb-4 md:mb-6 leading-relaxed">
-                  Designer sofas, Carlton london, mintwud & more
+                <p className="text-lg sm:text-xl md:text-2xl text-white/90 mb-3 md:mb-6 leading-relaxed">
+                  Fashion, Electronics, Home & More from Local Stores
                 </p>
-                <p className="text-2xl md:text-3xl font-bold text-white mb-6">From ₹6,499</p>
-                <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                  <div className="bg-white/20 backdrop-blur-sm px-6 py-4 rounded-xl border border-white/30">
-                    <p className="text-sm font-bold text-white">AXIS BANK</p>
-                    <p className="text-xs text-white/80">10% Instant Discount</p>
-              </div>
-                  <div className="bg-white/20 backdrop-blur-sm px-6 py-4 rounded-xl border border-white/30">
-                    <p className="text-sm font-bold text-white">ICICI Bank</p>
-                    <p className="text-xs text-white/80">super.money</p>
-              </div>
-            </div>
-                <button className="bg-white text-purple-600 px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
+                <p className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-4 md:mb-6">Up to 70% OFF</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 mb-6 md:mb-8 max-w-md mx-auto md:mx-0">
+                  <div className="bg-white/20 backdrop-blur-sm px-4 py-3 md:px-6 md:py-4 rounded-xl border border-white/30">
+                    <p className="text-xs md:text-sm font-bold text-white">FREE DELIVERY</p>
+                    <p className="text-xs text-white/80">On orders above ₹999</p>
+                  </div>
+                  <div className="bg-white/20 backdrop-blur-sm px-4 py-3 md:px-6 md:py-4 rounded-xl border border-white/30">
+                    <p className="text-xs md:text-sm font-bold text-white">LOCAL STORES</p>
+                    <p className="text-xs text-white/80">Support your neighborhood</p>
+                  </div>
+                </div>
+                <button className="bg-white text-purple-600 px-6 py-3 md:px-8 md:py-4 rounded-xl font-bold text-base md:text-lg hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 w-full sm:w-auto">
                   Shop Now
                 </button>
               </div>
               <div className="hidden md:block">
                 <img 
-                  src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=500&h=400&fit=crop" 
-                  alt="Sofa"
+                  src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=500&h=400&fit=crop" 
+                  alt="Shopping"
                   className="w-96 h-80 object-cover rounded-2xl shadow-2xl"
                 />
-        </div>
-      </div>
-          </div>
-        </section>
-
-        {/* Enhanced Become a Seller Section */}
-        <section className="py-12 bg-gradient-to-br from-gray-50 to-white">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-3xl p-8 md:p-12 text-center text-white relative overflow-hidden">
-              <div className="absolute inset-0 bg-black/10"></div>
-              <div className="relative z-10">
-                <div className="flex items-center justify-center mb-6">
-                  <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                    <div className="text-3xl">🏠</div>
-                  </div>
-                </div>
-                <h2 className="text-3xl md:text-4xl font-bold mb-4">Start Your Business Journey</h2>
-                <p className="text-lg md:text-xl mb-8 text-white/90 max-w-2xl mx-auto">Join thousands of successful sellers on our platform and reach millions of customers</p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Link
-              to="/shop/auth"
-                    className="inline-flex items-center bg-white text-blue-600 py-4 px-8 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-            >
-                    <span className="mr-3 text-xl">🏠</span>
-              <span>Become a Seller</span>
-                    <ArrowRight className="w-5 h-5 ml-3" />
-            </Link>
-                  <div className="flex items-center space-x-6 text-white/80">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold">10K+</div>
-                      <div className="text-sm">Active Sellers</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold">1M+</div>
-                      <div className="text-sm">Products</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold">50K+</div>
-                      <div className="text-sm">Orders Daily</div>
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
         </section>
 
+
         {/* Dynamic Admin-Managed Sections */}
         {loadingSections ? (
-          <section className="py-16 bg-gradient-to-br from-gray-50 to-white">
-            <div className="max-w-7xl mx-auto px-4">
-              <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <section className="py-12 md:py-16 bg-gradient-to-br from-gray-50 to-white">
+            <div className="max-w-7xl mx-auto px-3 md:px-4">
+              <div className="text-center py-8">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mb-4">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Loading Amazing Products</h3>
+                <p className="text-gray-600">Please wait while we fetch the best deals for you</p>
               </div>
             </div>
           </section>
         ) : (
-          homePageSections.map((section) => {
+          // Sort sections to ensure specific order: Featured -> Best Deals -> Offers -> Trending -> Others
+          homePageSections
+            .sort((a, b) => {
+              const order = ['featured', 'bestDeals', 'offers', 'trending'];
+              const aIndex = order.indexOf(a.type);
+              const bIndex = order.indexOf(b.type);
+              
+              // If both are in the priority list, sort by priority
+              if (aIndex !== -1 && bIndex !== -1) {
+                return aIndex - bIndex;
+              }
+              // If only one is in priority list, prioritize it
+              if (aIndex !== -1) return -1;
+              if (bIndex !== -1) return 1;
+              // If neither is in priority list, sort by displayOrder
+              return a.displayOrder - b.displayOrder;
+            })
+            .map((section) => {
             const sectionProducts = getSectionProducts(section.products);
             
             return (
-              <section key={section.id} className="py-16 bg-gradient-to-br from-gray-50 to-white">
-                <div className="max-w-7xl mx-auto px-4">
-                  <div className="text-center mb-12">
-                    <div className={`inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br ${getSectionGradient(section.type)} rounded-full mb-4`}>
-                      {getSectionIcon(section.type)}
+              <section key={section.id} className={section.type === 'trending' ? 'py-6 md:py-8 bg-gradient-to-r from-orange-500 to-red-500' : 'py-16 bg-gradient-to-br from-gray-50 to-white'}>
+                <div className={section.type === 'trending' ? 'px-4' : 'max-w-7xl mx-auto px-4'}>
+                  {section.type === 'trending' ? (
+                    <div className="flex items-center justify-between mb-4 md:mb-6">
+                      <h2 className="text-xl md:text-2xl font-bold text-white">{section.title}</h2>
+                      <div className="bg-white bg-opacity-20 px-3 py-1 rounded-full">
+                        <span className="text-white text-sm font-medium">HOT</span>
+                      </div>
                     </div>
-                    <h2 className="text-4xl font-bold text-gray-900 mb-4">{section.title}</h2>
-                    {section.subtitle && (
-                      <p className="text-gray-600 text-lg max-w-2xl mx-auto">{section.subtitle}</p>
-                    )}
-                  </div>
+                  ) : (
+                    <div className="text-center mb-12">
+                      <div className={`inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br ${getSectionGradient(section.type)} rounded-full mb-4`}>
+                        {getSectionIcon(section.type)}
+                      </div>
+                      <h2 className="text-4xl font-bold text-gray-900 mb-4">{section.title}</h2>
+                      {section.subtitle && (
+                        <p className="text-gray-600 text-lg max-w-2xl mx-auto">{section.subtitle}</p>
+                      )}
+                    </div>
+                  )}
                   
                   {sectionProducts.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className={section.type === 'trending' ? 'grid grid-cols-1 md:grid-cols-2 gap-4' : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6'}>
                       {sectionProducts.map((product) => (
-                        <div key={product.id} className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-100">
-                          <div className="p-5">
-                            <div className="relative mb-4 group/image">
+                        <div key={product.id} className={section.type === 'trending' ? 'bg-white rounded-lg p-4 hover:shadow-lg transition-shadow touch-manipulation' : 'bg-white rounded-xl md:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-100'}>
+                          {section.type === 'trending' ? (
+                            // Trending section style (same as hardcoded trending deals)
+                            <>
+                              <div className="relative mb-3">
+                                <img 
+                                  src={product.image} 
+                                  alt={product.name}
+                                  className="w-full h-32 md:h-40 object-cover rounded"
+                                />
+                                <div className="absolute top-2 left-2 bg-orange-500 text-white px-2 py-1 rounded text-xs font-bold">
+                                  Trending
+                                </div>
+                                <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
+                                  {section.discountPercentage ? `${section.discountPercentage}% OFF` : 'HOT'}
+                                </div>
+                              </div>
+                              <h3 className="font-semibold text-gray-900 text-sm md:text-base mb-2">{product.name}</h3>
+                              <div className="flex items-center space-x-2">
+                                <span className="text-lg md:text-xl font-bold text-gray-900">₹{calculateDiscountedPrice(product, section).toLocaleString()}</span>
+                                {product.originalPrice && product.originalPrice > product.price && (
+                                  <span className="text-sm text-gray-500 line-through">₹{product.originalPrice.toLocaleString()}</span>
+                                )}
+                                {calculateDiscountedPrice(product, section) < product.price && (
+                                  <span className="text-sm text-gray-500 line-through">₹{product.price.toLocaleString()}</span>
+                                )}
+                              </div>
+                              <button className="w-full mt-3 bg-orange-500 text-white py-2 rounded-lg font-medium hover:bg-orange-600 transition-colors">
+                                Shop Now
+                              </button>
+                            </>
+                          ) : (
+                            <div className="p-3 md:p-5">
+                            <div className="relative mb-3 md:mb-4 group/image">
                               <img
                                 src={product.image}
                                 alt={product.name}
-                                className="w-full h-48 object-cover rounded-xl transition-transform duration-300 group-hover:scale-105"
+                                className="w-full h-40 md:h-48 object-cover rounded-lg md:rounded-xl transition-transform duration-300 group-hover:scale-105"
                               />
                               
                               {/* Action Buttons */}
-                              <div className="absolute top-3 right-3 flex flex-col space-y-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                              <div className="absolute top-2 right-2 md:top-3 md:right-3 flex flex-col space-y-1 md:space-y-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                 <button
                                   onClick={() => toggleWishlist(product.id)}
-                                  className="p-2 bg-white rounded-full shadow-lg hover:shadow-xl transition-all"
+                                  className="p-1.5 md:p-2 bg-white rounded-full shadow-lg hover:shadow-xl transition-all"
                                   title={wishlist.includes(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
                                   aria-label={wishlist.includes(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
                                 >
-                                  <Heart className={`w-4 h-4 ${
+                                  <Heart className={`w-3 h-3 md:w-4 md:h-4 ${
                                     wishlist.includes(product.id) ? 'text-red-500 fill-current' : 'text-gray-600'
                                   }`} />
                                 </button>
                                 <button
                                   onClick={() => quickViewProduct(product)}
-                                  className="p-2 bg-white rounded-full shadow-lg hover:shadow-xl transition-all"
+                                  className="p-1.5 md:p-2 bg-white rounded-full shadow-lg hover:shadow-xl transition-all"
                                   title="Quick view"
                                   aria-label="Quick view product"
                                 >
-                                  <Eye className="w-4 h-4 text-gray-600" />
+                                  <Eye className="w-3 h-3 md:w-4 md:h-4 text-gray-600" />
                                 </button>
                               </div>
 
                               {/* Badges */}
-                              <div className="absolute top-3 left-3 flex flex-col space-y-2">
+                              <div className="absolute top-2 left-2 md:top-3 md:left-3 flex flex-col space-y-1 md:space-y-2">
                                 {product.featured && (
-                                  <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                                  <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-2 py-1 md:px-3 md:py-1 rounded-full text-xs font-bold shadow-lg">
                                     ⭐ Featured
                                   </span>
                                 )}
@@ -642,43 +679,59 @@ const HomePage: React.FC = () => {
                                     {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
                                   </span>
                                 )}
+                                {/* Admin-managed discount badge */}
+                                {section.discountPercentage && section.discountPercentage > 0 && (
+                                  <span className="bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+                                    {section.discountPercentage}% OFF
+                                  </span>
+                                )}
+                                {section.discountType === 'fixed' && section.discountValue && section.discountValue > 0 && (
+                                  <span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+                                    ₹{section.discountValue} OFF
+                                  </span>
+                                )}
                               </div>
                             </div>
 
-                            <div className="space-y-3">
+                            <div className="space-y-2 md:space-y-3">
                               <div>
-                                <h3 className="font-bold text-gray-900 line-clamp-2 text-lg mb-1 group-hover:text-blue-600 transition-colors">
+                                <h3 className="font-bold text-gray-900 line-clamp-2 text-sm md:text-lg mb-1 group-hover:text-blue-600 transition-colors">
                                   {product.name}
                                 </h3>
-                                <p className="text-sm text-gray-600 font-medium">{product.brand}</p>
+                                <p className="text-xs md:text-sm text-gray-600 font-medium">{product.brand}</p>
                               </div>
                               
                               {/* Rating */}
-                              <div className="flex items-center space-x-2">
-                                <div className="flex items-center bg-yellow-50 px-2 py-1 rounded-full">
-                                  <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                                  <span className="text-sm font-bold ml-1">{product.rating?.toFixed(1) || '0.0'}</span>
+                              <div className="flex items-center space-x-1 md:space-x-2">
+                                <div className="flex items-center bg-yellow-50 px-1.5 py-1 md:px-2 md:py-1 rounded-full">
+                                  <Star className="w-3 h-3 md:w-4 md:h-4 text-yellow-500 fill-current" />
+                                  <span className="text-xs md:text-sm font-bold ml-1">{product.rating?.toFixed(1) || '0.0'}</span>
                                 </div>
-                                <span className="text-sm text-gray-500">({product.reviews || 0} reviews)</span>
+                                <span className="text-xs md:text-sm text-gray-500">({product.reviews || 0})</span>
                               </div>
 
                               {/* Price */}
                               <div className="flex items-center justify-between">
                                 <div>
-                                  <span className="text-2xl font-bold text-gray-900">₹{product.price?.toLocaleString() || '0'}</span>
+                                  <span className="text-lg md:text-2xl font-bold text-gray-900">₹{calculateDiscountedPrice(product, section).toLocaleString()}</span>
                                   {product.originalPrice && product.originalPrice > product.price && (
-                                    <div className="text-sm text-gray-500 line-through">
+                                    <div className="text-xs md:text-sm text-gray-500 line-through">
                                       ₹{product.originalPrice.toLocaleString()}
                                     </div>
                                   )}
+                                  {calculateDiscountedPrice(product, section) < product.price && (
+                                    <div className="text-xs md:text-sm text-gray-500 line-through">
+                                      ₹{product.price.toLocaleString()}
+                                    </div>
+                                  )}
                                 </div>
-                                <span className="text-xs bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">
+                                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 md:px-3 md:py-1 rounded-full font-medium">
                                   {product.category}
                                 </span>
                               </div>
 
                               {/* Stock Status */}
-                              <div className="flex items-center justify-between text-sm">
+                              <div className="flex items-center justify-between text-xs md:text-sm">
                                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                                   (product.stock || 0) > 10 ? 'bg-green-100 text-green-800' :
                                   (product.stock || 0) > 0 ? 'bg-yellow-100 text-yellow-800' :
@@ -686,28 +739,24 @@ const HomePage: React.FC = () => {
                                 }`}>
                                   {(product.stock || 0) > 10 ? 'In Stock' : (product.stock || 0) > 0 ? 'Low Stock' : 'Out of Stock'}
                                 </span>
-                                <span className="text-gray-500">{product.stock || 0} left</span>
+                                <span className="text-gray-500 text-xs">{product.stock || 0} left</span>
                               </div>
 
-                              {/* Add to Cart Button */}
-                              <AddToCartButton
-                                product={{
-                                  id: product.id,
-                                  name: product.name,
-                                  price: product.price,
-                                  originalPrice: product.originalPrice,
-                                  image: product.image,
-                                  brand: product.brand,
-                                  size: product.size,
-                                  color: product.color,
-                                  category: product.category
-                                }}
+                              {/* Reserve Button */}
+                              <ReserveButton
+                                productId={product.id}
+                                productName={product.name}
+                                sellerId={product.sellerId || 'unknown'}
+                                sellerName={product.sellerName || 'Unknown Seller'}
+                                price={product.price}
+                                image={product.image}
+                                size="sm"
+                                className="w-full text-xs md:text-sm"
                                 variant="primary"
-                                size="lg"
-                                className="w-full"
                               />
                             </div>
                           </div>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -737,8 +786,8 @@ const HomePage: React.FC = () => {
               <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-8 text-white relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
                 <h3 className="text-2xl font-bold mb-4">Electronics Sale</h3>
-                <p className="text-blue-100 mb-6">Up to 50% off on all electronics</p>
-                <div className="text-4xl font-bold mb-2">50% OFF</div>
+                <p className="text-blue-100 mb-6">Up to {promotionalCards.electronics.discountPercentage}% off on all electronics</p>
+                <div className="text-4xl font-bold mb-2">{promotionalCards.electronics.discountPercentage}% OFF</div>
                 <p className="text-sm text-blue-200">Limited time offer</p>
                 <button className="mt-6 bg-white text-blue-600 px-6 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors">
                   Shop Now
@@ -750,7 +799,7 @@ const HomePage: React.FC = () => {
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
                 <h3 className="text-2xl font-bold mb-4">Fashion Week</h3>
                 <p className="text-purple-100 mb-6">Latest trends at amazing prices</p>
-                <div className="text-4xl font-bold mb-2">30% OFF</div>
+                <div className="text-4xl font-bold mb-2">{promotionalCards.fashion.discountPercentage}% OFF</div>
                 <p className="text-sm text-purple-200">New arrivals</p>
                 <button className="mt-6 bg-white text-purple-600 px-6 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors">
                   Explore
@@ -762,7 +811,7 @@ const HomePage: React.FC = () => {
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
                 <h3 className="text-2xl font-bold mb-4">Home & Living</h3>
                 <p className="text-green-100 mb-6">Transform your space</p>
-                <div className="text-4xl font-bold mb-2">40% OFF</div>
+                <div className="text-4xl font-bold mb-2">{promotionalCards.home.discountPercentage}% OFF</div>
                 <p className="text-sm text-green-200">Free delivery</p>
                 <button className="mt-6 bg-white text-green-600 px-6 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors">
                   Shop Now
@@ -772,113 +821,6 @@ const HomePage: React.FC = () => {
                 </div>
         </section>
 
-        {/* Enhanced Appliances Section */}
-        <section className="py-12 bg-gray-50">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Home & Appliances</h2>
-              <p className="text-gray-600 text-lg">Upgrade your home with our premium appliances</p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {/* Appliance Card 1 */}
-              <div className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group">
-                <div className="relative">
-                  <img 
-                    src="https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=300&h=200&fit=crop" 
-                    alt="Smart TV"
-                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
-                    25% OFF
-                </div>
-                </div>
-                <div className="p-6">
-                  <h3 className="font-bold text-gray-900 text-lg mb-2">Smart TVs</h3>
-                  <p className="text-gray-600 text-sm mb-4">4K Ultra HD displays</p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold text-gray-900">From ₹15,999</span>
-                    <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                      Shop Now
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Appliance Card 2 */}
-              <div className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group">
-                <div className="relative">
-                  <img 
-                    src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&h=200&fit=crop" 
-                    alt="Washing Machine"
-                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute top-3 left-3 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold">
-                    30% OFF
-                  </div>
-                </div>
-                <div className="p-6">
-                  <h3 className="font-bold text-gray-900 text-lg mb-2">Washing Machines</h3>
-                  <p className="text-gray-600 text-sm mb-4">Energy efficient models</p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold text-gray-900">From ₹12,999</span>
-                    <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                      Shop Now
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Appliance Card 3 */}
-              <div className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group">
-                <div className="relative">
-                  <img 
-                    src="https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?w=300&h=200&fit=crop" 
-                    alt="Refrigerator"
-                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute top-3 left-3 bg-purple-500 text-white px-3 py-1 rounded-full text-sm font-bold">
-                    20% OFF
-                  </div>
-                </div>
-                <div className="p-6">
-                  <h3 className="font-bold text-gray-900 text-lg mb-2">Refrigerators</h3>
-                  <p className="text-gray-600 text-sm mb-4">Smart cooling technology</p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold text-gray-900">From ₹18,999</span>
-                    <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                      Shop Now
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Appliance Card 4 */}
-              <div className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group">
-                <div className="relative">
-                  <img 
-                    src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=300&h=200&fit=crop" 
-                    alt="Air Conditioner"
-                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute top-3 left-3 bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-bold">
-                    35% OFF
-                  </div>
-                </div>
-                <div className="p-6">
-                  <h3 className="font-bold text-gray-900 text-lg mb-2">Air Conditioners</h3>
-                  <p className="text-gray-600 text-sm mb-4">Inverter technology</p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold text-gray-900">From ₹22,999</span>
-                    <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                      Shop Now
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
 
         {/* Promotional Banner - Mobile Optimized */}
         <section className="py-6 md:py-8 bg-gradient-to-r from-purple-600 to-purple-800">
@@ -924,87 +866,50 @@ const HomePage: React.FC = () => {
           </div>
         </section>
 
-        {/* Customer Testimonials Section */}
-        <section className="py-16 bg-gradient-to-br from-blue-50 to-purple-50">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="text-center mb-12">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-green-500 to-blue-600 rounded-full mb-4">
-                <ThumbsUp className="w-8 h-8 text-white" />
-              </div>
-              <h2 className="text-4xl font-bold text-gray-900 mb-4">What Our Customers Say</h2>
-              <p className="text-gray-600 text-lg max-w-2xl mx-auto">Real feedback from satisfied customers who love shopping with us</p>
+
+        {/* Featured Brands - Professional Design */}
+        <section className="py-12 md:py-16 bg-gradient-to-br from-gray-50 to-white">
+          <div className="max-w-7xl mx-auto px-3 md:px-4">
+            <div className="text-center mb-8 md:mb-12">
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">Trusted Brands</h2>
+              <p className="text-gray-600 text-sm md:text-lg">Shop from your favorite premium brands</p>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 md:gap-6">
+              {featuredBrands.map((brand, index) => (
+                <div key={index} className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 hover:shadow-xl transition-all duration-300 group cursor-pointer border border-gray-100 hover:border-blue-200">
+                  <div className="flex flex-col items-center text-center">
+                    <div className="w-16 h-16 md:w-20 md:h-20 mb-3 rounded-lg overflow-hidden bg-gray-50 flex items-center justify-center group-hover:bg-blue-50 transition-colors duration-300">
+                      <img 
+                        src={brand.image} 
+                        alt={brand.name}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.nextElementSibling.style.display = 'flex';
+                        }}
+                      />
+                      <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg hidden">
+                        {brand.name.charAt(0)}
+                      </div>
+                    </div>
+                    <h3 className="text-sm md:text-base font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
+                      {brand.name}
+                    </h3>
+                    <p className="text-xs text-gray-500 hidden md:block">
+                      {brand.description}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[
-                {
-                  name: "Priya Sharma",
-                  location: "Mumbai",
-                  rating: 5,
-                  comment: "Amazing shopping experience! Fast delivery and great quality products. Highly recommended!",
-                  avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face"
-                },
-                {
-                  name: "Rajesh Kumar",
-                  location: "Delhi",
-                  rating: 5,
-                  comment: "Best platform for local shopping. Found everything I needed at great prices. Excellent service!",
-                  avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face"
-                },
-                {
-                  name: "Anita Patel",
-                  location: "Bangalore",
-                  rating: 5,
-                  comment: "Love the variety of products and the easy checkout process. Will definitely shop again!",
-                  avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face"
-                }
-              ].map((testimonial, index) => (
-                <div key={index} className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
-                  <div className="flex items-center mb-4">
-                    <img 
-                      src={testimonial.avatar} 
-                      alt={testimonial.name}
-                      className="w-12 h-12 rounded-full object-cover mr-4"
-                    />
-                    <div>
-                      <h4 className="font-semibold text-gray-900">{testimonial.name}</h4>
-                      <p className="text-sm text-gray-600">{testimonial.location}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center mb-3">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
-                    ))}
-                  </div>
-                  <p className="text-gray-700 leading-relaxed">"{testimonial.comment}"</p>
-                </div>
-              ))}
+            {/* View All Brands Button */}
+            <div className="text-center mt-8">
+              <button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
+                View All Brands
+              </button>
             </div>
           </div>
-        </section>
-
-        {/* Featured Brands - Enhanced */}
-        <section className="py-12 bg-white">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Trusted Brands</h2>
-              <p className="text-gray-600 text-lg">Shop from your favorite brands</p>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {featuredBrands.map((brand, index) => (
-                <div key={index} className="bg-gray-50 rounded-2xl p-6 hover:bg-gray-100 transition-all duration-300 group cursor-pointer">
-                  <div className="flex items-center justify-center h-16">
-                  <img 
-                    src={brand.image} 
-                    alt={brand.name}
-                      className="max-h-12 object-contain group-hover:scale-110 transition-transform duration-300"
-                  />
-                  </div>
-                  <p className="text-center text-sm font-medium text-gray-700 mt-3">{brand.name}</p>
-                </div>
-              ))}
-        </div>
-      </div>
         </section>
 
         {/* Suggestions for You - Mobile Optimized */}
@@ -1099,47 +1004,6 @@ const HomePage: React.FC = () => {
           </div>
         </section>
 
-        {/* Trending Deals - Mobile Optimized */}
-        <section className="py-6 md:py-8 bg-gradient-to-r from-orange-500 to-red-500">
-          <div className="px-4">
-            <div className="flex items-center justify-between mb-4 md:mb-6">
-              <h2 className="text-xl md:text-2xl font-bold text-white">Trending Deals</h2>
-              <div className="bg-white bg-opacity-20 px-3 py-1 rounded-full">
-                <span className="text-white text-sm font-medium">HOT</span>
-      </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {[
-                { name: 'iPhone 15 Pro', price: '₹1,19,900', originalPrice: '₹1,34,900', discount: '11%', image: 'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=300&h=200&fit=crop', badge: 'Best Seller' },
-                { name: 'Samsung Galaxy S24', price: '₹79,999', originalPrice: '₹99,999', discount: '20%', image: 'https://images.unsplash.com/photo-1511707171631-9ad203683d6d?w=300&h=200&fit=crop', badge: 'Trending' }
-              ].map((product, index) => (
-                <div key={index} className="bg-white rounded-lg p-4 hover:shadow-lg transition-shadow touch-manipulation">
-                  <div className="relative mb-3">
-                    <img 
-                      src={product.image} 
-                      alt={product.name}
-                      className="w-full h-32 md:h-40 object-cover rounded"
-                    />
-                    <div className="absolute top-2 left-2 bg-orange-500 text-white px-2 py-1 rounded text-xs font-bold">
-                      {product.badge}
-            </div>
-                    <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
-                      {product.discount} OFF
-            </div>
-          </div>
-                  <h3 className="font-semibold text-gray-900 text-sm md:text-base mb-2">{product.name}</h3>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-lg md:text-xl font-bold text-gray-900">{product.price}</span>
-                    <span className="text-sm text-gray-500 line-through">{product.originalPrice}</span>
-        </div>
-                  <button className="w-full mt-3 bg-orange-500 text-white py-2 rounded-lg font-medium hover:bg-orange-600 transition-colors">
-                    Shop Now
-                  </button>
-      </div>
-              ))}
-          </div>
-          </div>
-        </section>
 
         {/* Recently Viewed - Mobile Optimized */}
         <section className="py-6 md:py-8 bg-white">
@@ -1519,130 +1383,339 @@ const HomePage: React.FC = () => {
               </div>
       )}
 
-      {/* Floating Mobile Seller Button */}
-      <div className="fixed bottom-20 right-4 z-40 md:hidden">
-        <Link
-          to="/shop/auth"
-          className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 flex items-center justify-center touch-manipulation animate-bounce-gentle"
-        >
-          <span className="text-xl">🏠</span>
-        </Link>
-          </div>
 
-      {/* Enhanced Professional Footer */}
-      <footer className="bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
-        <div className="px-4 py-16">
+      {/* Ultra Modern Premium Footer */}
+      <footer className="relative bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          }}></div>
+        </div>
+        
+        {/* Floating Elements */}
+        <div className="absolute top-20 left-10 w-20 h-20 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full blur-xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-10 w-32 h-32 bg-gradient-to-r from-pink-500/20 to-blue-500/20 rounded-full blur-xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        
+        <div className="relative px-4 py-20">
           <div className="max-w-7xl mx-auto">
-            {/* Main Footer Content */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-              {/* Company Info */}
-              <div className="lg:col-span-1">
-                <div className="flex items-center space-x-3 mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                    <span className="text-white font-bold text-lg">S</span>
-                  </div>
-                  <h3 className="text-2xl font-bold text-white">Showmyfit</h3>
-                </div>
-                <p className="text-gray-300 text-sm mb-6 leading-relaxed">
-                  Your ultimate destination for local shopping. Connect with nearby stores, discover amazing products, and enjoy seamless shopping experiences.
-                </p>
-                <div className="flex space-x-4">
-                  <a href="https://www.facebook.com/showmyfitofficial?mibextid=ZbWKwL" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center hover:bg-blue-600 transition-all duration-300 hover:scale-110" title="Facebook">
-                    <span className="text-sm font-bold">f</span>
-                  </a>
-                  <a href="https://youtube.com/@showmyfit?si=RO9OiJLBUUXiOFJX" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center hover:bg-red-600 transition-all duration-300 hover:scale-110" title="YouTube">
-                    <span className="text-sm font-bold">YT</span>
-                  </a>
-                  <a href="https://www.instagram.com/showmyfit?utm_source=qr" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center hover:bg-pink-600 transition-all duration-300 hover:scale-110" title="Instagram">
-                    <span className="text-sm font-bold">ig</span>
-                  </a>
-                </div>
+            {/* Premium Header Section */}
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl mb-6 shadow-2xl">
+                <span className="text-white font-bold text-2xl">S</span>
               </div>
-
-              {/* Quick Links */}
-              <div>
-                <h4 className="text-lg font-semibold text-white mb-4">Quick Links</h4>
-                <ul className="space-y-3">
-                  <li><Link to="/about" className="text-gray-300 hover:text-white transition-colors text-sm">About Us</Link></li>
-                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors text-sm">How It Works</a></li>
-                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors text-sm">Find Stores</a></li>
-                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors text-sm">Become a Partner</a></li>
-                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors text-sm">Careers</a></li>
-                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors text-sm">Press</a></li>
-                </ul>
-              </div>
-
-              {/* Customer Service */}
-              <div>
-                <h4 className="text-lg font-semibold text-white mb-4">Customer Service</h4>
-                <ul className="space-y-3">
-                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors text-sm">Help Center</a></li>
-                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors text-sm">Contact Us</a></li>
-                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors text-sm">Shipping Info</a></li>
-                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors text-sm">Returns</a></li>
-                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors text-sm">Size Guide</a></li>
-                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors text-sm">FAQ</a></li>
-                </ul>
-              </div>
-
-              {/* Contact Info */}
-              <div>
-                <h4 className="text-lg font-semibold text-white mb-4">Get in Touch</h4>
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <MapPin className="w-4 h-4 text-blue-400" />
-                    <span className="text-gray-300 text-sm">123 Fashion Street, Style City, SC 12345</span>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <Clock className="w-4 h-4 text-blue-400" />
-                    <span className="text-gray-300 text-sm">Mon - Fri: 9:00 AM - 6:00 PM</span>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <span className="w-4 h-4 text-blue-400">📧</span>
-                    <span className="text-gray-300 text-sm">hello@showmyfit.com</span>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <span className="w-4 h-4 text-blue-400">📞</span>
-                    <span className="text-gray-300 text-sm">+1 (555) 123-4567</span>
+              <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent mb-4">
+                Showmyfit
+              </h2>
+              <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+                Revolutionizing local commerce by connecting customers with amazing local stores. 
+                Discover, shop, and support your community like never before.
+              </p>
             </div>
-          </div>
-              </div>
+
+            {/* Main Footer Content */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-16">
+              {/* Company Info - Enhanced */}
+              <div className="lg:col-span-2">
+                <h3 className="text-2xl font-bold mb-6 text-white">About Showmyfit</h3>
+                <p className="text-gray-300 text-lg mb-6 leading-relaxed">
+                  We're building the future of local shopping by creating seamless connections between customers and local businesses. 
+                  Our platform empowers communities and drives economic growth.
+                </p>
+                
+                {/* Stats */}
+                <div className="grid grid-cols-2 gap-6 mb-8">
+                  <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
+                    <div className="text-2xl font-bold text-white">500+</div>
+                    <div className="text-sm text-gray-300">Local Stores</div>
+                  </div>
+                  <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
+                    <div className="text-2xl font-bold text-white">50K+</div>
+                    <div className="text-sm text-gray-300">Happy Customers</div>
+                  </div>
                 </div>
 
-            {/* Newsletter Signup */}
-            <div className="border-t border-gray-700 pt-8 mb-8">
-              <div className="max-w-2xl mx-auto text-center">
-                <h4 className="text-xl font-semibold text-white mb-2">Stay Updated</h4>
-                <p className="text-gray-300 text-sm mb-4">Get the latest fashion trends and store updates delivered to your inbox.</p>
-                <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+                {/* Enhanced Social Media */}
+                <div>
+                  <h4 className="text-lg font-semibold mb-4">Follow Us</h4>
+                  <div className="flex space-x-4">
+                    <a href="https://www.facebook.com/showmyfitofficial?mibextid=ZbWKwL" target="_blank" rel="noopener noreferrer" className="group w-12 h-12 bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl flex items-center justify-center hover:from-blue-500 hover:to-blue-600 transition-all duration-300 hover:scale-110 hover:shadow-lg" title="Facebook">
+                      <svg className="w-6 h-6 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                      </svg>
+                    </a>
+                    <a href="https://youtube.com/@showmyfit?si=wx8ga-Yya5PqVA7f" target="_blank" rel="noopener noreferrer" className="group w-12 h-12 bg-gradient-to-r from-red-600 to-red-700 rounded-2xl flex items-center justify-center hover:from-red-500 hover:to-red-600 transition-all duration-300 hover:scale-110 hover:shadow-lg" title="YouTube">
+                      <svg className="w-6 h-6 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                      </svg>
+                    </a>
+                    <a href="https://www.instagram.com/showmyfit?utm_source=qr" target="_blank" rel="noopener noreferrer" className="group w-12 h-12 bg-gradient-to-r from-pink-600 to-purple-600 rounded-2xl flex items-center justify-center hover:from-pink-500 hover:to-purple-500 transition-all duration-300 hover:scale-110 hover:shadow-lg" title="Instagram">
+                      <svg className="w-6 h-6 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 6.62 5.367 11.987 11.988 11.987s11.987-5.367 11.987-11.987C24.014 5.367 18.637.001 12.017.001zM8.449 16.988c-1.297 0-2.448-.49-3.323-1.297C4.198 14.895 3.708 13.744 3.708 12.447s.49-2.448 1.418-3.323c.875-.807 2.026-1.297 3.323-1.297s2.448.49 3.323 1.297c.928.875 1.418 2.026 1.418 3.323s-.49 2.448-1.418 3.244c-.875.807-2.026 1.297-3.323 1.297zm7.83-9.281h-1.441v1.441h1.441V7.707zm-7.83 1.441c-.807 0-1.441.634-1.441 1.441s.634 1.441 1.441 1.441 1.441-.634 1.441-1.441-.634-1.441-1.441-1.441z"/>
+                      </svg>
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Links - Enhanced */}
+              <div>
+                <h4 className="text-xl font-bold text-white mb-6 flex items-center">
+                  <span className="w-2 h-2 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full mr-3"></span>
+                  Quick Links
+                </h4>
+                <ul className="space-y-4">
+                  <li><Link to="/about" className="text-gray-300 hover:text-white transition-colors text-lg flex items-center group">
+                    <ArrowRight className="w-4 h-4 mr-2 group-hover:translate-x-1 transition-transform" />
+                    About Us
+                  </Link></li>
+                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors text-lg flex items-center group">
+                    <ArrowRight className="w-4 h-4 mr-2 group-hover:translate-x-1 transition-transform" />
+                    How It Works
+                  </a></li>
+                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors text-lg flex items-center group">
+                    <ArrowRight className="w-4 h-4 mr-2 group-hover:translate-x-1 transition-transform" />
+                    Find Stores
+                  </a></li>
+                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors text-lg flex items-center group">
+                    <ArrowRight className="w-4 h-4 mr-2 group-hover:translate-x-1 transition-transform" />
+                    Become a Partner
+                  </a></li>
+                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors text-lg flex items-center group">
+                    <ArrowRight className="w-4 h-4 mr-2 group-hover:translate-x-1 transition-transform" />
+                    Careers
+                  </a></li>
+                </ul>
+              </div>
+
+              {/* Customer Service - Enhanced */}
+              <div>
+                <h4 className="text-xl font-bold text-white mb-6 flex items-center">
+                  <span className="w-2 h-2 bg-gradient-to-r from-green-400 to-blue-400 rounded-full mr-3"></span>
+                  Support
+                </h4>
+                <ul className="space-y-4">
+                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors text-lg flex items-center group">
+                    <ArrowRight className="w-4 h-4 mr-2 group-hover:translate-x-1 transition-transform" />
+                    Help Center
+                  </a></li>
+                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors text-lg flex items-center group">
+                    <ArrowRight className="w-4 h-4 mr-2 group-hover:translate-x-1 transition-transform" />
+                    Contact Us
+                  </a></li>
+                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors text-lg flex items-center group">
+                    <ArrowRight className="w-4 h-4 mr-2 group-hover:translate-x-1 transition-transform" />
+                    Shipping Info
+                  </a></li>
+                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors text-lg flex items-center group">
+                    <ArrowRight className="w-4 h-4 mr-2 group-hover:translate-x-1 transition-transform" />
+                    Returns & Refunds
+                  </a></li>
+                  <li><a href="#" className="text-gray-300 hover:text-white transition-colors text-lg flex items-center group">
+                    <ArrowRight className="w-4 h-4 mr-2 group-hover:translate-x-1 transition-transform" />
+                    FAQ
+                  </a></li>
+                </ul>
+              </div>
+
+              {/* Contact Info - Enhanced */}
+              <div>
+                <h4 className="text-xl font-bold text-white mb-6 flex items-center">
+                  <span className="w-2 h-2 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full mr-3"></span>
+                  Contact
+                </h4>
+                <div className="space-y-4">
+                  <div className="flex items-start space-x-3 group">
+                    <MapPin className="w-5 h-5 text-blue-400 mt-1 group-hover:scale-110 transition-transform" />
+                    <span className="text-gray-300 text-lg">123 Fashion Street, Style City, SC 12345</span>
+                  </div>
+                  <div className="flex items-start space-x-3 group">
+                    <Clock className="w-5 h-5 text-green-400 mt-1 group-hover:scale-110 transition-transform" />
+                    <span className="text-gray-300 text-lg">Mon - Fri: 9:00 AM - 6:00 PM</span>
+                  </div>
+                  <div className="flex items-start space-x-3 group">
+                    <span className="w-5 h-5 text-purple-400 mt-1 group-hover:scale-110 transition-transform">📧</span>
+                    <span className="text-gray-300 text-lg">hello@showmyfit.com</span>
+                  </div>
+                  <div className="flex items-start space-x-3 group">
+                    <span className="w-5 h-5 text-pink-400 mt-1 group-hover:scale-110 transition-transform">📞</span>
+                    <span className="text-gray-300 text-lg">+1 (555) 123-4567</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Enhanced Social Media Section */}
+            <div className="bg-gradient-to-r from-indigo-600/20 to-purple-600/20 backdrop-blur-sm rounded-3xl p-8 mb-8 border border-white/10">
+              <div className="max-w-4xl mx-auto text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl mb-6">
+                  <span className="text-white text-2xl">📱</span>
+                </div>
+                <h3 className="text-3xl font-bold text-white mb-4">Follow Us for Updates</h3>
+                <p className="text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
+                  Stay connected with Showmyfit on social media for daily updates, 
+                  exclusive deals, and behind-the-scenes content!
+                </p>
+                
+                {/* Social Media Links */}
+                <div className="flex justify-center space-x-6 mb-8">
+                  <a href="https://www.facebook.com/showmyfitofficial?mibextid=ZbWKwL" target="_blank" rel="noopener noreferrer" className="group w-16 h-16 bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl flex items-center justify-center hover:from-blue-500 hover:to-blue-600 transition-all duration-300 hover:scale-110 hover:shadow-xl" title="Facebook">
+                    <svg className="w-8 h-8 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                    </svg>
+                  </a>
+                  <a href="https://youtube.com/@showmyfit?si=wx8ga-Yya5PqVA7f" target="_blank" rel="noopener noreferrer" className="group w-16 h-16 bg-gradient-to-r from-red-600 to-red-700 rounded-2xl flex items-center justify-center hover:from-red-500 hover:to-red-600 transition-all duration-300 hover:scale-110 hover:shadow-xl" title="YouTube">
+                    <svg className="w-8 h-8 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                    </svg>
+                  </a>
+                  <a href="https://www.instagram.com/showmyfit?utm_source=qr" target="_blank" rel="noopener noreferrer" className="group w-16 h-16 bg-gradient-to-r from-pink-600 to-purple-600 rounded-2xl flex items-center justify-center hover:from-pink-500 hover:to-purple-500 transition-all duration-300 hover:scale-110 hover:shadow-xl" title="Instagram">
+                    <svg className="w-8 h-8 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 6.62 5.367 11.987 11.988 11.987s11.987-5.367 11.987-11.987C24.014 5.367 18.637.001 12.017.001zM8.449 16.988c-1.297 0-2.448-.49-3.323-1.297C4.198 14.895 3.708 13.744 3.708 12.447s.49-2.448 1.418-3.323c.875-.807 2.026-1.297 3.323-1.297s2.448.49 3.323 1.297c.928.875 1.418 2.026 1.418 3.323s-.49 2.448-1.418 3.244c-.875.807-2.026 1.297-3.323 1.297zm7.83-9.281h-1.441v1.441h1.441V7.707zm-7.83 1.441c-.807 0-1.441.634-1.441 1.441s.634 1.441 1.441 1.441 1.441-.634 1.441-1.441-.634-1.441-1.441-1.441z"/>
+                    </svg>
+                  </a>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-white">
+                  <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4">
+                    <div className="text-2xl font-bold mb-2">50K+</div>
+                    <div className="text-sm text-gray-300">Facebook Followers</div>
+                  </div>
+                  <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4">
+                    <div className="text-2xl font-bold mb-2">25K+</div>
+                    <div className="text-sm text-gray-300">YouTube Subscribers</div>
+                  </div>
+                  <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4">
+                    <div className="text-2xl font-bold mb-2">35K+</div>
+                    <div className="text-sm text-gray-300">Instagram Followers</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Premium Newsletter Section */}
+            <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-sm rounded-3xl p-8 mb-12 border border-white/10">
+              <div className="max-w-4xl mx-auto text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mb-6">
+                  <span className="text-white text-2xl">📧</span>
+                </div>
+                <h3 className="text-3xl font-bold text-white mb-4">Stay in the Loop</h3>
+                <p className="text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
+                  Get exclusive access to new stores, special deals, and community updates. 
+                  Be the first to know about exciting local discoveries!
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto">
                   <input
                     type="email"
                     placeholder="Enter your email address"
-                    className="flex-1 px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    className="flex-1 px-6 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
                   />
-                  <button className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors text-sm">
+                  <button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-2xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
                     Subscribe
                   </button>
+                </div>
+                <p className="text-gray-400 text-sm mt-4">
+                  Join 10,000+ subscribers. Unsubscribe anytime.
+                </p>
+              </div>
+            </div>
+
+            {/* Become a Seller Section */}
+            <div className="bg-gradient-to-r from-green-600/20 to-blue-600/20 backdrop-blur-sm rounded-3xl p-8 mb-12 border border-white/10">
+              <div className="max-w-4xl mx-auto text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-green-500 to-blue-600 rounded-2xl mb-6">
+                  <span className="text-white text-2xl">🏪</span>
+                </div>
+                <h3 className="text-3xl font-bold text-white mb-4">Ready to Start Selling?</h3>
+                <p className="text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
+                  Join thousands of successful sellers on Showmyfit. Start your online store today 
+                  and reach customers in your local community and beyond!
+                </p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                  <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6">
+                    <div className="text-3xl mb-3">🚀</div>
+                    <h4 className="text-xl font-bold text-white mb-2">Quick Setup</h4>
+                    <p className="text-gray-300 text-sm">Get started in minutes with our easy onboarding process</p>
+                  </div>
+                  <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6">
+                    <div className="text-3xl mb-3">💰</div>
+                    <h4 className="text-xl font-bold text-white mb-2">Low Fees</h4>
+                    <p className="text-gray-300 text-sm">Competitive commission rates to maximize your profits</p>
+                  </div>
+                  <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6">
+                    <div className="text-3xl mb-3">🎯</div>
+                    <h4 className="text-xl font-bold text-white mb-2">Local Focus</h4>
+                    <p className="text-gray-300 text-sm">Connect with customers in your neighborhood</p>
+                  </div>
+                </div>
+                
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Link
+                    to="/shop/auth"
+                    className="bg-gradient-to-r from-green-600 to-blue-600 text-white px-8 py-4 rounded-2xl font-semibold hover:from-green-700 hover:to-blue-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                  >
+                    Become a Seller Now
+                  </Link>
+                  <a
+                    href="#"
+                    className="border-2 border-white/30 text-white px-8 py-4 rounded-2xl font-semibold hover:bg-white/10 transition-all duration-300"
+                  >
+                    Learn More
+                  </a>
+                </div>
+                
+                <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-6 text-white">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold mb-1">500+</div>
+                    <div className="text-sm text-gray-300">Active Sellers</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold mb-1">₹50L+</div>
+                    <div className="text-sm text-gray-300">Total Sales</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold mb-1">4.8★</div>
+                    <div className="text-sm text-gray-300">Avg Rating</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold mb-1">24/7</div>
+                    <div className="text-sm text-gray-300">Support</div>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Bottom Bar */}
-            <div className="border-t border-gray-700 pt-6">
-              <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-                <div className="text-gray-400 text-sm">
-                  © 2024 Showmyfit. All rights reserved. Crafted with ❤️ for fashion lovers.
+            {/* Enhanced Bottom Bar */}
+            <div className="border-t border-white/10 pt-8">
+              <div className="flex flex-col lg:flex-row justify-between items-center space-y-6 lg:space-y-0">
+                <div className="text-center lg:text-left">
+                  <div className="text-gray-300 text-lg mb-2">
+                    © 2024 Showmyfit. All rights reserved.
+                  </div>
+                  <div className="text-gray-400 text-sm">
+                    Crafted with ❤️ for local communities worldwide
+                  </div>
                 </div>
-                <div className="flex space-x-6">
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors text-sm">Privacy Policy</a>
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors text-sm">Terms of Service</a>
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors text-sm">Cookie Policy</a>
+                
+                <div className="flex flex-wrap justify-center gap-8">
+                  <a href="#" className="text-gray-300 hover:text-white transition-colors text-sm font-medium">Privacy Policy</a>
+                  <a href="#" className="text-gray-300 hover:text-white transition-colors text-sm font-medium">Terms of Service</a>
+                  <a href="#" className="text-gray-300 hover:text-white transition-colors text-sm font-medium">Cookie Policy</a>
+                  <a href="#" className="text-gray-300 hover:text-white transition-colors text-sm font-medium">Accessibility</a>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <span className="text-gray-400 text-sm">Made with</span>
+                  <div className="w-4 h-4 text-red-500 animate-pulse">❤️</div>
+                  <span className="text-gray-400 text-sm">in India</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </footer>
+
     </div>
   );
 };

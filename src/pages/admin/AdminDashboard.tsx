@@ -19,6 +19,7 @@ import Button from '../../components/ui/Button';
 import { useAuth } from '../../contexts/AuthContext';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../../firebase/config';
+import AdminReservedProducts from '../../components/admin/AdminReservedProducts';
 
 interface DashboardStats {
   totalUsers: number;
@@ -158,6 +159,14 @@ const AdminDashboard: React.FC = () => {
       icon: BarChart3,
       link: '/admin/homepage',
       color: 'bg-pink-500',
+      stats: null
+    },
+    {
+      title: 'Reserved Products',
+      description: 'View and manage all product reservations',
+      icon: Clock,
+      link: '/admin/reserved-products',
+      color: 'bg-orange-500',
       stats: null
     },
     {

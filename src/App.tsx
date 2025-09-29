@@ -24,6 +24,7 @@ import OrderManagementPage from './pages/order/OrderManagementPage';
 import AdminSettingsPage from './pages/admin/AdminSettingsPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import HomePageManagement from './pages/admin/HomePageManagement';
+import AdminReservedProducts from './components/admin/AdminReservedProducts';
 import AboutUsPage from './pages/AboutUsPage';
 import Navbar from './components/layout/Navbar';
 import Button from './components/ui/Button';
@@ -31,6 +32,7 @@ import ScrollToTop from './components/layout/ScrollToTop';
 import { AppProvider } from './contexts/AppContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
+import Chatbot from './components/common/Chatbot';
 
 // Bottom Navigation Component
 const BottomNavigation = () => {
@@ -296,6 +298,7 @@ function App() {
             <Route path="/admin/users" element={<UserManagementPage />} />
             <Route path="/admin/orders" element={<OrderManagementPage />} />
             <Route path="/admin/homepage" element={<HomePageManagement />} />
+            <Route path="/admin/reserved-products" element={<AdminReservedProducts />} />
             <Route path="/admin/settings" element={<AdminSettingsPage />} />
             <Route path="/cart" element={<CartPage />} />
             <Route path="/wishlist" element={<WishlistPage />} />
@@ -305,6 +308,9 @@ function App() {
             
             {/* Bottom Navigation - Always Visible */}
             <BottomNavigation />
+            
+            {/* Chatbot - Always Visible on All Pages */}
+            <Chatbot />
           </div>
           </Router>
         </CartProvider>

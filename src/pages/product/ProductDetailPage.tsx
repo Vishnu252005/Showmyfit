@@ -655,6 +655,129 @@ const ProductDetailPage: React.FC = () => {
               </div>
             </div>
           )}
+
+          {/* Reviews Section - Moved to Bottom */}
+          <div className="mt-12 bg-white rounded-2xl shadow-lg p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Customer Reviews</h2>
+              <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                Write a Review
+              </button>
+            </div>
+            
+            {/* Rating Summary */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+              <div className="flex items-center space-x-4">
+                <div className="text-center">
+                  <div className="text-4xl font-bold text-gray-900">{product.rating.toFixed(1)}</div>
+                  <div className="flex items-center justify-center space-x-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        className={`w-5 h-5 ${
+                          star <= Math.floor(product.rating)
+                            ? 'text-yellow-400 fill-current'
+                            : 'text-gray-300'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <div className="text-sm text-gray-600 mt-1">{product.reviews} reviews</div>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                {[5, 4, 3, 2, 1].map((star) => (
+                  <div key={star} className="flex items-center space-x-2">
+                    <span className="text-sm text-gray-600 w-2">{star}</span>
+                    <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                    <div className="flex-1 bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-yellow-400 h-2 rounded-full"
+                        style={{ width: `${Math.random() * 100}%` }}
+                      ></div>
+                    </div>
+                    <span className="text-sm text-gray-600 w-8">
+                      {Math.floor(Math.random() * 50)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Individual Reviews */}
+            <div className="space-y-6">
+              {[
+                {
+                  name: "Sarah Johnson",
+                  rating: 5,
+                  date: "2 days ago",
+                  comment: "Absolutely love this product! Quality is amazing and delivery was super fast. Highly recommended!",
+                  verified: true
+                },
+                {
+                  name: "Mike Chen",
+                  rating: 4,
+                  date: "1 week ago",
+                  comment: "Great product overall. The quality is good and it arrived on time. Would buy again.",
+                  verified: true
+                },
+                {
+                  name: "Emma Wilson",
+                  rating: 5,
+                  date: "2 weeks ago",
+                  comment: "Perfect! Exactly what I was looking for. The seller was very helpful and responsive.",
+                  verified: false
+                }
+              ].map((review, index) => (
+                <div key={index} className="border-b border-gray-200 pb-6 last:border-b-0">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
+                        {review.name.charAt(0)}
+                      </div>
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <h4 className="font-semibold text-gray-900">{review.name}</h4>
+                          {review.verified && (
+                            <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                              Verified Purchase
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-1">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <Star
+                                key={star}
+                                className={`w-4 h-4 ${
+                                  star <= review.rating
+                                    ? 'text-yellow-400 fill-current'
+                                    : 'text-gray-300'
+                                }`}
+                              />
+                            ))}
+                          </div>
+                          <span className="text-sm text-gray-500">{review.date}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <button className="text-gray-400 hover:text-gray-600">
+                      <ThumbsUp className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <p className="text-gray-700 leading-relaxed">{review.comment}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Load More Reviews */}
+            <div className="text-center mt-8">
+              <button className="text-blue-600 hover:text-blue-700 font-medium">
+                Load More Reviews
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
