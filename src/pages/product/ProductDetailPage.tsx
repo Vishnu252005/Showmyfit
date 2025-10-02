@@ -10,7 +10,7 @@ import {
 import Navbar from '../../components/layout/Navbar';
 import { useCart } from '../../contexts/CartContext';
 import { useWishlist } from '../../contexts/WishlistContext';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, addDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 
 interface Product {
@@ -76,6 +76,13 @@ const ProductDetailPage: React.FC = () => {
   const [loadingReviews, setLoadingReviews] = useState(true);
   const [averageRating, setAverageRating] = useState(0);
   const [totalReviews, setTotalReviews] = useState(0);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [reviewForm, setReviewForm] = useState({
+    rating: 5,
+    comment: '',
+    userName: ''
+  });
+  const [submittingReview, setSubmittingReview] = useState(false);
 
   // Fetch reviews for the product
   useEffect(() => {
@@ -84,41 +91,35 @@ const ProductDetailPage: React.FC = () => {
       
       setLoadingReviews(true);
       try {
-        // For now, generate some sample reviews based on the product
-        // In a real app, you would fetch from a reviews collection
-        const sampleReviews = [
-          {
-            id: '1',
-            name: "Sarah Johnson",
-            rating: Math.floor(Math.random() * 2) + 4, // 4-5 stars
-            date: "2 days ago",
-            comment: "Great product! Quality is amazing and delivery was super fast. Highly recommended!",
-            verified: true
-          },
-          {
-            id: '2',
-            name: "Mike Chen",
-            rating: Math.floor(Math.random() * 2) + 3, // 3-4 stars
-            date: "1 week ago",
-            comment: "Good product overall. The quality is decent and it arrived on time. Would consider buying again.",
-            verified: true
-          },
-          {
-            id: '3',
-            name: "Emma Wilson",
-            rating: Math.floor(Math.random() * 2) + 4, // 4-5 stars
-            date: "2 weeks ago",
-            comment: "Perfect! Exactly what I was looking for. The seller was very helpful and responsive.",
-            verified: false
-          }
-        ];
+        console.log('Fetching reviews for product:', productId);
+        // Fetch real reviews from database
+        const reviewsQuery = query(
+          collection(db, 'reviews'),
+          where('productId', '==', productId)
+        );
+        console.log('Reviews query created, executing...');
+        const reviewsSnapshot = await getDocs(reviewsQuery);
         
-        setReviews(sampleReviews);
+        const reviewsData = reviewsSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          date: doc.data().createdAt?.toDate() || new Date()
+        })) as any[];
+        
+        console.log('Reviews fetched:', reviewsData.length, 'reviews');
+        setReviews(reviewsData);
         
         // Calculate average rating and total reviews
-        const avgRating = sampleReviews.reduce((sum, review) => sum + review.rating, 0) / sampleReviews.length;
-        setAverageRating(avgRating);
-        setTotalReviews(sampleReviews.length);
+        if (reviewsData.length > 0) {
+          const avgRating = reviewsData.reduce((sum, review) => sum + (review.rating || 0), 0) / reviewsData.length;
+          setAverageRating(avgRating);
+          setTotalReviews(reviewsData.length);
+          console.log('Average rating calculated:', avgRating);
+        } else {
+          setAverageRating(0);
+          setTotalReviews(0);
+          console.log('No reviews found, setting default values');
+        }
       } catch (error) {
         console.error('Error fetching reviews:', error);
         setReviews([]);
@@ -131,6 +132,61 @@ const ProductDetailPage: React.FC = () => {
 
     fetchReviews();
   }, [productId]);
+
+  // Submit review function
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!productId || !reviewForm.comment.trim()) return;
+
+    setSubmittingReview(true);
+    try {
+      const reviewData = {
+        productId: productId,
+        userId: currentUser?.uid || 'anonymous',
+        userName: reviewForm.userName || 'Anonymous',
+        rating: reviewForm.rating,
+        comment: reviewForm.comment.trim(),
+        reviewText: reviewForm.comment.trim(),
+        verified: false,
+        createdAt: new Date()
+      };
+
+      await addDoc(collection(db, 'reviews'), reviewData);
+      
+      // Refresh reviews
+      const reviewsQuery = query(
+        collection(db, 'reviews'),
+        where('productId', '==', productId)
+      );
+      const reviewsSnapshot = await getDocs(reviewsQuery);
+      
+      const reviewsData = reviewsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        date: doc.data().createdAt?.toDate() || new Date()
+      })) as any[];
+      
+      setReviews(reviewsData);
+      
+      // Recalculate average rating
+      if (reviewsData.length > 0) {
+        const avgRating = reviewsData.reduce((sum, review) => sum + (review.rating || 0), 0) / reviewsData.length;
+        setAverageRating(avgRating);
+        setTotalReviews(reviewsData.length);
+      }
+
+      // Reset form and close modal
+      setReviewForm({ rating: 5, comment: '', userName: '' });
+      setShowReviewForm(false);
+      
+      console.log('Review submitted successfully');
+    } catch (error) {
+      console.error('Error submitting review:', error);
+      alert('Failed to submit review. Please try again.');
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
 
   // Fetch product data
   useEffect(() => {
@@ -731,7 +787,10 @@ const ProductDetailPage: React.FC = () => {
           <div className="mt-12 bg-white rounded-2xl shadow-lg p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-gray-900">Customer Reviews</h2>
-              <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+              <button 
+                onClick={() => setShowReviewForm(true)}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
                 Write a Review
               </button>
             </div>
@@ -789,11 +848,11 @@ const ProductDetailPage: React.FC = () => {
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
-                        {review.name.charAt(0)}
+                        {(review.userName || review.name || 'A').charAt(0).toUpperCase()}
                       </div>
                       <div>
                         <div className="flex items-center space-x-2">
-                          <h4 className="font-semibold text-gray-900">{review.name}</h4>
+                          <h4 className="font-semibold text-gray-900">{review.userName || review.name || 'Anonymous'}</h4>
                           {review.verified && (
                             <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
                               Verified Purchase
@@ -806,14 +865,16 @@ const ProductDetailPage: React.FC = () => {
                               <Star
                                 key={star}
                                 className={`w-4 h-4 ${
-                                  star <= review.rating
+                                  star <= (review.rating || 0)
                                     ? 'text-yellow-400 fill-current'
                                     : 'text-gray-300'
                                 }`}
                               />
                             ))}
                           </div>
-                          <span className="text-sm text-gray-500">{review.date}</span>
+                          <span className="text-sm text-gray-500">
+                            {review.date ? new Date(review.date).toLocaleDateString() : 'Recently'}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -821,7 +882,7 @@ const ProductDetailPage: React.FC = () => {
                       <ThumbsUp className="w-5 h-5" />
                     </button>
                   </div>
-                  <p className="text-gray-700 leading-relaxed">{review.comment}</p>
+                  <p className="text-gray-700 leading-relaxed">{review.comment || review.reviewText || 'No comment provided'}</p>
                 </div>
                 ))
               ) : (
@@ -840,6 +901,99 @@ const ProductDetailPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Review Form Modal */}
+      {showReviewForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-gray-900">Write a Review</h3>
+              <button
+                onClick={() => setShowReviewForm(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitReview} className="space-y-4">
+              {/* Name Field */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Your Name (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={reviewForm.userName}
+                  onChange={(e) => setReviewForm(prev => ({ ...prev, userName: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter your name"
+                />
+              </div>
+
+              {/* Rating Field */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Rating
+                </label>
+                <div className="flex items-center space-x-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setReviewForm(prev => ({ ...prev, rating: star }))}
+                      className="focus:outline-none"
+                    >
+                      <Star
+                        className={`w-8 h-8 ${
+                          star <= reviewForm.rating
+                            ? 'text-yellow-400 fill-current'
+                            : 'text-gray-300'
+                        }`}
+                      />
+                    </button>
+                  ))}
+                  <span className="ml-2 text-sm text-gray-600">
+                    {reviewForm.rating} star{reviewForm.rating !== 1 ? 's' : ''}
+                  </span>
+                </div>
+              </div>
+
+              {/* Comment Field */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Your Review *
+                </label>
+                <textarea
+                  value={reviewForm.comment}
+                  onChange={(e) => setReviewForm(prev => ({ ...prev, comment: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent h-24 resize-none"
+                  placeholder="Share your experience with this product..."
+                  required
+                />
+              </div>
+
+              {/* Submit Buttons */}
+              <div className="flex space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowReviewForm(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingReview || !reviewForm.comment.trim()}
+                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {submittingReview ? 'Submitting...' : 'Submit Review'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

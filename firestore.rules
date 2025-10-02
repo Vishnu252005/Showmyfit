@@ -90,6 +90,15 @@ service cloud.firestore {
         request.resource.data.userId == request.auth.uid;
     }
     
+    // Reviews collection - public read, authenticated write
+    match /reviews/{reviewId} {
+      allow read: if true; // Anyone can read reviews
+      allow write: if request.auth != null && 
+        resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && 
+        request.resource.data.userId == request.auth.uid;
+    }
+    
     // Deny all other collections
     match /{document=**} {
       allow read, write: if false;

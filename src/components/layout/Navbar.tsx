@@ -13,7 +13,6 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
   const location = useLocation();
-  const [wishlistCount] = useState(5); // Mock wishlist count
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
   // Safe context access with fallbacks
@@ -45,6 +44,7 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
   try {
     const wishlist = useWishlist();
     getWishlistCount = wishlist.getWishlistCount;
+    console.log('Wishlist context loaded successfully');
   } catch (error) {
     console.warn('Wishlist context not available in Navbar:', error);
   }
@@ -111,18 +111,6 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
                     Login
                   </Link>
                 )}
-                <Link
-                  to="/wishlist"
-                  className="relative text-white hover:text-yellow-300 font-medium text-sm transition-colors flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-white/20"
-                >
-                  <Heart className="w-5 h-5" />
-                  <span className="hidden md:block">Wishlist</span>
-                  {wishlistCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-yellow-400 text-gray-900 text-xs rounded-full flex items-center justify-center font-bold">
-                      {wishlistCount}
-                    </span>
-                  )}
-                </Link>
                 <Link
                   to="/cart"
                   className="relative text-white hover:text-yellow-300 font-medium text-sm transition-colors flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-white/20"
