@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, Search, User, Store, Shield, Heart, ShoppingBag, Bookmark, Menu, X, LogOut } from 'lucide-react';
 import Sidebar from './Sidebar';
+import ShowMyFITLogo from '../common/ShowMyFITLogo';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
 
@@ -20,7 +21,7 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
     return (
       <>
         {/* Top Navigation Bar - Enhanced Design */}
-        <nav className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-40 shadow-sm">
+        <nav className="fixed top-0 left-0 right-0 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 z-40 shadow-lg">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Main Navigation Row */}
             <div className="flex justify-between items-center h-16">
@@ -28,16 +29,13 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
               <div className="flex items-center space-x-4">
                 <button
                   onClick={() => setSidebarOpen(true)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-white/20 rounded-lg transition-colors"
                   aria-label="Open sidebar menu"
                 >
-                  <Menu className="w-6 h-6 text-gray-700" />
+                  <Menu className="w-6 h-6 text-white" />
                 </button>
                 <Link to="/" className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                    <span className="text-white font-bold text-sm">S</span>
-                  </div>
-                  <div className="text-xl font-bold text-gray-900">Showmyfit</div>
+                  <ShowMyFITLogo size="md" className="text-white" />
                 </Link>
               </div>
 
@@ -45,12 +43,12 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
               <div className="flex items-center space-x-4">
                 {currentUser ? (
                   <div className="flex items-center space-x-3">
-                    <span className="text-gray-700 font-medium text-sm hidden sm:block">
+                    <span className="text-white font-medium text-sm hidden sm:block">
                       Hi, {currentUser.displayName || currentUser.email?.split('@')[0]}
                     </span>
                     <button
                       onClick={signOut}
-                      className="text-gray-700 hover:text-blue-600 font-medium text-sm transition-colors flex items-center space-x-1 px-3 py-2 rounded-lg hover:bg-gray-100"
+                      className="text-white hover:text-yellow-300 font-medium text-sm transition-colors flex items-center space-x-1 px-3 py-2 rounded-lg hover:bg-white/20"
                     >
                       <LogOut className="w-4 h-4" />
                       <span className="hidden sm:block">Logout</span>
@@ -59,32 +57,32 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
                 ) : (
                   <Link
                     to="/login"
-                    className="text-gray-700 hover:text-blue-600 font-medium text-sm transition-colors px-4 py-2 rounded-lg hover:bg-gray-100"
+                    className="text-white hover:text-yellow-300 font-medium text-sm transition-colors px-4 py-2 rounded-lg hover:bg-white/20"
                   >
                     Login
                   </Link>
                 )}
                 <Link
                   to="/wishlist"
-                  className="relative text-gray-700 hover:text-red-600 font-medium text-sm transition-colors flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100"
+                  className="relative text-white hover:text-yellow-300 font-medium text-sm transition-colors flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-white/20"
                 >
                   <Heart className="w-5 h-5" />
                   <span className="hidden md:block">Wishlist</span>
                   {wishlistCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-yellow-400 text-gray-900 text-xs rounded-full flex items-center justify-center font-bold">
                       {wishlistCount}
                     </span>
                   )}
                 </Link>
                 <Link
                   to="/cart"
-                  className="relative text-gray-700 hover:text-blue-600 font-medium text-sm transition-colors flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100"
+                  className="relative text-white hover:text-yellow-300 font-medium text-sm transition-colors flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-white/20"
                 >
                   <Bookmark className="w-5 h-5" />
                   <span className="hidden md:block">Reserved</span>
                   {getCartItemCount() > 0 && (
-                    <span className={`absolute -top-1 -right-1 w-5 h-5 text-white text-xs rounded-full flex items-center justify-center font-bold transition-all duration-300 ${
-                      showAddNotification ? 'bg-green-500 animate-pulse' : 'bg-red-500'
+                    <span className={`absolute -top-1 -right-1 w-5 h-5 text-gray-900 text-xs rounded-full flex items-center justify-center font-bold transition-all duration-300 ${
+                      showAddNotification ? 'bg-green-400 animate-pulse' : 'bg-yellow-400'
                     }`}>
                       {getCartItemCount()}
                     </span>
@@ -92,7 +90,7 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
                 </Link>
                 <Link
                   to="/shop/auth"
-                  className="bg-blue-600 text-white font-medium text-sm transition-colors px-4 py-2 rounded-lg hover:bg-blue-700 hidden lg:block"
+                  className="bg-white/20 text-white font-medium text-sm transition-colors px-4 py-2 rounded-lg hover:bg-white/30 hidden lg:block border border-white/30"
                 >
                   Become a Seller
                 </Link>
@@ -101,7 +99,7 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
           </div>
           
           {/* Search Bar Row */}
-          <div className="bg-gray-50 border-t border-gray-200">
+          <div className="bg-white/10 backdrop-blur-sm border-t border-white/20">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
               <div className="flex items-center justify-center">
                 <div className="w-full max-w-2xl">
@@ -109,10 +107,10 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
                     <input
                       type="text"
                       placeholder="Search for Products, Brands and More"
-                      className="w-full pl-4 pr-16 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm shadow-sm"
+                      className="w-full pl-4 pr-16 py-3 border border-white/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-300 focus:border-transparent text-sm shadow-lg bg-white/90 backdrop-blur-sm placeholder-gray-600"
                     />
                     <button 
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-2 bg-white/20 text-white rounded-md hover:bg-white/30 transition-colors border border-white/30"
                       aria-label="Search"
                     >
                       <Search className="w-4 h-4" />
@@ -137,7 +135,7 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
   // Top navigation for shop/admin
   return (
     <>
-      <nav className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-40">
+      <nav className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 shadow-lg sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Main Navigation Row */}
           <div className="flex justify-between items-center h-16">
@@ -145,16 +143,13 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
                 aria-label="Open sidebar menu"
               >
-                <Menu className="w-6 h-6 text-gray-700" />
+                <Menu className="w-6 h-6 text-white" />
               </button>
               <Link to="/" className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">S</span>
-                </div>
-                <div className="text-xl font-bold text-gray-900">Showmyfit</div>
+                <ShowMyFITLogo size="md" className="text-white" />
               </Link>
             </div>
 
@@ -163,7 +158,7 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
               {userRole === 'shop' && (
                 <Link
                   to="/shop/dashboard"
-                  className="text-gray-700 hover:text-blue-600 font-medium text-sm transition-colors flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100"
+                  className="text-white hover:text-yellow-300 font-medium text-sm transition-colors flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-white/20"
                 >
                   <Store className="w-5 h-5" />
                   <span>Dashboard</span>
@@ -173,7 +168,7 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
               {userRole === 'admin' && (
                 <Link
                   to="/admin"
-                  className="text-gray-700 hover:text-blue-600 font-medium text-sm transition-colors flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100"
+                  className="text-white hover:text-yellow-300 font-medium text-sm transition-colors flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-white/20"
                 >
                   <Shield className="w-5 h-5" />
                   <span>Admin</span>
@@ -183,7 +178,7 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
           </div>
           
           {/* Search Bar Row */}
-          <div className="bg-gray-50 border-t border-gray-200">
+          <div className="bg-white/10 backdrop-blur-sm border-t border-white/20">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
               <div className="flex items-center justify-center">
                 <div className="w-full max-w-2xl">
@@ -191,10 +186,10 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
                     <input
                       type="text"
                       placeholder="Search for Products, Brands and More"
-                      className="w-full pl-4 pr-16 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm shadow-sm"
+                      className="w-full pl-4 pr-16 py-3 border border-white/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-300 focus:border-transparent text-sm shadow-lg bg-white/90 backdrop-blur-sm placeholder-gray-600"
                     />
                     <button 
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-2 bg-white/20 text-white rounded-md hover:bg-white/30 transition-colors border border-white/30"
                       aria-label="Search"
                     >
                       <Search className="w-4 h-4" />

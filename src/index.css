@@ -40,7 +40,6 @@ body {
   overflow-x: hidden;
   margin: 0;
   padding: 0;
-  padding-top: 1rem; /* Space for top navbar */
   padding-bottom: 6rem; /* Space for bottom navbar */
 }
 

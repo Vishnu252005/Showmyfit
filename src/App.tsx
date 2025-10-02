@@ -5,6 +5,7 @@ import HomePage from './pages/HomePage';
 import SearchPage from './pages/SearchPage';
 import CategoriesPage from './pages/CategoriesPage';
 import ShopDashboard from './pages/seller/ShopDashboard';
+import SellerDashboard from './components/seller/SellerDashboard';
 import AuthPage from './pages/auth/AuthPage';
 import ProfilePage from './pages/profile/ProfilePage';
 import BecomeSellerPage from './pages/seller/BecomeSellerPage';
@@ -290,6 +291,7 @@ function App() {
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/shop/auth" element={<BecomeSellerPage />} />
             <Route path="/shop/dashboard" element={<ShopDashboard />} />
+            <Route path="/seller/dashboard" element={<SellerDashboard />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/setup" element={<AdminSetupPage />} />
             <Route path="/admin/fix-email" element={<FixAdminEmailPage />} />

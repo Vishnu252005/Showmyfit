@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { 
   Mail, Phone, MapPin, Edit, LogOut, Star, 
   ArrowLeft, Calendar, Package, Plus,
-  TrendingUp, DollarSign, Tag, XCircle, Save, X, Clock
+  TrendingUp, DollarSign, Tag, XCircle, Save, X, Clock, BarChart3
 } from 'lucide-react';
 import GoogleMapLocation from '../../components/common/GoogleMapLocation';
 import Navbar from '../../components/layout/Navbar';
@@ -491,6 +491,15 @@ const SellerProfilePage: React.FC = () => {
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row gap-3">
+                <Link to="/seller/dashboard">
+                  <Button
+                    variant="secondary"
+                    className="flex items-center bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700"
+                  >
+                    <BarChart3 className="w-4 h-4 mr-2" />
+                    View Dashboard
+                  </Button>
+                </Link>
                 <Button
                   onClick={handleEdit}
                   variant="outline"
