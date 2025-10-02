@@ -683,7 +683,7 @@ const SellerProductsPage: React.FC = () => {
                             <div className="flex items-center space-x-2">
                               <div className="flex items-center bg-yellow-50 px-2 py-1 rounded-full">
                                 <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                                <span className="text-sm font-bold ml-1">{product.rating.toFixed(1)}</span>
+                                <span className="text-sm font-bold ml-1">{(product.rating || 0).toFixed(1)}</span>
                               </div>
                               <span className="text-sm text-gray-500">({product.reviews} reviews)</span>
                             </div>
@@ -840,7 +840,7 @@ const SellerProductsPage: React.FC = () => {
                                   <div className="flex items-center space-x-4 mb-3">
                                     <div className="flex items-center">
                                       <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                                      <span className="text-sm font-medium ml-1">{product.rating.toFixed(1)}</span>
+                                      <span className="text-sm font-medium ml-1">{(product.rating || 0).toFixed(1)}</span>
                                       <span className="text-sm text-gray-500 ml-1">({product.reviews} reviews)</span>
                                     </div>
                                     <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
@@ -972,7 +972,7 @@ const SellerProductsPage: React.FC = () => {
                   <div className="flex items-center space-x-4">
                     <div className="flex items-center bg-yellow-50 px-3 py-2 rounded-full">
                       <Star className="w-5 h-5 text-yellow-500 fill-current" />
-                      <span className="font-bold ml-2">{selectedProduct.rating.toFixed(1)}</span>
+                      <span className="font-bold ml-2">{(selectedProduct.rating || 0).toFixed(1)}</span>
                       <span className="text-gray-500 ml-1">({selectedProduct.reviews} reviews)</span>
                     </div>
                   </div>

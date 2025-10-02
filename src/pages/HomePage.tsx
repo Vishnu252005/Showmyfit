@@ -1126,7 +1126,7 @@ const HomePage: React.FC = () => {
                       </div>
                       {/* Distance Badge */}
                       <div className="absolute top-3 left-3 bg-white/90 text-green-700 px-3 py-1 rounded-full text-sm font-bold">
-                        {seller.distance ? `${seller.distance.toFixed(1)} km` : 'Unknown'}
+                        {seller.distance ? `${(seller.distance || 0).toFixed(1)} km` : 'Unknown'}
                       </div>
                       <div className="absolute top-3 right-3 w-6 h-6 rounded-full flex items-center justify-center bg-green-500">
                         <div className="w-2 h-2 rounded-full bg-white"></div>
@@ -1138,7 +1138,7 @@ const HomePage: React.FC = () => {
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center space-x-1">
                           <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                          <span className="font-semibold text-gray-900">{seller.stats.rating.toFixed(1)}</span>
+                          <span className="font-semibold text-gray-900">{(seller.stats?.rating || 0).toFixed(1)}</span>
                           <span className="text-sm text-gray-500">({seller.stats.totalOrders})</span>
                         </div>
                         <span className="text-sm bg-green-100 text-green-800 px-3 py-1 rounded-full font-medium">
@@ -1261,7 +1261,7 @@ const HomePage: React.FC = () => {
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center space-x-1">
                           <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                          <span className="font-semibold text-gray-900">{seller.stats.rating.toFixed(1)}</span>
+                          <span className="font-semibold text-gray-900">{(seller.stats?.rating || 0).toFixed(1)}</span>
                           <span className="text-sm text-gray-500">({seller.stats.totalOrders})</span>
                         </div>
                         <span className="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">
@@ -1383,7 +1383,7 @@ const HomePage: React.FC = () => {
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center bg-yellow-50 px-3 py-2 rounded-full">
                     <Star className="w-5 h-5 text-yellow-500 fill-current" />
-                    <span className="font-bold ml-2">{selectedProduct.rating.toFixed(1)}</span>
+                    <span className="font-bold ml-2">{(selectedProduct.rating || 0).toFixed(1)}</span>
                     <span className="text-gray-500 ml-1">({selectedProduct.reviews} reviews)</span>
                           </div>
                         </div>

@@ -694,7 +694,7 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
                       <div>
                         <p className="text-sm text-gray-600">Rating</p>
                         <p className="text-xl font-bold text-gray-900">
-                          {userData?.stats?.rating?.toFixed(1) || '0.0'}
+                          {(userData?.stats?.rating || 0).toFixed(1)}
                         </p>
                       </div>
                     </div>

@@ -199,7 +199,7 @@ const CartPage: React.FC = () => {
                                   {shopDetails[item.sellerId].rating > 0 && (
                                     <div className="flex items-center space-x-1">
                                       <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                                      <span className="text-xs text-gray-600">{shopDetails[item.sellerId].rating.toFixed(1)}</span>
+                                      <span className="text-xs text-gray-600">{(shopDetails[item.sellerId]?.rating || 0).toFixed(1)}</span>
                                     </div>
                                   )}
                                 </div>

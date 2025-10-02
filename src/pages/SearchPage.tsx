@@ -83,7 +83,7 @@ const SearchPage: React.FC = () => {
       
       console.log('Re-sorting sellers by distance:', sortedSellers.map(s => ({ 
         name: s.businessName, 
-        distance: s.distance ? `${s.distance.toFixed(2)} km` : 'No location' 
+        distance: s.distance ? `${(s.distance || 0).toFixed(2)} km` : 'No location' 
       })));
       setSellers(sortedSellers);
     }
@@ -193,7 +193,7 @@ const SearchPage: React.FC = () => {
             
             console.log('Sellers sorted by distance:', sortedSellers.map(s => ({ 
               name: s.businessName, 
-              distance: s.distance ? `${s.distance.toFixed(2)} km` : 'No location' 
+              distance: s.distance ? `${(s.distance || 0).toFixed(2)} km` : 'No location' 
             })));
             setSellers(sortedSellers);
           } else {
@@ -266,14 +266,14 @@ const SearchPage: React.FC = () => {
             } else if (data.locality && data.principalSubdivision) {
               setCurrentLocation(`${data.locality}, ${data.principalSubdivision}`);
             } else {
-              setCurrentLocation(`Current Location (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`);
+              setCurrentLocation(`Current Location (${(latitude || 0).toFixed(4)}, ${(longitude || 0).toFixed(4)})`);
             }
             setIsGettingLocation(false);
           })
           .catch((error) => {
             console.log('Geocoding failed, using coordinates:', error);
             // Fallback to coordinates if geocoding fails
-            setCurrentLocation(`Current Location (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`);
+            setCurrentLocation(`Current Location (${(latitude || 0).toFixed(4)}, ${(longitude || 0).toFixed(4)})`);
             setIsGettingLocation(false);
           });
       },
@@ -491,7 +491,7 @@ const SearchPage: React.FC = () => {
                             </div>
                             {seller.distance && (
                               <div className="bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
-                                <span className="text-white text-xs font-medium">{seller.distance.toFixed(1)} km</span>
+                                <span className="text-white text-xs font-medium">{(seller.distance || 0).toFixed(1)} km</span>
                               </div>
                             )}
                           </div>
@@ -502,7 +502,7 @@ const SearchPage: React.FC = () => {
                           <div className="flex items-center space-x-2">
                             <div className="flex items-center space-x-1 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
                               <Star className="w-4 h-4 text-yellow-300 fill-current" />
-                              <span className="text-white font-semibold">{seller.stats.rating.toFixed(1)}</span>
+                              <span className="text-white font-semibold">{(seller.stats?.rating || 0).toFixed(1)}</span>
                               <span className="text-white/70 text-sm">({seller.stats.totalOrders})</span>
                             </div>
                           </div>

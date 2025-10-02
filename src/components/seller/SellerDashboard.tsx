@@ -567,7 +567,7 @@ const SellerDashboard: React.FC = () => {
                 ></div>
                 <span className="text-xs text-gray-600">{data.day}</span>
                 <span className="text-xs font-medium text-gray-900">
-                  ₹{data.revenue > 1000 ? `${(data.revenue / 1000).toFixed(1)}k` : data.revenue}
+                  ₹{data.revenue > 1000 ? `${((data.revenue || 0) / 1000).toFixed(1)}k` : (data.revenue || 0)}
                 </span>
               </div>
             ))
@@ -658,7 +658,7 @@ const SellerDashboard: React.FC = () => {
           />
           <StatCard
             title="Conversion Rate"
-            value={`${stats.conversionRate.toFixed(1)}%`}
+            value={`${(stats.conversionRate || 0).toFixed(1)}%`}
             icon={Target}
             color="bg-orange-500"
             growth={stats.viewGrowth}

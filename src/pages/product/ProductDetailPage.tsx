@@ -519,7 +519,7 @@ const ProductDetailPage: React.FC = () => {
                     ))}
                   </div>
                   <span className="text-sm text-gray-600">
-                    {averageRating.toFixed(1)} ({totalReviews} reviews)
+                    {(averageRating || 0).toFixed(1)} ({totalReviews || 0} reviews)
                   </span>
                 </div>
               </div>
@@ -745,7 +745,7 @@ const ProductDetailPage: React.FC = () => {
                   
                   <div className="flex items-center space-x-1">
                     <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                    <span className="font-semibold">{seller.stats.rating.toFixed(1)}</span>
+                    <span className="font-semibold">{(seller.stats?.rating || 0).toFixed(1)}</span>
                     <span className="text-sm text-gray-500">({seller.stats.totalOrders} orders)</span>
                   </div>
                 </div>
@@ -799,7 +799,7 @@ const ProductDetailPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
               <div className="flex items-center space-x-4">
                 <div className="text-center">
-                  <div className="text-4xl font-bold text-gray-900">{averageRating.toFixed(1)}</div>
+                  <div className="text-4xl font-bold text-gray-900">{(averageRating || 0).toFixed(1)}</div>
                   <div className="flex items-center justify-center space-x-1">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <Star
