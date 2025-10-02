@@ -26,6 +26,8 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import HomePageManagement from './pages/admin/HomePageManagement';
 import AdminReservedProducts from './components/admin/AdminReservedProducts';
 import AboutUsPage from './pages/AboutUsPage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import TermsOfServicePage from './pages/TermsOfServicePage';
 import Navbar from './components/layout/Navbar';
 import Button from './components/ui/Button';
 import ScrollToTop from './components/layout/ScrollToTop';
@@ -306,6 +308,8 @@ function App() {
             <Route path="/wishlist" element={<WishlistPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/about" element={<AboutUsPage />} />
+            <Route path="/privacy" element={<PrivacyPolicyPage />} />
+            <Route path="/terms" element={<TermsOfServicePage />} />
           </Routes>
             
             {/* Bottom Navigation - Always Visible */}

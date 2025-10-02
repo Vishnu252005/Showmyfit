@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { 
   Heart, ShoppingBag, Star, MapPin, Store, 
   ArrowLeft, Filter, Grid, List, Search,
@@ -50,6 +50,7 @@ interface Seller {
 }
 
 const CategoriesPage: React.FC = () => {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const selectedCategory = searchParams.get('category');
   const [products, setProducts] = useState<Product[]>([]);
@@ -156,6 +157,10 @@ const CategoriesPage: React.FC = () => {
     });
   };
 
+  const handleProductClick = (productId: string) => {
+    navigate(`/product/${productId}`);
+  };
+
   if (selectedCategory) {
     // Show products for selected category
     return (
@@ -236,9 +241,13 @@ const CategoriesPage: React.FC = () => {
                 const seller = getSellerInfo(product.sellerId);
                 
                 return (
-                  <div key={product.id} className={`bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-100 ${
-                    viewMode === 'list' ? 'flex' : ''
-                  }`}>
+                  <div 
+                    key={product.id} 
+                    className={`bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-100 cursor-pointer ${
+                      viewMode === 'list' ? 'flex' : ''
+                    }`}
+                    onClick={() => handleProductClick(product.id)}
+                  >
                     <div className={`relative ${viewMode === 'list' ? 'w-48 flex-shrink-0' : ''}`}>
                       <img
                         src={product.image}

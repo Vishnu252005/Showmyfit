@@ -13,6 +13,8 @@ const Footer: React.FC = () => {
           </p>
           <div className="flex justify-center space-x-8 text-sm text-warm-500 mb-6">
             <Link to="/about" className="hover:text-warm-700 uppercase tracking-wider font-medium">About</Link>
+            <Link to="/privacy" className="hover:text-warm-700 uppercase tracking-wider font-medium">Privacy</Link>
+            <Link to="/terms" className="hover:text-warm-700 uppercase tracking-wider font-medium">Terms</Link>
             <a href="#" className="hover:text-warm-700 uppercase tracking-wider font-medium">Artisans</a>
             <a href="#" className="hover:text-warm-700 uppercase tracking-wider font-medium">Sustainability</a>
             <a href="#" className="hover:text-warm-700 uppercase tracking-wider font-medium">Contact</a>

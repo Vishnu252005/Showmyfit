@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MapPin, Package } from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
 import Navbar from '../../components/layout/Navbar';
@@ -10,6 +11,7 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { getDistance, getUserLocation } from '../../utils/distance';
 
 const UserBrowse: React.FC = () => {
+  const navigate = useNavigate();
   const { state, setUserLocation } = useApp();
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
@@ -57,6 +59,10 @@ const UserBrowse: React.FC = () => {
     );
 
     return { shop, distance };
+  };
+
+  const handleProductClick = (productId: string) => {
+    navigate(`/product/${productId}`);
   };
 
   return (
@@ -110,6 +116,7 @@ const UserBrowse: React.FC = () => {
                   product={product}
                   shop={shop}
                   distance={distance}
+                  onClick={() => handleProductClick(product.id)}
                 />
               );
             })}

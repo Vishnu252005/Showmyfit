@@ -13,6 +13,7 @@ import { useToast } from '../../hooks/useToast';
 import Toast from '../../components/ui/Toast';
 
 const ShopDashboard: React.FC = () => {
+  const navigate = useNavigate();
   const { state, addProduct, setCurrentShop } = useApp();
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [productForm, setProductForm] = useState({
@@ -23,13 +24,16 @@ const ShopDashboard: React.FC = () => {
     imageUrl: ''
   });
   const { toasts, removeToast, success, error } = useToast();
-  const navigate = useNavigate();
 
   const categories = ['Electronics', 'Groceries', 'Clothing', 'Books', 'Home & Garden', 'Sports', 'Beauty', 'Other'];
 
   const handleLogout = () => {
     setCurrentShop(null);
     navigate('/');
+  };
+
+  const handleProductClick = (productId: string) => {
+    navigate(`/product/${productId}`);
   };
 
   const handleAddProduct = (e: React.FormEvent) => {
@@ -247,7 +251,11 @@ const ShopDashboard: React.FC = () => {
           {/* Products Grid */}
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {shopProducts.map(product => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard 
+                key={product.id} 
+                product={product} 
+                onClick={() => handleProductClick(product.id)}
+              />
             ))}
           </div>
 

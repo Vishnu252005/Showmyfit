@@ -266,6 +266,10 @@ const HomePage: React.FC = () => {
     setShowQuickView(true);
   };
 
+  const handleProductClick = (productId: string) => {
+    navigate(`/product/${productId}`);
+  };
+
   // Get products for a specific section
   const getSectionProducts = (productIds: string[]) => {
     return allProducts.filter(product => productIds.includes(product.id));
@@ -605,7 +609,11 @@ const HomePage: React.FC = () => {
                   {sectionProducts.length > 0 ? (
                     <div className={section.type === 'trending' ? 'grid grid-cols-1 md:grid-cols-2 gap-4' : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6'}>
                       {sectionProducts.map((product) => (
-                        <div key={product.id} className={section.type === 'trending' ? 'bg-white rounded-lg p-4 hover:shadow-lg transition-shadow touch-manipulation' : 'bg-white rounded-xl md:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-100'}>
+                        <div 
+                          key={product.id} 
+                          className={`${section.type === 'trending' ? 'bg-white rounded-lg p-4 hover:shadow-lg transition-shadow touch-manipulation' : 'bg-white rounded-xl md:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-100'} cursor-pointer`}
+                          onClick={() => handleProductClick(product.id)}
+                        >
                           {section.type === 'trending' ? (
                             // Trending section style (same as hardcoded trending deals)
                             <>
@@ -632,7 +640,10 @@ const HomePage: React.FC = () => {
                                   <span className="text-sm text-gray-500 line-through">₹{product.price.toLocaleString()}</span>
                                 )}
                               </div>
-                              <button className="w-full mt-3 bg-orange-500 text-white py-2 rounded-lg font-medium hover:bg-orange-600 transition-colors">
+                              <button 
+                                onClick={(e) => e.stopPropagation()}
+                                className="w-full mt-3 bg-orange-500 text-white py-2 rounded-lg font-medium hover:bg-orange-600 transition-colors"
+                              >
                                 Shop Now
                               </button>
                             </>
@@ -648,7 +659,10 @@ const HomePage: React.FC = () => {
                               {/* Action Buttons */}
                               <div className="absolute top-2 right-2 md:top-3 md:right-3 flex flex-col space-y-1 md:space-y-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                 <button
-                                  onClick={() => toggleWishlist(product.id)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleWishlist(product.id);
+                                  }}
                                   className="p-1.5 md:p-2 bg-white rounded-full shadow-lg hover:shadow-xl transition-all"
                                   title={wishlist.includes(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
                                   aria-label={wishlist.includes(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
@@ -658,7 +672,10 @@ const HomePage: React.FC = () => {
                                   }`} />
                                 </button>
                                 <button
-                                  onClick={() => quickViewProduct(product)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    quickViewProduct(product);
+                                  }}
                                   className="p-1.5 md:p-2 bg-white rounded-full shadow-lg hover:shadow-xl transition-all"
                                   title="Quick view"
                                   aria-label="Quick view product"
@@ -1699,8 +1716,8 @@ const HomePage: React.FC = () => {
                 </div>
                 
                 <div className="flex flex-wrap justify-center gap-8">
-                  <a href="#" className="text-gray-300 hover:text-white transition-colors text-sm font-medium">Privacy Policy</a>
-                  <a href="#" className="text-gray-300 hover:text-white transition-colors text-sm font-medium">Terms of Service</a>
+                  <Link to="/privacy" className="text-gray-300 hover:text-white transition-colors text-sm font-medium">Privacy Policy</Link>
+                  <Link to="/terms" className="text-gray-300 hover:text-white transition-colors text-sm font-medium">Terms of Service</Link>
                   <a href="#" className="text-gray-300 hover:text-white transition-colors text-sm font-medium">Cookie Policy</a>
                   <a href="#" className="text-gray-300 hover:text-white transition-colors text-sm font-medium">Accessibility</a>
                 </div>

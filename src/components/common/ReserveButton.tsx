@@ -29,7 +29,8 @@ const ReserveButton: React.FC<ReserveButtonProps> = ({
 }) => {
   const { addToCart, isAddingToCart } = useCart();
 
-  const handleReserve = () => {
+  const handleReserve = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent parent click events
     if (!product) {
       console.error('Product is undefined in ReserveButton');
       return;
