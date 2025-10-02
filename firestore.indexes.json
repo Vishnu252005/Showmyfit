@@ -5,12 +5,16 @@
       "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "category",
+          "fieldPath": "sellerId",
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "price",
+          "fieldPath": "status",
           "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
         }
       ]
     },
@@ -19,7 +23,25 @@
       "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "storeId",
+          "fieldPath": "category",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "orders",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "sellerId",
           "order": "ASCENDING"
         },
         {
@@ -43,44 +65,44 @@
       ]
     },
     {
-      "collectionGroup": "reviews",
+      "collectionGroup": "reservedProducts",
       "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "productId",
+          "fieldPath": "sellerId",
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "rating",
+          "fieldPath": "createdAt",
           "order": "DESCENDING"
         }
       ]
     },
     {
-      "collectionGroup": "stores",
+      "collectionGroup": "reservedProducts",
       "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "location",
+          "fieldPath": "userId",
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "rating",
+          "fieldPath": "createdAt",
           "order": "DESCENDING"
         }
       ]
     },
     {
-      "collectionGroup": "homePageSections",
+      "collectionGroup": "sellerApplications",
       "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "isActive",
+          "fieldPath": "status",
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "displayOrder",
-          "order": "ASCENDING"
+          "fieldPath": "submittedAt",
+          "order": "DESCENDING"
         }
       ]
     }

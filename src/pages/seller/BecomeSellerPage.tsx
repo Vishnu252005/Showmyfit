@@ -475,20 +475,20 @@ const BecomeSellerPage: React.FC = () => {
           <div className="max-w-7xl mx-auto px-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
               <div className="text-center">
-                <div className="text-4xl font-bold text-blue-600 mb-2">10K+</div>
-                <div className="text-gray-600">Active Sellers</div>
+                <div className="text-4xl font-bold text-blue-600 mb-2">Active Sellers</div>
+                <div className="text-gray-600">Join our community</div>
               </div>
               <div className="text-center">
-                <div className="text-4xl font-bold text-purple-600 mb-2">₹50Cr+</div>
-                <div className="text-gray-600">GMV Generated</div>
+                <div className="text-4xl font-bold text-purple-600 mb-2">GMV Generated</div>
+                <div className="text-gray-600">Help grow our platform</div>
               </div>
               <div className="text-center">
-                <div className="text-4xl font-bold text-green-600 mb-2">2M+</div>
-                <div className="text-gray-600">Happy Customers</div>
+                <div className="text-4xl font-bold text-green-600 mb-2">Happy Customers</div>
+                <div className="text-gray-600">Serve our community</div>
               </div>
               <div className="text-center">
-                <div className="text-4xl font-bold text-orange-600 mb-2">99.9%</div>
-                <div className="text-gray-600">Uptime</div>
+                <div className="text-4xl font-bold text-orange-600 mb-2">Reliable</div>
+                <div className="text-gray-600">Platform uptime</div>
               </div>
             </div>
           </div>

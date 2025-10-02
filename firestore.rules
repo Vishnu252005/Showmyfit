@@ -1,152 +1,90 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users collection - comprehensive rules for all operations
+    // Users collection - users can read/write their own data, public read for shop role
     match /users/{userId} {
-      // Users can read and write their own document
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-      // Users can create their own document
-      allow create: if request.auth != null && request.auth.uid == userId;
-      // Allow admin operations on any user document
-      allow read, write: if request.auth != null;
-      // Allow public read access for approved sellers (for store listings)
-      allow read: if resource.data.role == 'shop' && resource.data.status == 'approved';
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow read: if resource.data.role == 'shop'; // Allow public read for sellers
+      allow write: if request.auth != null && request.auth.uid == userId;
     }
     
-    // Allow public read access to users collection for approved sellers
-    match /users/{userId} {
-      allow read: if true; // Allow public read for store listings
-    }
-    
-    // Admins collection - anyone can read, all authenticated users can write
-    match /admins/{adminEmail} {
-      allow read: if true;
-      allow write: if request.auth != null;
-    }
-    
-    // Sellers collection - anyone can read, all authenticated users can write
-    match /sellers/{sellerEmail} {
-      allow read: if true;
-      allow write: if request.auth != null;
-    }
-    
-    // Products collection - anyone can read, authenticated users can write
+    // Products collection - authenticated users can read, sellers can write their own
     match /products/{productId} {
-      allow read: if true;
-      allow write: if request.auth != null;
-    }
-    
-    // Orders collection - users can access their own orders, all authenticated users can read
-    match /orders/{orderId} {
       allow read: if request.auth != null;
       allow write: if request.auth != null && 
+        (resource.data.sellerId == request.auth.uid || 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+      allow create: if request.auth != null && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['shop', 'admin'] ||
+         request.resource.data.sellerId == request.auth.uid);
+    }
+    
+    // Orders collection - users can read their own orders
+    match /orders/{orderId} {
+      allow read, write: if request.auth != null && 
         (resource.data.userId == request.auth.uid || 
-         request.auth != null);
+         resource.data.sellerId == request.auth.uid ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+      allow create: if request.auth != null;
     }
     
-    // Cart items - users can only access their own cart
-    match /cart/{cartId} {
+    // Reserved products - users can read/write their own
+    match /reservedProducts/{reservedId} {
       allow read, write: if request.auth != null && 
+        (resource.data.userId == request.auth.uid || 
+         resource.data.sellerId == request.auth.uid ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+      allow create: if request.auth != null;
+    }
+    
+    // Seller applications - admins can read/write all, users can create
+    match /sellerApplications/{applicationId} {
+      allow read, write: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      allow create: if request.auth != null;
+      allow read: if request.auth != null && 
         resource.data.userId == request.auth.uid;
     }
     
-    // Wishlist items - users can only access their own wishlist
-    match /wishlist/{wishlistId} {
-      allow read, write: if request.auth != null && 
-        resource.data.userId == request.auth.uid;
+    // Sellers collection - public read for role checking, admin write
+    match /sellers/{sellerId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
     
-    // Store information - anyone can read, authenticated users can write
-    match /stores/{storeId} {
-      allow read: if true;
-      allow write: if request.auth != null;
+    // Admin collection - public read for role checking, admin write
+    match /admins/{adminId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
     
-    // Store products - anyone can read, authenticated users can write
-    match /storeProducts/{productId} {
-      allow read: if true;
-      allow write: if request.auth != null;
-    }
-    
-    // Reviews - anyone can read, authenticated users can write
-    match /reviews/{reviewId} {
-      allow read: if true;
-      allow write: if request.auth != null;
-    }
-    
-    // Categories - anyone can read, authenticated users can write
+    // Categories collection - public read, admin write
     match /categories/{categoryId} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
     
-    // Home page sections - anyone can read, authenticated users can write
+    // Homepage content - public read, admin write
+    match /homepageContent/{contentId} {
+      allow read: if true;
+      allow write: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // Homepage sections - public read, admin write
     match /homePageSections/{sectionId} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
     
-    // Settings collection - anyone can read, authenticated users can write
-    match /settings/{settingId} {
-      allow read: if true;
-      allow write: if request.auth != null;
-    }
-    
-    // Reserved products collection - users can read/write their own, sellers can read their products, admins can read all
-    match /reservedProducts/{reservationId} {
-      allow read: if request.auth != null && (
-        resource.data.userId == request.auth.uid || // User can read their own reservations
-        true // Allow all authenticated users to read (for admin/seller views)
-      );
-      allow write: if request.auth != null && (
-        request.auth.uid == resource.data.userId || // User can update their own reservations
-        true // Allow all authenticated users to write (for admin/seller management)
-      );
-      allow create: if request.auth != null; // Any authenticated user can create reservations
-    }
-    
-    // Admin-only collections - all authenticated users can access
-    match /admin/{document=**} {
-      allow read, write: if request.auth != null;
-    }
-    
-    // Admin settings - all authenticated users can access
-    match /adminSettings/{document=**} {
-      allow read, write: if request.auth != null;
-    }
-    
-    // Analytics and logs - all authenticated users can access
-    match /analytics/{document=**} {
-      allow read, write: if request.auth != null;
-    }
-    
-    // User sessions - users can only access their own sessions
-    match /sessions/{sessionId} {
-      allow read, write: if request.auth != null && 
-        resource.data.userId == request.auth.uid;
-    }
-    
-    // Notifications - users can only access their own notifications
-    match /notifications/{notificationId} {
-      allow read, write: if request.auth != null && 
-        resource.data.userId == request.auth.uid;
-    }
-    
-    // Additional collections for comprehensive coverage
-    match /sellerApplications/{document=**} {
-      allow read, write: if request.auth != null;
-    }
-    
-    match /userProfiles/{document=**} {
-      allow read, write: if request.auth != null;
-    }
-    
-    match /systemSettings/{document=**} {
-      allow read, write: if request.auth != null;
-    }
-    
-    match /auditLogs/{document=**} {
-      allow read, write: if request.auth != null;
+    // Deny all other collections
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

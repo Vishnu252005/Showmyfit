@@ -267,15 +267,15 @@ const AboutUsPage: React.FC = () => {
                     <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                       <Users className="w-8 h-8 text-white" />
                     </div>
-                    <h3 className="text-2xl font-bold text-gray-800 mb-2">10K+</h3>
-                    <p className="text-gray-600">Happy Customers</p>
+                    <h3 className="text-2xl font-bold text-gray-800 mb-2">Happy Customers</h3>
+                    <p className="text-gray-600">Join our community</p>
                   </div>
                   <div className="text-center p-6 rounded-2xl bg-gradient-to-br from-green-50 to-green-100 border border-green-200">
                     <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                       <ShoppingBag className="w-8 h-8 text-white" />
                     </div>
-                    <h3 className="text-2xl font-bold text-gray-800 mb-2">500+</h3>
-                    <p className="text-gray-600">Partner Stores</p>
+                    <h3 className="text-2xl font-bold text-gray-800 mb-2">Partner Stores</h3>
+                    <p className="text-gray-600">Join our network</p>
                   </div>
                   <div className="text-center p-6 rounded-2xl bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200">
                     <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">

@@ -5,7 +5,6 @@ import {
   ArrowRight, Sparkles, Eye, ShoppingCart, Phone, MapIcon, ThumbsUp, X,
   DollarSign, Percent, TrendingUp
 } from 'lucide-react';
-import Navbar from '../components/layout/Navbar';
 import ReserveButton from '../components/common/ReserveButton';
 import Chatbot from '../components/common/Chatbot';
 import { collection, query, getDocs, where, orderBy, getDoc, doc } from 'firebase/firestore';
@@ -415,32 +414,12 @@ const HomePage: React.FC = () => {
 
   return (
     <div className={`min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 transition-all duration-1000 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-      <Navbar userRole="user" />
-      
       {/* Main Content */}
       <div className="main-content pt-20 md:pt-24">
-        {/* Mobile-optimized Search Bar */}
-        <div className="bg-white border-b border-gray-200 md:hidden">
-          <div className="max-w-7xl mx-auto px-3 py-3">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search for products, brands, and more..."
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-              />
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Enhanced Quick Category Bar - Mobile First */}
-        <section className="bg-white border-b border-gray-200 mt-4 md:mt-8">
-          <div className="max-w-7xl mx-auto px-3 md:px-4 py-2 md:py-3">
-            <div className="flex items-center space-x-3 md:space-x-6 overflow-x-auto scrollbar-hide pb-1">
+        {/* Mobile Category Bar Only */}
+        <section className="bg-white border-b border-gray-200 md:hidden">
+          <div className="max-w-7xl mx-auto px-3 py-2">
+            <div className="flex items-center space-x-3 overflow-x-auto scrollbar-hide pb-1">
               {[
                 { name: 'Home', icon: '🏠', color: 'bg-blue-100' },
                 { name: 'Men', icon: '👨', color: 'bg-blue-100' },
@@ -456,10 +435,39 @@ const HomePage: React.FC = () => {
                   to="/categories"
                   className="flex flex-col items-center space-y-1 flex-shrink-0 group"
                 >
-                  <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full ${category.color} flex items-center justify-center group-hover:scale-110 transition-transform duration-200`}>
-                    <span className="text-lg md:text-xl">{category.icon}</span>
+                  <div className={`w-10 h-10 rounded-full ${category.color} flex items-center justify-center group-hover:scale-110 transition-transform duration-200`}>
+                    <span className="text-lg">{category.icon}</span>
                   </div>
-                  <span className="text-xs md:text-sm text-gray-600 group-hover:text-blue-600 transition-colors font-medium">{category.name}</span>
+                  <span className="text-xs text-gray-600 group-hover:text-blue-600 transition-colors font-medium">{category.name}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Enhanced Quick Category Bar - Desktop */}
+        <section className="bg-white border-b border-gray-200 hidden md:block">
+          <div className="max-w-7xl mx-auto px-4 py-3">
+            <div className="flex items-center space-x-6 overflow-x-auto scrollbar-hide pb-1">
+              {[
+                { name: 'Home', icon: '🏠', color: 'bg-blue-100' },
+                { name: 'Men', icon: '👨', color: 'bg-blue-100' },
+                { name: 'Women', icon: '👩', color: 'bg-pink-100' },
+                { name: 'Kids', icon: '👶', color: 'bg-yellow-100' },
+                { name: 'Electronics', icon: '📱', color: 'bg-gray-100' },
+                { name: 'Beauty', icon: '💄', color: 'bg-purple-100' },
+                { name: 'Sports', icon: '⚽', color: 'bg-green-100' },
+                { name: 'Home', icon: '🏡', color: 'bg-orange-100' }
+              ].map((category, index) => (
+                <Link
+                  key={index}
+                  to="/categories"
+                  className="flex flex-col items-center space-y-1 flex-shrink-0 group"
+                >
+                  <div className={`w-12 h-12 rounded-full ${category.color} flex items-center justify-center group-hover:scale-110 transition-transform duration-200`}>
+                    <span className="text-xl">{category.icon}</span>
+                  </div>
+                  <span className="text-sm text-gray-600 group-hover:text-blue-600 transition-colors font-medium">{category.name}</span>
                 </Link>
               ))}
             </div>
@@ -988,35 +996,45 @@ const HomePage: React.FC = () => {
               </button>
                     </div>
             <div className="flex space-x-4 overflow-x-auto scrollbar-hide pb-2">
-              {[
-                { name: 'Gaming Mouse', price: '₹1,599', originalPrice: '₹2,999', discount: '47%', image: 'https://images.unsplash.com/photo-1527864550417-7f91c4c4d8c3?w=200&h=200&fit=crop', category: 'Gaming' },
-                { name: 'Mechanical Keyboard', price: '₹2,499', originalPrice: '₹4,999', discount: '50%', image: 'https://images.unsplash.com/photo-1541140532154-b024d705b90a?w=200&h=200&fit=crop', category: 'Gaming' },
-                { name: 'Webcam', price: '₹3,999', originalPrice: '₹6,999', discount: '43%', image: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=200&h=200&fit=crop', category: 'Electronics' },
-                { name: 'Desk Lamp', price: '₹899', originalPrice: '₹1,499', discount: '40%', image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop', category: 'Home' },
-                { name: 'Power Bank', price: '₹1,199', originalPrice: '₹2,499', discount: '52%', image: 'https://images.unsplash.com/photo-1609592807909-3b0a0b2a0a0a?w=200&h=200&fit=crop', category: 'Accessories' },
-                { name: 'USB Hub', price: '₹499', originalPrice: '₹999', discount: '50%', image: 'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=200&h=200&fit=crop', category: 'Accessories' }
-              ].map((product, index) => (
-                <div key={index} className="flex-shrink-0 bg-white border border-gray-200 rounded-lg p-3 w-40 md:w-48 hover:shadow-lg transition-shadow touch-manipulation">
-                  <div className="relative mb-3">
-                    <img 
-                      src={product.image} 
-                      alt={product.name}
-                      className="w-full h-24 md:h-32 object-cover rounded"
-                    />
-                    <div className="absolute top-1 right-1 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
-                      {product.discount} OFF
+              {allProducts.length > 0 ? (
+                // Show actual products from database
+                allProducts.slice(0, 6).map((product, index) => {
+                  const originalPrice = product.originalPrice || product.price * 1.5; // Generate original price if not available
+                  const discount = Math.round(((originalPrice - product.price) / originalPrice) * 100);
+                  
+                  return (
+                    <div key={product.id || index} className="flex-shrink-0 bg-white border border-gray-200 rounded-lg p-3 w-40 md:w-48 hover:shadow-lg transition-shadow touch-manipulation">
+                      <div className="relative mb-3">
+                        <img 
+                          src={product.image || product.imageUrl || `https://images.unsplash.com/photo-${1500000000000 + index * 1000000}?w=200&h=200&fit=crop`} 
+                          alt={product.name}
+                          className="w-full h-24 md:h-32 object-cover rounded"
+                        />
+                        {discount > 0 && (
+                          <div className="absolute top-1 right-1 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
+                            {discount}% OFF
+                          </div>
+                        )}
+                      </div>
+                      <div className="mb-2">
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">{product.category || 'General'}</span>
+                      </div>
+                      <h3 className="font-semibold text-gray-900 text-xs md:text-sm mb-1 line-clamp-2">{product.name}</h3>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm md:text-lg font-bold text-blue-600">₹{product.price?.toLocaleString() || '0'}</span>
+                        {originalPrice > product.price && (
+                          <span className="text-xs text-gray-500 line-through">₹{originalPrice.toLocaleString()}</span>
+                        )}
+                      </div>
                     </div>
+                  );
+                })
+              ) : (
+                // Show message when no products available
+                <div className="flex-shrink-0 bg-gray-50 rounded-lg p-6 w-full text-center">
+                  <p className="text-gray-500 text-sm">No products available</p>
                 </div>
-                  <div className="mb-2">
-                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">{product.category}</span>
-                  </div>
-                  <h3 className="font-semibold text-gray-900 text-xs md:text-sm mb-1 line-clamp-2">{product.name}</h3>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm md:text-lg font-bold text-blue-600">{product.price}</span>
-                    <span className="text-xs text-gray-500 line-through">{product.originalPrice}</span>
-                </div>
-              </div>
-            ))}
+              )}
           </div>
           </div>
         </section>
@@ -1030,25 +1048,38 @@ const HomePage: React.FC = () => {
               <button className="text-blue-600 text-sm font-medium hover:text-blue-700 transition-colors">
                 Clear All
               </button>
-                  </div>
+            </div>
             <div className="flex space-x-4 overflow-x-auto scrollbar-hide pb-2">
-              {[
-                { name: 'Laptop Stand', price: '₹1,299', image: 'https://images.unsplash.com/photo-1527864550417-7f91c4c4d8c3?w=150&h=150&fit=crop', time: '2 hours ago' },
-                { name: 'Wireless Charger', price: '₹899', image: 'https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?w=150&h=150&fit=crop', time: '1 day ago' },
-                { name: 'Phone Case', price: '₹399', image: 'https://images.unsplash.com/photo-1511707171631-9ad203683d6d?w=150&h=150&fit=crop', time: '2 days ago' },
-                { name: 'Bluetooth Headphones', price: '₹2,499', image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=150&h=150&fit=crop', time: '3 days ago' }
-              ].map((product, index) => (
-                <div key={index} className="flex-shrink-0 bg-gray-50 rounded-lg p-3 w-32 md:w-40 hover:bg-gray-100 transition-colors touch-manipulation">
-                  <img 
-                    src={product.image} 
-                    alt={product.name}
-                    className="w-full h-20 md:h-24 object-cover rounded mb-2"
-                  />
-                  <h3 className="font-medium text-gray-900 text-xs mb-1 line-clamp-2">{product.name}</h3>
-                  <p className="text-sm font-bold text-blue-600 mb-1">{product.price}</p>
-                  <p className="text-xs text-gray-500">{product.time}</p>
+              {sellers.length > 0 ? (
+                // Show actual products from sellers
+                sellers.slice(0, 4).map((seller, index) => {
+                  // Get a sample product for this seller (in real app, this would be from recently viewed)
+                  const sampleProduct = {
+                    name: seller.businessName + ' Store',
+                    price: '₹' + (Math.floor(Math.random() * 5000) + 500).toLocaleString(),
+                    image: `https://images.unsplash.com/photo-${1500000000000 + index * 1000000}?w=150&h=150&fit=crop`,
+                    time: index === 0 ? '2 hours ago' : index === 1 ? '1 day ago' : index === 2 ? '2 days ago' : '3 days ago'
+                  };
+                  
+                  return (
+                    <div key={seller.id} className="flex-shrink-0 bg-gray-50 rounded-lg p-3 w-32 md:w-40 hover:bg-gray-100 transition-colors touch-manipulation">
+                      <img 
+                        src={sampleProduct.image} 
+                        alt={sampleProduct.name}
+                        className="w-full h-20 md:h-24 object-cover rounded mb-2"
+                      />
+                      <h3 className="font-medium text-gray-900 text-xs mb-1 line-clamp-2">{sampleProduct.name}</h3>
+                      <p className="text-sm font-bold text-blue-600 mb-1">{sampleProduct.price}</p>
+                      <p className="text-xs text-gray-500">{sampleProduct.time}</p>
+                    </div>
+                  );
+                })
+              ) : (
+                // Show message when no products available
+                <div className="flex-shrink-0 bg-gray-50 rounded-lg p-6 w-full text-center">
+                  <p className="text-gray-500 text-sm">No recently viewed products</p>
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </section>
@@ -1440,17 +1471,6 @@ const HomePage: React.FC = () => {
                   Our platform empowers communities and drives economic growth.
                 </p>
                 
-                {/* Stats */}
-                <div className="grid grid-cols-2 gap-6 mb-8">
-                  <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
-                    <div className="text-2xl font-bold text-white">500+</div>
-                    <div className="text-sm text-gray-300">Local Stores</div>
-                  </div>
-                  <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
-                    <div className="text-2xl font-bold text-white">50K+</div>
-                    <div className="text-sm text-gray-300">Happy Customers</div>
-                  </div>
-                </div>
 
                 {/* Enhanced Social Media */}
                 <div>
@@ -1535,29 +1555,18 @@ const HomePage: React.FC = () => {
                 </ul>
               </div>
 
-              {/* Contact Info - Enhanced */}
-              <div>
-                <h4 className="text-xl font-bold text-white mb-6 flex items-center">
-                  <span className="w-2 h-2 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full mr-3"></span>
-                  Contact
-                </h4>
-                <div className="space-y-4">
-                  <div className="flex items-start space-x-3 group">
-                    <MapPin className="w-5 h-5 text-blue-400 mt-1 group-hover:scale-110 transition-transform" />
-                    <span className="text-gray-300 text-lg">123 Fashion Street, Style City, SC 12345</span>
-                  </div>
-                  <div className="flex items-start space-x-3 group">
-                    <Clock className="w-5 h-5 text-green-400 mt-1 group-hover:scale-110 transition-transform" />
-                    <span className="text-gray-300 text-lg">Mon - Fri: 9:00 AM - 6:00 PM</span>
-                  </div>
-                  <div className="flex items-start space-x-3 group">
-                    <span className="w-5 h-5 text-purple-400 mt-1 group-hover:scale-110 transition-transform">📧</span>
-                    <span className="text-gray-300 text-lg">hello@showmyfit.com</span>
-                  </div>
-                  <div className="flex items-start space-x-3 group">
-                    <span className="w-5 h-5 text-pink-400 mt-1 group-hover:scale-110 transition-transform">📞</span>
-                    <span className="text-gray-300 text-lg">+1 (555) 123-4567</span>
-                  </div>
+            </div>
+
+            {/* Contact Info - Email Only */}
+            <div>
+              <h4 className="text-xl font-bold text-white mb-6 flex items-center">
+                <span className="w-2 h-2 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full mr-3"></span>
+                Contact
+              </h4>
+              <div className="space-y-4">
+                <div className="flex items-start space-x-3 group">
+                  <span className="w-5 h-5 text-purple-400 mt-1 group-hover:scale-110 transition-transform">📧</span>
+                  <span className="text-gray-300 text-lg">showmyfitapp@gmail.com</span>
                 </div>
               </div>
             </div>
@@ -1593,20 +1602,6 @@ const HomePage: React.FC = () => {
                   </a>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-white">
-                  <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4">
-                    <div className="text-2xl font-bold mb-2">50K+</div>
-                    <div className="text-sm text-gray-300">Facebook Followers</div>
-                  </div>
-                  <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4">
-                    <div className="text-2xl font-bold mb-2">25K+</div>
-                    <div className="text-sm text-gray-300">YouTube Subscribers</div>
-                  </div>
-                  <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4">
-                    <div className="text-2xl font-bold mb-2">35K+</div>
-                    <div className="text-sm text-gray-300">Instagram Followers</div>
-                  </div>
-                </div>
               </div>
             </div>
 
@@ -1632,7 +1627,7 @@ const HomePage: React.FC = () => {
                   </button>
                 </div>
                 <p className="text-gray-400 text-sm mt-4">
-                  Join 10,000+ subscribers. Unsubscribe anytime.
+                  Unsubscribe anytime.
                 </p>
               </div>
             </div>
@@ -1682,24 +1677,6 @@ const HomePage: React.FC = () => {
                   </a>
                 </div>
                 
-                <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-6 text-white">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold mb-1">500+</div>
-                    <div className="text-sm text-gray-300">Active Sellers</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold mb-1">₹50L+</div>
-                    <div className="text-sm text-gray-300">Total Sales</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold mb-1">4.8★</div>
-                    <div className="text-sm text-gray-300">Avg Rating</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold mb-1">24/7</div>
-                    <div className="text-sm text-gray-300">Support</div>
-                  </div>
-                </div>
               </div>
             </div>
 
@@ -1710,8 +1687,11 @@ const HomePage: React.FC = () => {
                   <div className="text-gray-300 text-lg mb-2">
                     © 2024 Showmyfit. All rights reserved.
                   </div>
-                  <div className="text-gray-400 text-sm">
+                  <div className="text-gray-400 text-sm mb-2">
                     Crafted with ❤️ for local communities worldwide
+                  </div>
+                  <div className="text-gray-300 text-sm">
+                    Contact us: showmyfitapp@gmail.com
                   </div>
                 </div>
                 

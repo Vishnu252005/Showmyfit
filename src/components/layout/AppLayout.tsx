@@ -1,0 +1,114 @@
+import React from 'react';
+import { Outlet, useLocation, Link } from 'react-router-dom';
+import Navbar from './Navbar';
+
+// Bottom Navigation Component - Mobile Only
+const BottomNavigation = () => {
+  const location = useLocation();
+  
+  return (
+    <nav className="bottom-nav md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
+      <div className="flex justify-around items-center py-2">
+        {/* Home */}
+        <Link
+          to="/"
+          className={`flex flex-col items-center py-3 px-2 transition-all duration-200 ${
+            location.pathname === '/' 
+              ? 'text-black bg-gray-100 rounded-lg' 
+              : 'text-gray-600'
+          }`}
+        >
+          <div className="w-6 h-6 mb-1 flex items-center justify-center">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path d="M3 9L12 2L21 9V20C21 20.5523 20.5523 21 20 21H15C14.4477 21 14 20.5523 14 20V14C14 13.4477 13.5523 13 13 13H11C10.4477 13 10 13.4477 10 14V20C10 20.5523 9.55228 21 9 21H4C3.44772 21 3 20.5523 3 20V9Z"/>
+            </svg>
+          </div>
+          <span className="text-xs font-medium">Home</span>
+        </Link>
+        
+        {/* Explore */}
+        <Link
+          to="/browse"
+          className={`flex flex-col items-center py-3 px-2 transition-all duration-200 ${
+            location.pathname === '/browse' 
+              ? 'text-black bg-gray-100 rounded-lg' 
+              : 'text-gray-600'
+          }`}
+        >
+          <div className="w-6 h-6 mb-1 flex items-center justify-center">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path d="M21 21L16.65 16.65M19 11C19 15.4183 15.4183 19 11 19C6.58172 19 3 15.4183 3 11C3 6.58172 6.58172 3 11 3C15.4183 3 19 6.58172 19 11Z"/>
+            </svg>
+          </div>
+          <span className="text-xs font-medium">Explore</span>
+        </Link>
+        
+        {/* Reserved */}
+        <Link
+          to="/cart"
+          className={`flex flex-col items-center py-3 px-2 transition-all duration-200 ${
+            location.pathname === '/cart' 
+              ? 'text-black bg-gray-100 rounded-lg' 
+              : 'text-gray-600'
+          }`}
+        >
+          <div className="w-6 h-6 mb-1 flex items-center justify-center">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path d="M5 5H19L18 15H6L5 5ZM5 5L4 2H1M9 11V17M15 11V17M18 15H6L5 5H19L18 15Z"/>
+            </svg>
+          </div>
+          <span className="text-xs font-medium">Reserved</span>
+        </Link>
+        
+        {/* Categories */}
+        <Link
+          to="/categories"
+          className={`flex flex-col items-center py-3 px-2 transition-all duration-200 ${
+            location.pathname === '/categories' 
+              ? 'text-black bg-gray-100 rounded-lg' 
+              : 'text-gray-600'
+          }`}
+        >
+          <div className="w-6 h-6 mb-1 flex items-center justify-center">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path d="M4 6H20M4 12H20M4 18H20"/>
+            </svg>
+          </div>
+          <span className="text-xs font-medium">Categories</span>
+        </Link>
+        
+        {/* Account */}
+        <Link
+          to="/profile"
+          className={`flex flex-col items-center py-3 px-2 transition-all duration-200 ${
+            location.pathname === '/profile' 
+              ? 'text-black bg-gray-100 rounded-lg' 
+              : 'text-gray-600'
+          }`}
+        >
+          <div className="w-6 h-6 mb-1 flex items-center justify-center">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path d="M20 21V19C20 17.9 19.1 17 18 17H6C4.9 17 4 17.9 4 19V21"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </div>
+          <span className="text-xs font-medium">Account</span>
+        </Link>
+      </div>
+    </nav>
+  );
+};
+
+const AppLayout: React.FC = () => {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-cream via-white to-primary-50 font-sans">
+      <Navbar userRole="user" />
+      <div className="main-content pt-24 pb-4">
+        <Outlet />
+      </div>
+      <BottomNavigation />
+    </div>
+  );
+};
+
+export default AppLayout;

@@ -7,15 +7,15 @@ interface ShowMyFITLogoProps {
 
 const ShowMyFITLogo: React.FC<ShowMyFITLogoProps> = ({ size = 'md', className = '' }) => {
   const sizeClasses = {
-    sm: 'h-48',    // 192px - ABSOLUTELY HUGE!
-    md: 'h-64',    // 256px - MONSTROUS!
-    lg: 'h-80'     // 320px - UNBELIEVABLY MASSIVE!
+    sm: 'h-8',     // 32px - Small and clean
+    md: 'h-10',    // 40px - Medium size
+    lg: 'h-12'     // 48px - Large but reasonable
   };
 
   const textSizeClasses = {
-    sm: 'text-4xl',
-    md: 'text-6xl', 
-    lg: 'text-8xl'
+    sm: 'text-lg',
+    md: 'text-xl', 
+    lg: 'text-2xl'
   };
 
   return (

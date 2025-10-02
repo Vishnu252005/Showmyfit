@@ -34,13 +34,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('🔐 AuthProvider: Setting up auth state listener');
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      console.log('🔐 AuthProvider: Auth state changed, user:', user ? user.uid : 'null');
       setCurrentUser(user);
       
       if (user) {
         try {
+          console.log('🔐 AuthProvider: Fetching user data for:', user.uid);
           const userData = await getUserData(user.uid, user.email || undefined);
           setUserData(userData);
+          console.log('🔐 AuthProvider: User data loaded:', userData);
         } catch (error) {
           console.error('Error fetching user data:', error);
           setUserData(null);
@@ -49,6 +53,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUserData(null);
       }
       
+      console.log('🔐 AuthProvider: Setting loading to false');
       setLoading(false);
     });
 

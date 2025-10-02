@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { User, Mail, Phone, MapPin, Edit, LogOut, ShoppingBag, Heart, Star, Settings, ArrowLeft, Calendar, Award, Package, Clock, XCircle, CheckCircle } from 'lucide-react';
 import Navbar from '../../components/layout/Navbar';
 import Button from '../../components/ui/Button';
+import ImageUpload from '../../components/common/ImageUpload';
 import { useAuth } from '../../contexts/AuthContext';
 import { updateUserProfile, getSellerApplicationStatus } from '../../firebase/auth';
 import AdminProfilePage from './AdminProfilePage';
@@ -15,9 +16,11 @@ const ProfilePage: React.FC = () => {
   const [editData, setEditData] = useState({
     displayName: userData?.displayName || currentUser?.displayName || '',
     phone: userData?.phone || '',
-    address: userData?.address || ''
+    address: userData?.address || '',
+    profilePicture: userData?.profilePicture || ''
   });
   const [applicationStatus, setApplicationStatus] = useState<'not_applied' | 'pending' | 'approved' | 'rejected'>('not_applied');
+  const [showProfilePicUpload, setShowProfilePicUpload] = useState(false);
 
 
 
@@ -58,7 +61,8 @@ const ProfilePage: React.FC = () => {
     setEditData({
       displayName: userData?.displayName || currentUser?.displayName || '',
       phone: userData?.phone || '',
-      address: userData?.address || ''
+      address: userData?.address || '',
+      profilePicture: userData?.profilePicture || ''
     });
   };
 
@@ -80,8 +84,19 @@ const ProfilePage: React.FC = () => {
     setEditData({
       displayName: userData?.displayName || currentUser?.displayName || '',
       phone: userData?.phone || '',
-      address: userData?.address || ''
+      address: userData?.address || '',
+      profilePicture: userData?.profilePicture || ''
     });
+  };
+
+  const handleProfilePicUpload = (url: string) => {
+    setEditData({...editData, profilePicture: url});
+    setShowProfilePicUpload(false);
+  };
+
+  const handleProfilePicRemove = () => {
+    setEditData({...editData, profilePicture: ''});
+    setShowProfilePicUpload(false);
   };
 
   // Show loading or redirect if not authenticated
@@ -98,12 +113,12 @@ const ProfilePage: React.FC = () => {
 
   // Show admin profile if user is admin
   if (userData?.role === 'admin') {
-    return <AdminProfilePage />;
+    return <AdminProfilePage currentUser={currentUser} userData={userData} />;
   }
 
   // Show seller profile if user is seller
   if (userData?.role === 'shop') {
-    return <SellerProfilePage />;
+    return <SellerProfilePage currentUser={currentUser} userData={userData} />;
   }
 
   return (
@@ -129,10 +144,19 @@ const ProfilePage: React.FC = () => {
               <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
                 {/* Profile Picture */}
                 <div className="relative">
-                  <div className="w-24 h-24 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white text-3xl font-bold">
-                    {currentUser.displayName ? currentUser.displayName.charAt(0).toUpperCase() : currentUser.email?.charAt(0).toUpperCase()}
-                  </div>
+                  {editData.profilePicture ? (
+                    <img 
+                      src={editData.profilePicture} 
+                      alt="Profile" 
+                      className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
+                    />
+                  ) : (
+                    <div className="w-24 h-24 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white text-3xl font-bold">
+                      {currentUser.displayName ? currentUser.displayName.charAt(0).toUpperCase() : currentUser.email?.charAt(0).toUpperCase()}
+                    </div>
+                  )}
                   <button 
+                    onClick={() => setShowProfilePicUpload(!showProfilePicUpload)}
                     className="absolute -bottom-2 -right-2 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 transition-colors"
                     title="Edit profile picture"
                     aria-label="Edit profile picture"
@@ -178,6 +202,58 @@ const ProfilePage: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {/* Profile Picture Upload Modal */}
+            {showProfilePicUpload && (
+              <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold text-gray-900">Update Profile Picture</h2>
+                  <button
+                    onClick={() => setShowProfilePicUpload(false)}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                    title="Close profile picture upload"
+                    aria-label="Close profile picture upload"
+                  >
+                    <XCircle className="w-6 h-6" />
+                  </button>
+                </div>
+                
+                <div className="max-w-md mx-auto">
+                  <ImageUpload
+                    onImageUpload={handleProfilePicUpload}
+                    onImageRemove={handleProfilePicRemove}
+                    currentImage={editData.profilePicture}
+                    maxSize={5}
+                    className="w-full"
+                  />
+                  <p className="text-xs text-gray-500 mt-2 text-center">
+                    Upload a profile picture (max 5MB, JPEG, PNG, or WEBP)
+                  </p>
+                  
+                  <div className="flex space-x-3 mt-4">
+                    <Button 
+                      onClick={() => {
+                        // Save the profile picture immediately when uploaded
+                        setShowProfilePicUpload(false);
+                      }}
+                      variant="primary" 
+                      size="sm"
+                      className="flex-1"
+                    >
+                      Done
+                    </Button>
+                    <Button 
+                      onClick={() => setShowProfilePicUpload(false)}
+                      variant="outline" 
+                      size="sm"
+                      className="flex-1"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="grid lg:grid-cols-3 gap-8">
               {/* Main Content */}

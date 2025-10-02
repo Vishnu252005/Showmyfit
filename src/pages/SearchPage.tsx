@@ -5,7 +5,6 @@ import {
   Store, Navigation, Clock, Truck, Shield, Users, TrendingUp
 } from 'lucide-react';
 import GoogleMapLocation from '../components/common/GoogleMapLocation';
-import Navbar from '../components/layout/Navbar';
 import { collection, query, getDocs, where } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
@@ -308,8 +307,6 @@ const SearchPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <Navbar userRole="user" />
-      
       <div className="main-content pt-24 pb-24">
         <div className="max-w-7xl mx-auto px-4 py-6">
           {/* Header */}
@@ -496,21 +493,6 @@ const SearchPage: React.FC = () => {
 
                     {/* Content Section */}
                     <div className="p-6">
-                      {/* Key Info Cards */}
-                      <div className="grid grid-cols-3 gap-3 mb-6">
-                        <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl border border-blue-200">
-                          <div className="text-2xl font-bold text-blue-600 mb-1">{seller.stats.totalProducts}</div>
-                          <div className="text-xs font-medium text-blue-700">Products</div>
-                        </div>
-                        <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-2xl border border-green-200">
-                          <div className="text-2xl font-bold text-green-600 mb-1">{seller.stats.totalOrders}</div>
-                          <div className="text-xs font-medium text-green-700">Orders</div>
-                        </div>
-                        <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl border border-purple-200">
-                          <div className="text-2xl font-bold text-purple-600 mb-1">₹{seller.stats.totalSales.toLocaleString()}</div>
-                          <div className="text-xs font-medium text-purple-700">Sales</div>
-                        </div>
-                      </div>
 
                       {/* Contact Info */}
                       <div className="space-y-3 mb-6">
@@ -589,7 +571,11 @@ const SearchPage: React.FC = () => {
                           <Eye className="w-5 h-5 mr-2" />
                           Visit Store
                         </Link>
-                        <button className="w-14 h-14 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-2xl transition-all duration-300 flex items-center justify-center group">
+                        <button 
+                          className="w-14 h-14 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-2xl transition-all duration-300 flex items-center justify-center group"
+                          title="Add to favorites"
+                          aria-label="Add to favorites"
+                        >
                           <Heart className="w-5 h-5 group-hover:text-red-500 transition-colors" />
                         </button>
                       </div>

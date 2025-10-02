@@ -2,12 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   Mail, Phone, MapPin, Edit, LogOut, Star, 
-  ArrowLeft, Calendar, Package, Plus,
+  Calendar, Package, Plus,
   TrendingUp, DollarSign, Tag, XCircle, Save, X, Clock, BarChart3
 } from 'lucide-react';
 import GoogleMapLocation from '../../components/common/GoogleMapLocation';
-import Navbar from '../../components/layout/Navbar';
 import Button from '../../components/ui/Button';
+import ImageUpload from '../../components/common/ImageUpload';
 import { useAuth } from '../../contexts/AuthContext';
 import { updateUserProfile } from '../../firebase/auth';
 import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, query, where } from 'firebase/firestore';
@@ -34,8 +34,13 @@ interface Product {
   updatedAt: Date;
 }
 
-const SellerProfilePage: React.FC = () => {
-  const { currentUser, userData, signOut, refreshUserData } = useAuth();
+interface SellerProfilePageProps {
+  currentUser: any;
+  userData: any;
+}
+
+const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, userData }) => {
+  const { signOut, refreshUserData } = useAuth();
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({
@@ -45,7 +50,8 @@ const SellerProfilePage: React.FC = () => {
     businessName: userData?.businessName || '',
     businessType: userData?.businessType || '',
     businessDescription: userData?.businessDescription || '',
-    location: userData?.location || null
+    location: userData?.location || null,
+    profilePicture: userData?.profilePicture || ''
   });
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,6 +59,7 @@ const SellerProfilePage: React.FC = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [message, setMessage] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
+  const [showProfilePicUpload, setShowProfilePicUpload] = useState(false);
   const [categorySpecificData, setCategorySpecificData] = useState<Record<string, any>>({});
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
@@ -248,6 +255,9 @@ const SellerProfilePage: React.FC = () => {
         ...doc.data()
       })) as Product[];
       
+      console.log('📦 Loaded products:', productsData);
+      console.log('🖼️ Product images:', productsData.map(p => ({ id: p.id, name: p.name, image: p.image })));
+      
       setProducts(productsData);
     } catch (error) {
       console.error('Error loading products:', error);
@@ -285,7 +295,8 @@ const SellerProfilePage: React.FC = () => {
       businessName: userData?.businessName || '',
       businessType: userData?.businessType || '',
       businessDescription: userData?.businessDescription || '',
-      location: userData?.location || null
+      location: userData?.location || null,
+      profilePicture: userData?.profilePicture || ''
     });
   };
 
@@ -338,8 +349,19 @@ const SellerProfilePage: React.FC = () => {
       businessName: userData?.businessName || '',
       businessType: userData?.businessType || '',
       businessDescription: userData?.businessDescription || '',
-      location: userData?.location || null
+      location: userData?.location || null,
+      profilePicture: userData?.profilePicture || ''
     });
+  };
+
+  const handleProfilePicUpload = (url: string) => {
+    setEditData({...editData, profilePicture: url});
+    setShowProfilePicUpload(false);
+  };
+
+  const handleProfilePicRemove = () => {
+    setEditData({...editData, profilePicture: ''});
+    setShowProfilePicUpload(false);
   };
 
   const resetForm = () => {
@@ -378,7 +400,20 @@ const SellerProfilePage: React.FC = () => {
     e.preventDefault();
     if (!currentUser) return;
     
+    // Check if user has seller role
+    if (userData?.role !== 'shop') {
+      setMessage('Only sellers can create products. Please apply to become a seller first.');
+      setIsSuccess(false);
+      return;
+    }
+    
     try {
+      console.log('🔍 Creating product for user:', {
+        uid: currentUser.uid,
+        role: userData?.role,
+        displayName: userData?.displayName || currentUser.displayName
+      });
+      
       const productData = {
         ...formData,
         sellerId: currentUser.uid,
@@ -387,6 +422,9 @@ const SellerProfilePage: React.FC = () => {
         createdAt: new Date(),
         updatedAt: new Date()
       };
+      
+      console.log('📦 Product data to save:', productData);
+      console.log('🖼️ Product image URL:', productData.image);
 
       if (editingProduct) {
         await updateDoc(doc(db, 'products', editingProduct.id!), {
@@ -405,9 +443,22 @@ const SellerProfilePage: React.FC = () => {
       resetForm();
       await loadProducts();
       setTimeout(() => setMessage(''), 3000);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving product:', error);
-      setMessage('Failed to save product. Please try again.');
+      console.error('Error details:', {
+        code: error.code,
+        message: error.message,
+        details: error.details
+      });
+      
+      let errorMessage = 'Failed to save product. Please try again.';
+      if (error.code === 'permission-denied') {
+        errorMessage = 'Permission denied. Please make sure you are logged in as a seller.';
+      } else if (error.code === 'unavailable') {
+        errorMessage = 'Service temporarily unavailable. Please try again later.';
+      }
+      
+      setMessage(errorMessage);
       setIsSuccess(false);
     }
   };
@@ -451,8 +502,6 @@ const SellerProfilePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar userRole="shop" />
-      
       {/* Message Display */}
       {message && (
         <div className={`fixed top-20 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 rounded-lg shadow-lg ${
@@ -462,25 +511,33 @@ const SellerProfilePage: React.FC = () => {
         </div>
       )}
       
-      <div className="main-content pt-20">
+      <div className="main-content pt-4">
         <div className="max-w-7xl mx-auto px-4 py-6">
-          {/* Back Button */}
-          <div className="mb-6">
-            <Link
-              to="/"
-              className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Home
-            </Link>
-          </div>
 
           {/* Profile Header */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
               <div className="flex items-center space-x-4">
-                <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xl font-bold">
-                  {(userData?.displayName || currentUser?.displayName || 'S').charAt(0).toUpperCase()}
+                <div className="relative">
+                  {editData.profilePicture ? (
+                    <img 
+                      src={editData.profilePicture} 
+                      alt="Profile" 
+                      className="w-16 h-16 rounded-full object-cover border-4 border-white shadow-lg"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xl font-bold">
+                      {(userData?.displayName || currentUser?.displayName || 'S').charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <button 
+                    onClick={() => setShowProfilePicUpload(!showProfilePicUpload)}
+                    className="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 transition-colors"
+                    title="Edit profile picture"
+                    aria-label="Edit profile picture"
+                  >
+                    <Edit className="w-3 h-3" />
+                  </button>
                 </div>
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">
@@ -519,6 +576,58 @@ const SellerProfilePage: React.FC = () => {
               </div>
             </div>
           </div>
+
+          {/* Profile Picture Upload Modal */}
+          {showProfilePicUpload && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-gray-900">Update Profile Picture</h2>
+                <button
+                  onClick={() => setShowProfilePicUpload(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  title="Close profile picture upload"
+                  aria-label="Close profile picture upload"
+                >
+                  <XCircle className="w-6 h-6" />
+                </button>
+              </div>
+              
+              <div className="max-w-md mx-auto">
+                <ImageUpload
+                  onImageUpload={handleProfilePicUpload}
+                  onImageRemove={handleProfilePicRemove}
+                  currentImage={editData.profilePicture}
+                  maxSize={5}
+                  className="w-full"
+                />
+                <p className="text-xs text-gray-500 mt-2 text-center">
+                  Upload a profile picture (max 5MB, JPEG, PNG, or WEBP)
+                </p>
+                
+                <div className="flex space-x-3 mt-4">
+                  <Button 
+                    onClick={() => {
+                      // Save the profile picture immediately when uploaded
+                      setShowProfilePicUpload(false);
+                    }}
+                    variant="primary" 
+                    size="sm"
+                    className="flex-1"
+                  >
+                    Done
+                  </Button>
+                  <Button 
+                    onClick={() => setShowProfilePicUpload(false)}
+                    variant="outline" 
+                    size="sm"
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Message */}
           {message && (
@@ -807,23 +916,51 @@ const SellerProfilePage: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {products.map((product) => (
                       <div key={product.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                        <div className="flex items-start justify-between mb-3">
-                          <h4 className="font-semibold text-gray-900 truncate">{product.name}</h4>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            product.status === 'active' 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-gray-100 text-gray-800'
-                          }`}>
-                            {product.status}
-                          </span>
-                        </div>
-                        
-                        <p className="text-gray-600 text-sm mb-3 line-clamp-2">{product.description}</p>
-                        
-                        <div className="flex items-center justify-between mb-3">
-                          <span className="text-lg font-bold text-blue-600">₹{product.price.toLocaleString()}</span>
-                          <span className="text-sm text-gray-500">Stock: {product.stock}</span>
-                        </div>
+                        {/* Clickable Product Link */}
+                        <Link 
+                          to={`/product/${product.id}`}
+                          className="block hover:opacity-90 transition-opacity cursor-pointer"
+                        >
+                          {/* Product Image */}
+                          {product.image && (
+                            <div className="mb-4">
+                              <img 
+                                src={product.image} 
+                                alt={product.name}
+                                className="w-full h-48 object-cover rounded-lg"
+                                onError={(e) => {
+                                  console.error('Error loading product image:', product.image);
+                                  e.currentTarget.style.display = 'none';
+                                }}
+                              />
+                            </div>
+                          )}
+                          
+                          <div className="flex items-start justify-between mb-3">
+                            <h4 className="font-semibold text-gray-900 truncate">{product.name}</h4>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              product.status === 'active' 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-gray-100 text-gray-800'
+                            }`}>
+                              {product.status}
+                            </span>
+                          </div>
+                          
+                          <p className="text-gray-600 text-sm mb-3 line-clamp-2">{product.description}</p>
+                          
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-lg font-bold text-blue-600">₹{product.price.toLocaleString()}</span>
+                            <span className="text-sm text-gray-500">Stock: {product.stock}</span>
+                          </div>
+                          
+                          {/* Click indicator */}
+                          <div className="text-center mt-2">
+                            <span className="text-xs text-blue-600 font-medium hover:text-blue-800 transition-colors">
+                              Click to view details →
+                            </span>
+                          </div>
+                        </Link>
                         
                         <div className="flex space-x-2">
                           <Button
@@ -1419,49 +1556,66 @@ const SellerProfilePage: React.FC = () => {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Main Image URL *
+                        Main Image *
                       </label>
-                      <input
-                        type="url"
-                        value={formData.image}
-                        onChange={(e) => setFormData({...formData, image: e.target.value})}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        placeholder="https://example.com/main-image.jpg"
-                        required
+                      <ImageUpload
+                        onImageUpload={(url) => {
+                          console.log('🖼️ SellerProfilePage: Image uploaded, setting formData.image to:', url);
+                          setFormData({...formData, image: url});
+                        }}
+                        onImageRemove={() => {
+                          console.log('🖼️ SellerProfilePage: Image removed, clearing formData.image');
+                          setFormData({...formData, image: ''});
+                        }}
+                        currentImage={formData.image}
+                        maxSize={10}
+                        className="w-full"
                       />
-                      <p className="text-xs text-gray-500 mt-1">This will be the primary product image</p>
+                      <p className="text-xs text-gray-500 mt-1">Upload the primary product image (max 10MB)</p>
+                      {formData.image && (
+                        <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded">
+                          <p className="text-xs text-green-700">Current image URL:</p>
+                          <p className="text-xs text-green-600 break-all">{formData.image}</p>
+                        </div>
+                      )}
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Additional Images
                       </label>
-                      <div className="space-y-2">
+                      <div className="space-y-4">
                         {(formData.images || []).map((image, index) => (
-                          <div key={index} className="flex items-center space-x-2">
-                            <input
-                              type="url"
-                              value={image}
-                              onChange={(e) => {
+                          <div key={index} className="relative">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm text-gray-600">Image {index + 1}</span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newImages = (formData.images || []).filter((_, i) => i !== index);
+                                  setFormData({...formData, images: newImages});
+                                }}
+                                className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors duration-200"
+                                title={`Remove image ${index + 1}`}
+                                aria-label={`Remove image ${index + 1}`}
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                            <ImageUpload
+                              onImageUpload={(url) => {
                                 const newImages = [...(formData.images || [])];
-                                newImages[index] = e.target.value;
+                                newImages[index] = url;
                                 setFormData({...formData, images: newImages});
                               }}
-                              className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                              placeholder={`Additional image ${index + 1} URL`}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => {
+                              onImageRemove={() => {
                                 const newImages = (formData.images || []).filter((_, i) => i !== index);
                                 setFormData({...formData, images: newImages});
                               }}
-                              className="px-3 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200"
-                              title={`Remove image ${index + 1}`}
-                              aria-label={`Remove image ${index + 1}`}
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
+                              currentImage={image}
+                              maxSize={10}
+                              className="w-full"
+                            />
                           </div>
                         ))}
                         {(formData.images || []).length < 5 && (
@@ -1470,14 +1624,14 @@ const SellerProfilePage: React.FC = () => {
                             onClick={() => {
                               setFormData({...formData, images: [...(formData.images || []), '']});
                             }}
-                            className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-green-500 hover:text-green-600 transition-colors duration-200 flex items-center justify-center space-x-2"
+                            className="w-full px-4 py-6 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-green-500 hover:text-green-600 transition-colors duration-200 flex flex-col items-center justify-center"
                           >
-                            <Plus className="w-4 h-4" />
-                            <span>Add Another Image</span>
+                            <Plus className="w-6 h-6 mb-2" />
+                            <span>Add Additional Image</span>
                           </button>
                         )}
                       </div>
-                      <p className="text-xs text-gray-500 mt-1">Add up to 5 additional product images</p>
+                      <p className="text-xs text-gray-500 mt-1">Add up to 5 additional product images (max 10MB each)</p>
                     </div>
 
                     <div>

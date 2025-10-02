@@ -40,7 +40,6 @@ body {
   overflow-x: hidden;
   margin: 0;
   padding: 0;
-  padding-bottom: 6rem; /* Space for bottom navbar */
 }
 
 html {
@@ -237,7 +236,7 @@ html {
 
 /* Ensure content doesn't get hidden behind bottom nav */
 .main-content {
-  padding-bottom: 6rem !important;
+  padding-bottom: 4rem !important;
 }
 
 /* Fix navbar overlap issue - add top padding for fixed/sticky navbars */
@@ -246,7 +245,7 @@ html {
 .admin-content,
 .shop-content {
   padding-top: 1rem !important;
-  padding-bottom: 6rem !important;
+  padding-bottom: 4rem !important;
 }
 
 /* Override for pages that need full height */

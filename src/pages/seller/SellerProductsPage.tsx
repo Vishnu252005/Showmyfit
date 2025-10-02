@@ -356,14 +356,6 @@ const SellerProductsPage: React.FC = () => {
           <div className="absolute inset-0 bg-gradient-to-r from-blue-50 to-purple-50 opacity-50"></div>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
             <div className="py-8">
-              {/* Back Button */}
-              <button
-                onClick={() => navigate('/browse')}
-                className="flex items-center text-gray-600 hover:text-blue-600 mb-6 transition-colors group"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-                Back to Explore
-              </button>
 
               {/* Enhanced Seller Info */}
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
@@ -380,11 +372,6 @@ const SellerProductsPage: React.FC = () => {
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">{seller.businessName}</h1>
                     <p className="text-gray-600 mb-3">Owner: {seller.name}</p>
                     <div className="flex flex-wrap items-center gap-4 text-sm">
-                      <div className="flex items-center bg-yellow-50 px-3 py-1 rounded-full">
-                        <Star className="w-4 h-4 text-yellow-500 mr-1" />
-                        <span className="font-medium">{(seller.stats?.rating || 0).toFixed(1)}</span>
-                        <span className="text-gray-500 ml-1">({seller.stats?.totalOrders || 0} orders)</span>
-                      </div>
                       <div className="flex items-center bg-blue-50 px-3 py-1 rounded-full">
                         <Package className="w-4 h-4 text-blue-500 mr-1" />
                         <span className="font-medium">{products.length} products</span>
@@ -401,21 +388,6 @@ const SellerProductsPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Enhanced Seller Stats */}
-                <div className="grid grid-cols-3 gap-6">
-                  <div className="text-center bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-xl">
-                    <div className="text-3xl font-bold text-blue-600">{seller.stats?.totalProducts || 0}</div>
-                    <div className="text-sm text-blue-700 font-medium">Products</div>
-                  </div>
-                  <div className="text-center bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-xl">
-                    <div className="text-3xl font-bold text-green-600">{seller.stats?.totalOrders || 0}</div>
-                    <div className="text-sm text-green-700 font-medium">Orders</div>
-                  </div>
-                  <div className="text-center bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-xl">
-                    <div className="text-3xl font-bold text-purple-600">₹{(seller.stats?.totalSales || 0).toLocaleString()}</div>
-                    <div className="text-sm text-purple-700 font-medium">Sales</div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>

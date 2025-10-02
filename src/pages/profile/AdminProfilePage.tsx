@@ -10,8 +10,13 @@ import Navbar from '../../components/layout/Navbar';
 import Button from '../../components/ui/Button';
 import { useAuth } from '../../contexts/AuthContext';
 
-const AdminProfilePage: React.FC = () => {
-  const { currentUser, userData, signOut } = useAuth();
+interface AdminProfilePageProps {
+  currentUser: any;
+  userData: any;
+}
+
+const AdminProfilePage: React.FC<AdminProfilePageProps> = ({ currentUser, userData }) => {
+  const { signOut } = useAuth();
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({
@@ -98,9 +103,7 @@ const AdminProfilePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 admin-content">
-      <Navbar userRole="admin" />
-      
-      <div className="main-content pt-24">
+      <div className="main-content pt-4">
         <div className="min-h-screen px-4 py-8">
           <div className="max-w-7xl mx-auto">
             {/* Admin Header */}

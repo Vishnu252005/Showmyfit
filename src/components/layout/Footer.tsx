@@ -58,8 +58,11 @@ const Footer: React.FC = () => {
               </svg>
             </a>
           </div>
-          <p className="text-xs text-warm-400">
+          <p className="text-xs text-warm-400 mb-2">
             © 2024 Showmyfit. Crafted with care.
+          </p>
+          <p className="text-xs text-warm-500">
+            Contact us: showmyfitapp@gmail.com
           </p>
         </div>
       </div>
