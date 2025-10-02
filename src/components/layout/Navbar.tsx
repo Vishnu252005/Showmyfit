@@ -5,6 +5,7 @@ import Sidebar from './Sidebar';
 import ShowMyFITLogo from '../common/ShowMyFITLogo';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
+import { useWishlist } from '../../contexts/WishlistContext';
 
 interface NavbarProps {
   userRole?: 'user' | 'shop' | 'admin';
@@ -21,6 +22,7 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
   let loading = false;
   let getCartItemCount = () => 0;
   let showAddNotification = false;
+  let getWishlistCount = () => 0;
   
   try {
     const auth = useAuth();
@@ -38,6 +40,13 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
     showAddNotification = cart.showAddNotification;
   } catch (error) {
     console.warn('Cart context not available in Navbar:', error);
+  }
+  
+  try {
+    const wishlist = useWishlist();
+    getWishlistCount = wishlist.getWishlistCount;
+  } catch (error) {
+    console.warn('Wishlist context not available in Navbar:', error);
   }
 
   // Don't render if auth is still loading
@@ -125,6 +134,18 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
                       showAddNotification ? 'bg-green-400 animate-pulse' : 'bg-yellow-400'
                     }`}>
                       {getCartItemCount()}
+                    </span>
+                  )}
+                </Link>
+                <Link
+                  to="/wishlist"
+                  className="relative text-white hover:text-pink-300 font-medium text-sm transition-colors flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-white/20"
+                >
+                  <Heart className="w-5 h-5" />
+                  <span className="hidden md:block">Wishlist</span>
+                  {getWishlistCount() > 0 && (
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-pink-400 text-gray-900 text-xs rounded-full flex items-center justify-center font-bold">
+                      {getWishlistCount()}
                     </span>
                   )}
                 </Link>

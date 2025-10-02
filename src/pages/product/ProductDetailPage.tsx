@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import Navbar from '../../components/layout/Navbar';
 import { useCart } from '../../contexts/CartContext';
+import { useWishlist } from '../../contexts/WishlistContext';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 
@@ -61,6 +62,7 @@ const ProductDetailPage: React.FC = () => {
   const { productId } = useParams<{ productId: string }>();
   const navigate = useNavigate();
   const { addToCart, cartItems, updateQuantity, removeFromCart, getCartItemCount } = useCart();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const [product, setProduct] = useState<Product | null>(null);
   const [seller, setSeller] = useState<Seller | null>(null);
   const [loading, setLoading] = useState(true);
@@ -68,9 +70,67 @@ const ProductDetailPage: React.FC = () => {
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [quantity, setQuantity] = useState(1);
-  const [wishlist, setWishlist] = useState<string[]>([]);
   const [showSizeGuide, setShowSizeGuide] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [loadingReviews, setLoadingReviews] = useState(true);
+  const [averageRating, setAverageRating] = useState(0);
+  const [totalReviews, setTotalReviews] = useState(0);
+
+  // Fetch reviews for the product
+  useEffect(() => {
+    const fetchReviews = async () => {
+      if (!productId) return;
+      
+      setLoadingReviews(true);
+      try {
+        // For now, generate some sample reviews based on the product
+        // In a real app, you would fetch from a reviews collection
+        const sampleReviews = [
+          {
+            id: '1',
+            name: "Sarah Johnson",
+            rating: Math.floor(Math.random() * 2) + 4, // 4-5 stars
+            date: "2 days ago",
+            comment: "Great product! Quality is amazing and delivery was super fast. Highly recommended!",
+            verified: true
+          },
+          {
+            id: '2',
+            name: "Mike Chen",
+            rating: Math.floor(Math.random() * 2) + 3, // 3-4 stars
+            date: "1 week ago",
+            comment: "Good product overall. The quality is decent and it arrived on time. Would consider buying again.",
+            verified: true
+          },
+          {
+            id: '3',
+            name: "Emma Wilson",
+            rating: Math.floor(Math.random() * 2) + 4, // 4-5 stars
+            date: "2 weeks ago",
+            comment: "Perfect! Exactly what I was looking for. The seller was very helpful and responsive.",
+            verified: false
+          }
+        ];
+        
+        setReviews(sampleReviews);
+        
+        // Calculate average rating and total reviews
+        const avgRating = sampleReviews.reduce((sum, review) => sum + review.rating, 0) / sampleReviews.length;
+        setAverageRating(avgRating);
+        setTotalReviews(sampleReviews.length);
+      } catch (error) {
+        console.error('Error fetching reviews:', error);
+        setReviews([]);
+        setAverageRating(0);
+        setTotalReviews(0);
+      } finally {
+        setLoadingReviews(false);
+      }
+    };
+
+    fetchReviews();
+  }, [productId]);
 
   // Fetch product data
   useEffect(() => {
@@ -170,13 +230,24 @@ const ProductDetailPage: React.FC = () => {
     return cartItem ? cartItem.quantity : 0;
   };
 
-  const toggleWishlist = () => {
+  const toggleWishlist = async () => {
     if (!product) return;
-    setWishlist(prev => 
-      prev.includes(product.id) 
-        ? prev.filter(id => id !== product.id)
-        : [...prev, product.id]
-    );
+    
+    if (isInWishlist(product.id)) {
+      await removeFromWishlist(product.id);
+    } else {
+      await addToWishlist({
+        productId: product.id,
+        name: product.name,
+        price: product.price,
+        originalPrice: product.originalPrice,
+        image: product.image,
+        brand: product.brand || 'Unknown Brand',
+        category: product.category,
+        sellerId: product.sellerId,
+        sellerName: seller?.businessName
+      });
+    }
   };
 
   const nextImage = () => {
@@ -331,12 +402,12 @@ const ProductDetailPage: React.FC = () => {
                 <button
                   onClick={toggleWishlist}
                   className="absolute top-4 right-4 w-10 h-10 bg-white/80 hover:bg-white rounded-full flex items-center justify-center shadow-lg"
-                  title={wishlist.includes(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
-                  aria-label={wishlist.includes(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                  title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                  aria-label={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
                 >
                   <Heart 
                     className={`w-5 h-5 ${
-                      wishlist.includes(product.id) ? 'text-red-500 fill-current' : 'text-gray-600'
+                      isInWishlist(product.id) ? 'text-red-500 fill-current' : 'text-gray-600'
                     }`} 
                   />
                 </button>
@@ -384,7 +455,7 @@ const ProductDetailPage: React.FC = () => {
                       <Star
                         key={star}
                         className={`w-5 h-5 ${
-                          star <= Math.floor(product.rating)
+                          star <= Math.floor(averageRating)
                             ? 'text-yellow-400 fill-current'
                             : 'text-gray-300'
                         }`}
@@ -392,7 +463,7 @@ const ProductDetailPage: React.FC = () => {
                     ))}
                   </div>
                   <span className="text-sm text-gray-600">
-                    {product.rating.toFixed(1)} ({product.reviews} reviews)
+                    {averageRating.toFixed(1)} ({totalReviews} reviews)
                   </span>
                 </div>
               </div>
@@ -669,20 +740,20 @@ const ProductDetailPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
               <div className="flex items-center space-x-4">
                 <div className="text-center">
-                  <div className="text-4xl font-bold text-gray-900">{product.rating.toFixed(1)}</div>
+                  <div className="text-4xl font-bold text-gray-900">{averageRating.toFixed(1)}</div>
                   <div className="flex items-center justify-center space-x-1">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <Star
                         key={star}
                         className={`w-5 h-5 ${
-                          star <= Math.floor(product.rating)
+                          star <= Math.floor(averageRating)
                             ? 'text-yellow-400 fill-current'
                             : 'text-gray-300'
                         }`}
                       />
                     ))}
                   </div>
-                  <div className="text-sm text-gray-600 mt-1">{product.reviews} reviews</div>
+                  <div className="text-sm text-gray-600 mt-1">{totalReviews} reviews</div>
                 </div>
               </div>
               
@@ -707,29 +778,13 @@ const ProductDetailPage: React.FC = () => {
 
             {/* Individual Reviews */}
             <div className="space-y-6">
-              {[
-                {
-                  name: "Sarah Johnson",
-                  rating: 5,
-                  date: "2 days ago",
-                  comment: "Absolutely love this product! Quality is amazing and delivery was super fast. Highly recommended!",
-                  verified: true
-                },
-                {
-                  name: "Mike Chen",
-                  rating: 4,
-                  date: "1 week ago",
-                  comment: "Great product overall. The quality is good and it arrived on time. Would buy again.",
-                  verified: true
-                },
-                {
-                  name: "Emma Wilson",
-                  rating: 5,
-                  date: "2 weeks ago",
-                  comment: "Perfect! Exactly what I was looking for. The seller was very helpful and responsive.",
-                  verified: false
-                }
-              ].map((review, index) => (
+              {loadingReviews ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                  <p className="text-gray-500 mt-2">Loading reviews...</p>
+                </div>
+              ) : reviews.length > 0 ? (
+                reviews.map((review, index) => (
                 <div key={index} className="border-b border-gray-200 pb-6 last:border-b-0">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center space-x-3">
@@ -768,7 +823,12 @@ const ProductDetailPage: React.FC = () => {
                   </div>
                   <p className="text-gray-700 leading-relaxed">{review.comment}</p>
                 </div>
-              ))}
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">No reviews yet. Be the first to review this product!</p>
+                </div>
+              )}
             </div>
 
             {/* Load More Reviews */}

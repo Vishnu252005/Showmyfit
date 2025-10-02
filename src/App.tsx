@@ -18,6 +18,7 @@ import ManageAdminsPage from './pages/admin/ManageAdminsPage';
 import ProductManagementPage from './pages/product/ProductManagementPage';
 import ProductDetailPage from './pages/product/ProductDetailPage';
 import SellerManagementPage from './pages/seller/SellerManagementPage';
+import WishlistPage from './pages/WishlistPage';
 import UserManagementPage from './pages/user/UserManagementPage';
 import OrderManagementPage from './pages/order/OrderManagementPage';
 import AdminSettingsPage from './pages/admin/AdminSettingsPage';
@@ -33,7 +34,9 @@ import ScrollToTop from './components/layout/ScrollToTop';
 import { AppProvider } from './contexts/AppContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
+import { WishlistProvider } from './contexts/WishlistContext';
 import Chatbot from './components/common/Chatbot';
+import ErrorBoundary from './components/common/ErrorBoundary';
 
 
 
@@ -42,13 +45,16 @@ function App() {
     <AuthProvider>
       <AppProvider>
         <CartProvider>
-          <Router>
-            <ScrollToTop />
-            <Routes>
+          <ErrorBoundary>
+            <WishlistProvider>
+              <Router>
+                <ScrollToTop />
+                <Routes>
               <Route path="/" element={<AppLayout />}>
                 <Route index element={<HomePage />} />
                 <Route path="browse" element={<SearchPage />} />
                 <Route path="cart" element={<CartPage />} />
+                <Route path="wishlist" element={<WishlistPage />} />
                 <Route path="categories" element={<CategoriesPage />} />
                 <Route path="seller/:sellerId" element={<SellerProductsPage />} />
                 <Route path="product/:productId" element={<ProductDetailPage />} />
@@ -80,9 +86,11 @@ function App() {
               <Route path="/admin/settings" element={<AdminSettingsPage />} />
             </Routes>
             
-            {/* Chatbot - Always Visible on All Pages */}
-            <Chatbot />
-          </Router>
+                {/* Chatbot - Always Visible on All Pages */}
+                <Chatbot />
+              </Router>
+            </WishlistProvider>
+          </ErrorBoundary>
         </CartProvider>
       </AppProvider>
     </AuthProvider>

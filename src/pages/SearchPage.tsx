@@ -7,8 +7,10 @@ import {
 import GoogleMapLocation from '../components/common/GoogleMapLocation';
 import { collection, query, getDocs, where } from 'firebase/firestore';
 import { db } from '../firebase/config';
+import { useWishlist } from '../contexts/WishlistContext';
 
 const SearchPage: React.FC = () => {
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [sellers, setSellers] = useState<any[]>([]);
@@ -16,6 +18,26 @@ const SearchPage: React.FC = () => {
   const [currentLocation, setCurrentLocation] = useState<string>('');
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+
+  const toggleWishlist = async (seller: any) => {
+    // For shop cards, we'll use the seller ID as the product ID
+    const productId = `shop-${seller.id}`;
+    
+    if (isInWishlist(productId)) {
+      await removeFromWishlist(productId);
+    } else {
+      await addToWishlist({
+        productId: productId,
+        name: seller.businessName || 'Shop',
+        price: 0, // Shops don't have prices
+        image: seller.businessImage || 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=200&h=200&fit=crop',
+        brand: 'Shop',
+        category: 'Store',
+        sellerId: seller.id,
+        sellerName: seller.businessName
+      });
+    }
+  };
 
   const categories = [
     'All', 'Fashion', 'Electronics', 'Beauty', 'Home', 'Sports', 'Books', 'Food'
@@ -572,11 +594,14 @@ const SearchPage: React.FC = () => {
                           Visit Store
                         </Link>
                         <button 
+                          onClick={() => toggleWishlist(seller)}
                           className="w-14 h-14 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-2xl transition-all duration-300 flex items-center justify-center group"
-                          title="Add to favorites"
-                          aria-label="Add to favorites"
+                          title={isInWishlist(`shop-${seller.id}`) ? 'Remove from favorites' : 'Add to favorites'}
+                          aria-label={isInWishlist(`shop-${seller.id}`) ? 'Remove from favorites' : 'Add to favorites'}
                         >
-                          <Heart className="w-5 h-5 group-hover:text-red-500 transition-colors" />
+                          <Heart className={`w-5 h-5 transition-colors ${
+                            isInWishlist(`shop-${seller.id}`) ? 'text-red-500 fill-current' : 'group-hover:text-red-500'
+                          }`} />
                         </button>
                       </div>
                     </div>

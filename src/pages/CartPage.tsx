@@ -2,11 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Bookmark, Minus, Plus, Trash2, ArrowLeft, 
-  CreditCard, Truck, Shield, Heart, Clock, Package
+  CreditCard, Truck, Shield, Heart, Clock, Package,
+  MapPin, Store, Phone, Star
 } from 'lucide-react';
 import Navbar from '../components/layout/Navbar';
 import { useCart } from '../contexts/CartContext';
 import CartNotification from '../components/common/CartNotification';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../firebase/config';
 
 const CartPage: React.FC = () => {
   const {
@@ -22,11 +25,49 @@ const CartPage: React.FC = () => {
   } = useCart();
 
   const [showLastAdded, setShowLastAdded] = useState(false);
+  const [shopDetails, setShopDetails] = useState<{[key: string]: any}>({});
+  const [loadingShops, setLoadingShops] = useState(false);
 
   // Show last added products section if there are any
   useEffect(() => {
     setShowLastAdded(lastAddedProducts.length > 0);
   }, [lastAddedProducts]);
+
+  // Fetch shop details for cart items
+  useEffect(() => {
+    const fetchShopDetails = async () => {
+      if (cartItems.length === 0) return;
+      
+      setLoadingShops(true);
+      const shopIds = [...new Set(cartItems.map(item => item.sellerId).filter(Boolean))];
+      const shopDetailsMap: {[key: string]: any} = {};
+      
+      try {
+        for (const shopId of shopIds) {
+          if (shopId) {
+            const shopDoc = await getDoc(doc(db, 'users', shopId));
+            if (shopDoc.exists()) {
+              const shopData = shopDoc.data();
+              shopDetailsMap[shopId] = {
+                name: shopData.businessName || shopData.displayName || 'Unknown Shop',
+                address: shopData.address || 'Address not available',
+                phone: shopData.phone || 'Phone not available',
+                rating: shopData.stats?.rating || 0,
+                totalOrders: shopData.stats?.totalOrders || 0
+              };
+            }
+          }
+        }
+        setShopDetails(shopDetailsMap);
+      } catch (error) {
+        console.error('Error fetching shop details:', error);
+      } finally {
+        setLoadingShops(false);
+      }
+    };
+
+    fetchShopDetails();
+  }, [cartItems]);
 
   const subtotal = getCartTotal();
   const discount = cartItems.reduce((sum, item) => sum + ((item.originalPrice || 0) - (item.price || 0)) * item.quantity, 0);
@@ -141,9 +182,45 @@ const CartPage: React.FC = () => {
                         <h3 className="font-semibold text-gray-900 text-lg mb-1">{item.name}</h3>
                         <p className="text-gray-600 mb-2">{item.brand}</p>
                         
+                        {/* Shop Details */}
+                        {item.sellerId && (
+                          <div className="bg-gray-50 rounded-lg p-3 mb-3">
+                            {loadingShops ? (
+                              <div className="animate-pulse">
+                                <div className="h-4 bg-gray-200 rounded w-1/3 mb-2"></div>
+                                <div className="h-3 bg-gray-200 rounded w-2/3 mb-1"></div>
+                                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                              </div>
+                            ) : shopDetails[item.sellerId] ? (
+                              <>
+                                <div className="flex items-center space-x-2 mb-2">
+                                  <Store className="w-4 h-4 text-blue-600" />
+                                  <span className="font-medium text-gray-900">{shopDetails[item.sellerId].name}</span>
+                                  {shopDetails[item.sellerId].rating > 0 && (
+                                    <div className="flex items-center space-x-1">
+                                      <Star className="w-3 h-3 text-yellow-400 fill-current" />
+                                      <span className="text-xs text-gray-600">{shopDetails[item.sellerId].rating.toFixed(1)}</span>
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="flex items-center space-x-2 text-sm text-gray-600 mb-1">
+                                  <MapPin className="w-3 h-3" />
+                                  <span className="truncate">{shopDetails[item.sellerId].address}</span>
+                                </div>
+                                <div className="flex items-center space-x-2 text-sm text-gray-600">
+                                  <Phone className="w-3 h-3" />
+                                  <span>{shopDetails[item.sellerId].phone}</span>
+                                </div>
+                              </>
+                            ) : (
+                              <div className="text-sm text-gray-500">Shop details not available</div>
+                            )}
+                          </div>
+                        )}
+                        
                         <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
-                          <span>Size: {item.size}</span>
-                          <span>Color: {item.color}</span>
+                          <span>Size: {item.size || 'N/A'}</span>
+                          <span>Color: {item.color || 'N/A'}</span>
                         </div>
 
                         {/* Quantity Controls */}

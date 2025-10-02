@@ -10,9 +10,11 @@ import Chatbot from '../components/common/Chatbot';
 import { collection, query, getDocs, where, orderBy, getDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { getCurrentLocationWithDetails, sortStoresByDistance, parseAddressToCoordinates } from '../utils/distance';
+import { useWishlist } from '../contexts/WishlistContext';
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const [isLoaded, setIsLoaded] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<string>('');
   const [isGettingLocation, setIsGettingLocation] = useState(false);
@@ -21,7 +23,6 @@ const HomePage: React.FC = () => {
   const [showNearbyStores, setShowNearbyStores] = useState(false);
   const [showManualLocation, setShowManualLocation] = useState(false);
   const [manualLocation, setManualLocation] = useState<string>('');
-  const [wishlist, setWishlist] = useState<string[]>([]);
   const [showQuickView, setShowQuickView] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [sellers, setSellers] = useState<any[]>([]);
@@ -251,12 +252,22 @@ const HomePage: React.FC = () => {
     { name: 'Sportswear', description: 'Active wear', image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=200&h=200&fit=crop' }
   ];
 
-  const toggleWishlist = (productId: string) => {
-    setWishlist(prev => 
-      prev.includes(productId) 
-        ? prev.filter(id => id !== productId)
-        : [...prev, productId]
-    );
+  const toggleWishlist = async (product: any) => {
+    if (isInWishlist(product.id)) {
+      await removeFromWishlist(product.id);
+    } else {
+      await addToWishlist({
+        productId: product.id,
+        name: product.name,
+        price: product.price,
+        originalPrice: product.originalPrice,
+        image: product.image,
+        brand: product.brand || 'Unknown Brand',
+        category: product.category,
+        sellerId: product.sellerId,
+        sellerName: product.sellerName
+      });
+    }
   };
 
 
@@ -669,14 +680,14 @@ const HomePage: React.FC = () => {
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    toggleWishlist(product.id);
+                                    toggleWishlist(product);
                                   }}
                                   className="p-1.5 md:p-2 bg-white rounded-full shadow-lg hover:shadow-xl transition-all"
-                                  title={wishlist.includes(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
-                                  aria-label={wishlist.includes(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                                  title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                                  aria-label={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
                                 >
                                   <Heart className={`w-3 h-3 md:w-4 md:h-4 ${
-                                    wishlist.includes(product.id) ? 'text-red-500 fill-current' : 'text-gray-600'
+                                    isInWishlist(product.id) ? 'text-red-500 fill-current' : 'text-gray-600'
                                   }`} />
                                 </button>
                                 <button
@@ -1415,13 +1426,13 @@ const HomePage: React.FC = () => {
                     Reserve
                         </button>
                         <button 
-                    onClick={() => toggleWishlist(selectedProduct.id)}
+                    onClick={() => toggleWishlist(selectedProduct)}
                     className="px-4 py-3 border-2 border-gray-300 rounded-xl hover:border-red-500 hover:text-red-500 transition-colors"
-                    title={wishlist.includes(selectedProduct.id) ? 'Remove from wishlist' : 'Add to wishlist'}
-                    aria-label={wishlist.includes(selectedProduct.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                    title={isInWishlist(selectedProduct.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                    aria-label={isInWishlist(selectedProduct.id) ? 'Remove from wishlist' : 'Add to wishlist'}
                   >
                     <Heart className={`w-5 h-5 ${
-                      wishlist.includes(selectedProduct.id) ? 'text-red-500 fill-current' : 'text-gray-400'
+                      isInWishlist(selectedProduct.id) ? 'text-red-500 fill-current' : 'text-gray-400'
                     }`} />
                 </button>
               </div>

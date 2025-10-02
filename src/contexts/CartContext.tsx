@@ -182,7 +182,8 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   };
 
   const moveToWishlist = (item: CartItem) => {
-    // TODO: Implement wishlist functionality
+    // This function is now handled by the WishlistContext
+    // We just remove from cart and let the user add to wishlist separately
     console.log('Moving to wishlist:', item);
     removeFromCart(item.id);
   };

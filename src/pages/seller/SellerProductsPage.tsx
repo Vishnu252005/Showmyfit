@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import Navbar from '../../components/layout/Navbar';
 import { useCart } from '../../contexts/CartContext';
+import { useWishlist } from '../../contexts/WishlistContext';
 import { collection, query, getDocs, where, doc, getDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 
@@ -55,6 +56,7 @@ const SellerProductsPage: React.FC = () => {
   const { sellerId } = useParams<{ sellerId: string }>();
   const navigate = useNavigate();
   const { addToCart, cartItems, updateQuantity, removeFromCart, getCartItemCount } = useCart();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const [seller, setSeller] = useState<Seller | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -64,7 +66,6 @@ const SellerProductsPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [priceRange, setPriceRange] = useState({ min: 0, max: 100000 });
   const [showFilters, setShowFilters] = useState(false);
-  const [wishlist, setWishlist] = useState<string[]>([]);
   const [compareList, setCompareList] = useState<string[]>([]);
   const [showQuickView, setShowQuickView] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -177,12 +178,22 @@ const SellerProductsPage: React.FC = () => {
       }
     });
 
-  const toggleWishlist = (productId: string) => {
-    setWishlist(prev => 
-      prev.includes(productId) 
-        ? prev.filter(id => id !== productId)
-        : [...prev, productId]
-    );
+  const toggleWishlist = async (product: Product) => {
+    if (isInWishlist(product.id)) {
+      await removeFromWishlist(product.id);
+    } else {
+      await addToWishlist({
+        productId: product.id,
+        name: product.name,
+        price: product.price,
+        originalPrice: product.originalPrice,
+        image: product.image,
+        brand: product.brand || 'Unknown Brand',
+        category: product.category,
+        sellerId: product.sellerId,
+        sellerName: seller?.businessName
+      });
+    }
   };
 
   const handleAddToCart = (product: Product) => {
@@ -598,13 +609,13 @@ const SellerProductsPage: React.FC = () => {
                             {/* Action Buttons */}
                             <div className="absolute top-3 right-3 flex flex-col space-y-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                               <button
-                                onClick={() => toggleWishlist(product.id)}
+                                onClick={() => toggleWishlist(product)}
                                 className="p-2 bg-white rounded-full shadow-lg hover:shadow-xl transition-all"
-                                title={wishlist.includes(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
-                                aria-label={wishlist.includes(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                                title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                                aria-label={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
                               >
                                 <Heart className={`w-4 h-4 ${
-                                  wishlist.includes(product.id) ? 'text-red-500 fill-current' : 'text-gray-600'
+                                  isInWishlist(product.id) ? 'text-red-500 fill-current' : 'text-gray-600'
                                 }`} />
                               </button>
                               <button
@@ -806,13 +817,13 @@ const SellerProductsPage: React.FC = () => {
                               />
                               </Link>
                               <button
-                                onClick={() => toggleWishlist(product.id)}
+                                onClick={() => toggleWishlist(product)}
                                 className="absolute top-2 right-2 p-1 bg-white rounded-full shadow-sm"
-                                title={wishlist.includes(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
-                                aria-label={wishlist.includes(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                                title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                                aria-label={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
                               >
                                 <Heart className={`w-4 h-4 ${
-                                  wishlist.includes(product.id) ? 'text-red-500 fill-current' : 'text-gray-400'
+                                  isInWishlist(product.id) ? 'text-red-500 fill-current' : 'text-gray-400'
                                 }`} />
                               </button>
                             </div>
@@ -1005,13 +1016,13 @@ const SellerProductsPage: React.FC = () => {
                       {selectedProduct && selectedProduct.stock <= 1 ? 'Out of Stock' : 'Reserve'}
                     </button>
                     <button
-                      onClick={() => toggleWishlist(selectedProduct.id)}
+                      onClick={() => toggleWishlist(selectedProduct)}
                       className="px-4 py-3 border-2 border-gray-300 rounded-xl hover:border-red-500 hover:text-red-500 transition-colors"
-                      title={wishlist.includes(selectedProduct.id) ? 'Remove from wishlist' : 'Add to wishlist'}
-                      aria-label={wishlist.includes(selectedProduct.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                      title={isInWishlist(selectedProduct.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                      aria-label={isInWishlist(selectedProduct.id) ? 'Remove from wishlist' : 'Add to wishlist'}
                     >
                       <Heart className={`w-5 h-5 ${
-                        wishlist.includes(selectedProduct.id) ? 'text-red-500 fill-current' : 'text-gray-400'
+                        isInWishlist(selectedProduct.id) ? 'text-red-500 fill-current' : 'text-gray-400'
                       }`} />
                     </button>
                   </div>
