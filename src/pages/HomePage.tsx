@@ -11,11 +11,15 @@ import { collection, query, getDocs, where, orderBy, getDoc, doc } from 'firebas
 import { db } from '../firebase/config';
 import { getCurrentLocationWithDetails, sortStoresByDistance, parseAddressToCoordinates } from '../utils/distance';
 import { useWishlist } from '../contexts/WishlistContext';
+import { useSEO, SEOConfigs } from '../hooks/useSEO';
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const [isLoaded, setIsLoaded] = useState(false);
+  
+  // SEO Configuration
+  useSEO(SEOConfigs.home);
   const [currentLocation, setCurrentLocation] = useState<string>('');
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [locationError, setLocationError] = useState<string>('');

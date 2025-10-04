@@ -10,6 +10,7 @@ import ReserveButton from '../components/common/ReserveButton';
 import { collection, query, getDocs, where, orderBy } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { useCart } from '../contexts/CartContext';
+import { useSEO, SEOConfigs } from '../hooks/useSEO';
 
 interface Product {
   id: string;
@@ -56,6 +57,9 @@ const CategoriesPage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [sellers, setSellers] = useState<Seller[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // SEO Configuration
+  useSEO(SEOConfigs.categories);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState<'price' | 'rating' | 'newest'>('newest');
   const { addToCart, getCartItemCount, updateQuantity } = useCart();

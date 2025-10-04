@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { useEffect } from 'react';
 import HomePage from './pages/HomePage';
 import SearchPage from './pages/SearchPage';
 import CategoriesPage from './pages/CategoriesPage';
@@ -37,10 +38,26 @@ import { CartProvider } from './contexts/CartContext';
 import { WishlistProvider } from './contexts/WishlistContext';
 import Chatbot from './components/common/Chatbot';
 import ErrorBoundary from './components/common/ErrorBoundary';
+import { initializePerformanceMonitoring, reportBundleSize } from './utils/performanceMonitoring';
 
 
 
 function App() {
+  // Initialize performance monitoring
+  useEffect(() => {
+    const performanceMonitor = initializePerformanceMonitoring();
+    
+    // Report bundle size after initial load
+    setTimeout(() => {
+      reportBundleSize();
+    }, 2000);
+    
+    // Cleanup on unmount
+    return () => {
+      performanceMonitor.cleanup();
+    };
+  }, []);
+
   return (
     <AuthProvider>
       <AppProvider>
