@@ -488,6 +488,13 @@ nav.bottom-nav {
   100% { transform: rotate(360deg); }
 }
 
+/* Chatbot Styles - Hidden */
+.chatbot-container,
+.chatbot-button,
+.chatbot-window {
+  display: none !important;
+}
+
 /* Chatbot Styles */
 .chatbot-message-enter {
   opacity: 0;

@@ -6,7 +6,7 @@ import {
   DollarSign, Percent, TrendingUp
 } from 'lucide-react';
 import ReserveButton from '../components/common/ReserveButton';
-import Chatbot from '../components/common/Chatbot';
+// import Chatbot from '../components/common/Chatbot';
 import { collection, query, getDocs, where, orderBy, getDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { getCurrentLocationWithDetails, sortStoresByDistance, parseAddressToCoordinates } from '../utils/distance';

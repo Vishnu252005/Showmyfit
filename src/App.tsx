@@ -36,7 +36,7 @@ import { AppProvider } from './contexts/AppContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
 import { WishlistProvider } from './contexts/WishlistContext';
-import Chatbot from './components/common/Chatbot';
+// import Chatbot from './components/common/Chatbot';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import { initializePerformanceMonitoring, reportBundleSize } from './utils/performanceMonitoring';
 
@@ -103,8 +103,8 @@ function App() {
               <Route path="/admin/settings" element={<AdminSettingsPage />} />
             </Routes>
             
-                {/* Chatbot - Always Visible on All Pages */}
-                <Chatbot />
+                {/* Chatbot - Hidden for now */}
+                {/* <Chatbot /> */}
               </Router>
             </WishlistProvider>
           </ErrorBoundary>
