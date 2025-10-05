@@ -238,6 +238,25 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
     };
   }, [categoryDropdownOpen, statusDropdownOpen]);
 
+  // Handle click outside overlay
+  useEffect(() => {
+    const handleOverlayClick = (event: MouseEvent) => {
+      if (showAddProduct && (event.target as Element).classList.contains('bg-black')) {
+        setShowAddProduct(false);
+        setEditingProduct(null);
+        resetForm();
+      }
+    };
+
+    if (showAddProduct) {
+      document.addEventListener('mousedown', handleOverlayClick);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleOverlayClick);
+    };
+  }, [showAddProduct]);
+
   // Load seller products
   const loadProducts = async () => {
     if (!currentUser) return;
@@ -993,13 +1012,28 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
             <ReservedProducts sellerId={currentUser?.uid || ''} />
           </div>
 
-          {/* Add/Edit Product Form */}
+          {/* Add/Edit Product Form Overlay */}
           {showAddProduct && (
-              <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
+            <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-2xl shadow-xl p-8 pb-16 w-full max-w-6xl max-h-[90vh] overflow-y-auto">
                 <div className="mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                    {editingProduct ? 'Edit Product' : 'Add New Product'}
-                  </h2>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-2xl font-bold text-gray-900">
+                      {editingProduct ? 'Edit Product' : 'Add New Product'}
+                    </h2>
+                    <button
+                      onClick={() => {
+                        setShowAddProduct(false);
+                        setEditingProduct(null);
+                        resetForm();
+                      }}
+                      className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+                      title="Close form"
+                      aria-label="Close form"
+                    >
+                      <XCircle className="w-6 h-6" />
+                    </button>
+                  </div>
                   <div className="space-y-4">
                 {/* Test Data Buttons */}
                 <div className="space-y-4">
@@ -1408,7 +1442,7 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
                   </div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-6 pb-8">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1851,7 +1885,7 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
                     </label>
                   </div>
 
-                  <div className="flex justify-end space-x-4">
+                  <div className="flex justify-end space-x-4 pt-6 pb-8 border-t border-gray-200">
                     <Button
                       type="button"
                       onClick={() => {
@@ -1874,7 +1908,8 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
                   </div>
                 </form>
               </div>
-            )}
+            </div>
+          )}
 
           {/* Sign Out Button */}
           <div className="text-center">
