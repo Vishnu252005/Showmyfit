@@ -34,6 +34,8 @@ const HomePage: React.FC = () => {
   const [homePageSections, setHomePageSections] = useState<any[]>([]);
   const [loadingSections, setLoadingSections] = useState(true);
   const [allProducts, setAllProducts] = useState<any[]>([]);
+  const [recentlyViewed, setRecentlyViewed] = useState<string[]>([]);
+  const [suggestedProducts, setSuggestedProducts] = useState<any[]>([]);
   const [promotionalCards, setPromotionalCards] = useState({
     electronics: { discountPercentage: 50 },
     fashion: { discountPercentage: 30 },
@@ -43,6 +45,14 @@ const HomePage: React.FC = () => {
   useEffect(() => {
     setIsLoaded(true);
   }, []);
+
+  // Update suggestions when products or recently viewed changes
+  useEffect(() => {
+    if (allProducts.length > 0) {
+      const suggestions = generateSuggestions();
+      setSuggestedProducts(suggestions);
+    }
+  }, [allProducts, recentlyViewed]);
 
   // Fetch home page sections and products
   useEffect(() => {
@@ -74,6 +84,18 @@ const HomePage: React.FC = () => {
           updatedAt: doc.data().updatedAt?.toDate() || new Date()
         }));
         setAllProducts(productsData);
+
+        // Load recently viewed products from localStorage
+        const storedRecentlyViewed = localStorage.getItem('recentlyViewedProducts');
+        if (storedRecentlyViewed) {
+          try {
+            const viewedIds = JSON.parse(storedRecentlyViewed);
+            setRecentlyViewed(viewedIds);
+          } catch (error) {
+            console.error('Error parsing recently viewed products:', error);
+            setRecentlyViewed([]);
+          }
+        }
 
         // Load promotional card settings
         try {
@@ -281,12 +303,108 @@ const HomePage: React.FC = () => {
   };
 
   const handleProductClick = (productId: string) => {
+    // Add to recently viewed
+    const updatedRecentlyViewed = [productId, ...recentlyViewed.filter(id => id !== productId)].slice(0, 10);
+    setRecentlyViewed(updatedRecentlyViewed);
+    localStorage.setItem('recentlyViewedProducts', JSON.stringify(updatedRecentlyViewed));
+    
     navigate(`/product/${productId}`);
   };
 
   // Get products for a specific section
   const getSectionProducts = (productIds: string[]) => {
     return allProducts.filter(product => productIds.includes(product.id));
+  };
+
+  // Smart suggestions algorithm based on recently viewed products
+  const generateSuggestions = () => {
+    if (allProducts.length === 0) return [];
+
+    // If no recently viewed products, show random popular products
+    if (recentlyViewed.length === 0) {
+      return allProducts
+        .filter(product => product.status === 'active')
+        .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+        .slice(0, 4);
+    }
+
+    // Get recently viewed products
+    const viewedProducts = allProducts.filter(product => 
+      recentlyViewed.includes(product.id) && product.status === 'active'
+    );
+
+    if (viewedProducts.length === 0) {
+      return allProducts
+        .filter(product => product.status === 'active')
+        .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+        .slice(0, 4);
+    }
+
+    // Analyze viewing patterns
+    const categories = viewedProducts.map(p => p.category).filter(Boolean);
+    const sellers = viewedProducts.map(p => p.sellerId).filter(Boolean);
+    const priceRange = viewedProducts.map(p => p.price);
+    const avgPrice = priceRange.reduce((sum, price) => sum + price, 0) / priceRange.length;
+
+    // Generate suggestions based on patterns
+    const suggestions: any[] = [];
+
+    // 1. Same category products (40% weight)
+    const categoryProducts = allProducts.filter(product => 
+      product.status === 'active' && 
+      !recentlyViewed.includes(product.id) &&
+      categories.includes(product.category)
+    );
+
+    // 2. Same seller products (30% weight)
+    const sellerProducts = allProducts.filter(product => 
+      product.status === 'active' && 
+      !recentlyViewed.includes(product.id) &&
+      sellers.includes(product.sellerId)
+    );
+
+    // 3. Similar price range products (20% weight)
+    const priceProducts = allProducts.filter(product => 
+      product.status === 'active' && 
+      !recentlyViewed.includes(product.id) &&
+      Math.abs(product.price - avgPrice) <= avgPrice * 0.5 // Within 50% of average price
+    );
+
+    // 4. Popular products as fallback (10% weight)
+    const popularProducts = allProducts.filter(product => 
+      product.status === 'active' && 
+      !recentlyViewed.includes(product.id)
+    ).sort((a, b) => (b.rating || 0) - (a.rating || 0));
+
+    // Combine and score suggestions
+    const allSuggestions = [...categoryProducts, ...sellerProducts, ...priceProducts, ...popularProducts];
+    
+    // Remove duplicates and score
+    const uniqueSuggestions = allSuggestions.reduce((acc, product) => {
+      if (!acc.find(p => p.id === product.id)) {
+        let score = 0;
+        
+        // Category match
+        if (categories.includes(product.category)) score += 4;
+        
+        // Seller match
+        if (sellers.includes(product.sellerId)) score += 3;
+        
+        // Price similarity
+        if (Math.abs(product.price - avgPrice) <= avgPrice * 0.5) score += 2;
+        
+        // Rating bonus
+        score += (product.rating || 0) * 0.5;
+        
+        acc.push({ ...product, suggestionScore: score });
+      }
+      return acc;
+    }, [] as any[]);
+
+    // Sort by score and return top 4
+    return uniqueSuggestions
+      .sort((a, b) => b.suggestionScore - a.suggestionScore)
+      .slice(0, 4);
   };
 
   // Render section icon based on type
@@ -445,16 +563,16 @@ const HomePage: React.FC = () => {
                 { name: 'Sports', icon: '⚽', color: 'bg-green-100' },
                 { name: 'Home', icon: '🏡', color: 'bg-orange-100' }
               ].map((category, index) => (
-                <Link
+                <button
                   key={index}
-                  to="/categories"
+                  onClick={() => navigate('/browse')}
                   className="flex flex-col items-center space-y-1 flex-shrink-0 group"
                 >
                   <div className={`w-10 h-10 rounded-full ${category.color} flex items-center justify-center group-hover:scale-110 transition-transform duration-200`}>
                     <span className="text-lg">{category.icon}</span>
                   </div>
                   <span className="text-xs text-gray-600 group-hover:text-blue-600 transition-colors font-medium">{category.name}</span>
-                </Link>
+                </button>
               ))}
             </div>
           </div>
@@ -474,16 +592,16 @@ const HomePage: React.FC = () => {
                 { name: 'Sports', icon: '⚽', color: 'bg-green-100' },
                 { name: 'Home', icon: '🏡', color: 'bg-orange-100' }
               ].map((category, index) => (
-                <Link
+                <button
                   key={index}
-                  to="/categories"
+                  onClick={() => navigate('/browse')}
                   className="flex flex-col items-center space-y-1 flex-shrink-0 group"
                 >
                   <div className={`w-12 h-12 rounded-full ${category.color} flex items-center justify-center group-hover:scale-110 transition-transform duration-200`}>
                     <span className="text-xl">{category.icon}</span>
                   </div>
                   <span className="text-sm text-gray-600 group-hover:text-blue-600 transition-colors font-medium">{category.name}</span>
-                </Link>
+                </button>
               ))}
             </div>
           </div>
@@ -497,21 +615,21 @@ const HomePage: React.FC = () => {
                 <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Shop by Category</h2>
                 <p className="text-gray-600 text-sm md:text-base">Discover amazing products across all categories</p>
               </div>
-              <Link 
-                to="/categories" 
+              <button 
+                onClick={() => navigate('/browse')}
                 className="text-blue-600 font-medium hover:text-blue-700 transition-colors text-sm md:text-base"
               >
                 View All →
-              </Link>
+              </button>
             </div>
             
             {/* Mobile-optimized Category Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4">
               {categories.map((category) => (
-                <Link
+                <button
                   key={category.name}
-                  to="/categories"
-                  className="group bg-gray-50 rounded-xl p-3 md:p-4 hover:bg-gray-100 transition-all duration-300 transform hover:scale-105"
+                  onClick={() => navigate('/browse')}
+                  className="group bg-gray-50 rounded-xl p-3 md:p-4 hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 w-full"
                 >
                   <div className="text-center">
                     <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl overflow-hidden mb-2 md:mb-3 mx-auto shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-110">
@@ -528,7 +646,7 @@ const HomePage: React.FC = () => {
                       {category.description}
                     </p>
                   </div>
-                </Link>
+                </button>
               ))}
             </div>
           </div>
@@ -557,7 +675,10 @@ const HomePage: React.FC = () => {
                     <p className="text-xs text-white/80">Support your neighborhood</p>
                   </div>
                 </div>
-                <button className="bg-white text-purple-600 px-6 py-3 md:px-8 md:py-4 rounded-xl font-bold text-base md:text-lg hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 w-full sm:w-auto">
+                <button 
+                  onClick={() => navigate('/browse')}
+                  className="bg-white text-purple-600 px-6 py-3 md:px-8 md:py-4 rounded-xl font-bold text-base md:text-lg hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 w-full sm:w-auto"
+                >
                   Shop Now
                 </button>
               </div>
@@ -654,6 +775,9 @@ const HomePage: React.FC = () => {
                                 </div>
                               </div>
                               <h3 className="font-semibold text-gray-900 text-sm md:text-base mb-2">{product.name}</h3>
+                              {product.sellerName && (
+                                <p className="text-xs text-blue-600 font-medium mb-2">by {product.sellerName}</p>
+                              )}
                               <div className="flex items-center space-x-2">
                                 <span className="text-lg md:text-xl font-bold text-gray-900">₹{calculateDiscountedPrice(product, section).toLocaleString()}</span>
                                 {product.originalPrice && product.originalPrice > product.price && (
@@ -664,7 +788,10 @@ const HomePage: React.FC = () => {
                                 )}
                               </div>
                               <button 
-                                onClick={(e) => e.stopPropagation()}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate('/browse');
+                                }}
                                 className="w-full mt-3 bg-orange-500 text-white py-2 rounded-lg font-medium hover:bg-orange-600 transition-colors"
                               >
                                 Shop Now
@@ -739,6 +866,9 @@ const HomePage: React.FC = () => {
                                   {product.name}
                                 </h3>
                                 <p className="text-xs md:text-sm text-gray-600 font-medium">{product.brand}</p>
+                                {product.sellerName && (
+                                  <p className="text-xs text-blue-600 font-medium">by {product.sellerName}</p>
+                                )}
                               </div>
                               
                               {/* Rating */}
@@ -829,7 +959,10 @@ const HomePage: React.FC = () => {
                 <p className="text-blue-100 mb-6">Up to {promotionalCards.electronics.discountPercentage}% off on all electronics</p>
                 <div className="text-4xl font-bold mb-2">{promotionalCards.electronics.discountPercentage}% OFF</div>
                 <p className="text-sm text-blue-200">Limited time offer</p>
-                <button className="mt-6 bg-white text-blue-600 px-6 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors">
+                <button 
+                  onClick={() => navigate('/browse')}
+                  className="mt-6 bg-white text-blue-600 px-6 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors"
+                >
                   Shop Now
                 </button>
               </div>
@@ -841,7 +974,10 @@ const HomePage: React.FC = () => {
                 <p className="text-purple-100 mb-6">Latest trends at amazing prices</p>
                 <div className="text-4xl font-bold mb-2">{promotionalCards.fashion.discountPercentage}% OFF</div>
                 <p className="text-sm text-purple-200">New arrivals</p>
-                <button className="mt-6 bg-white text-purple-600 px-6 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors">
+                <button 
+                  onClick={() => navigate('/browse')}
+                  className="mt-6 bg-white text-purple-600 px-6 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors"
+                >
                   Explore
                 </button>
               </div>
@@ -853,7 +989,10 @@ const HomePage: React.FC = () => {
                 <p className="text-green-100 mb-6">Transform your space</p>
                 <div className="text-4xl font-bold mb-2">{promotionalCards.home.discountPercentage}% OFF</div>
                 <p className="text-sm text-green-200">Free delivery</p>
-                <button className="mt-6 bg-white text-green-600 px-6 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors">
+                <button 
+                  onClick={() => navigate('/browse')}
+                  className="mt-6 bg-white text-green-600 px-6 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors"
+                >
                   Shop Now
                 </button>
               </div>
@@ -945,7 +1084,10 @@ const HomePage: React.FC = () => {
             
             {/* View All Brands Button */}
             <div className="text-center mt-8">
-              <button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
+              <button 
+                onClick={() => navigate('/browse')}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+              >
                 View All Brands
               </button>
             </div>
@@ -957,46 +1099,70 @@ const HomePage: React.FC = () => {
           <div className="px-4">
             <div className="flex items-center justify-between mb-4 md:mb-6">
               <h2 className="text-xl md:text-2xl font-bold text-gray-900">Suggestions for You</h2>
-              <button className="text-blue-600 text-sm font-medium hover:text-blue-700 transition-colors">
+              <button 
+                onClick={() => navigate('/browse')}
+                className="text-blue-600 text-sm font-medium hover:text-blue-700 transition-colors"
+              >
                 View All →
               </button>
                   </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[
-                { name: 'Wireless Earbuds', price: '₹1,299', originalPrice: '₹2,999', discount: '57%', image: 'https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?w=200&h=200&fit=crop', rating: 4.5 },
-                { name: 'Smart Watch', price: '₹3,999', originalPrice: '₹7,999', discount: '50%', image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&h=200&fit=crop', rating: 4.3 },
-                { name: 'Bluetooth Speaker', price: '₹899', originalPrice: '₹1,999', discount: '55%', image: 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=200&h=200&fit=crop', rating: 4.7 },
-                { name: 'Phone Stand', price: '₹299', originalPrice: '₹599', discount: '50%', image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200&h=200&fit=crop', rating: 4.2 }
-              ].map((product, index) => (
-                <div key={index} className="bg-white rounded-lg p-3 hover:shadow-lg transition-shadow touch-manipulation">
-                  <div className="relative mb-3">
-                    <img 
-                      src={product.image} 
-                      alt={product.name}
-                      className="w-full h-32 md:h-40 object-cover rounded"
-                    />
-                    <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
-                      {product.discount} OFF
+              {suggestedProducts.length > 0 ? (
+                suggestedProducts.map((product, index) => {
+                  const originalPrice = product.originalPrice || product.price * 1.5;
+                  const discount = Math.round(((originalPrice - product.price) / originalPrice) * 100);
+                  
+                  return (
+                    <div 
+                      key={product.id || index} 
+                      className="bg-white rounded-lg p-3 hover:shadow-lg transition-shadow touch-manipulation cursor-pointer" 
+                      onClick={() => handleProductClick(product.id)}
+                    >
+                      <div className="relative mb-3">
+                        <img 
+                          src={product.image || `https://images.unsplash.com/photo-${1500000000000 + index * 1000000}?w=200&h=200&fit=crop`} 
+                          alt={product.name}
+                          className="w-full h-32 md:h-40 object-cover rounded"
+                          onError={(e) => {
+                            e.currentTarget.src = `https://images.unsplash.com/photo-${1500000000000 + index * 1000000}?w=200&h=200&fit=crop`;
+                          }}
+                        />
+                        {discount > 0 && (
+                          <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
+                            {discount}% OFF
+                          </div>
+                        )}
+                        <div className="absolute top-2 right-2 bg-white rounded-full p-1">
+                          <Heart className="w-4 h-4 text-gray-400" />
+                        </div>
+                      </div>
+                      <h3 className="font-semibold text-gray-900 text-sm mb-1 line-clamp-2">{product.name}</h3>
+                      {product.sellerName && (
+                        <p className="text-xs text-blue-600 font-medium mb-1">by {product.sellerName}</p>
+                      )}
+                      <div className="flex items-center mb-2">
+                        <div className="flex items-center">
+                          {[...Array(5)].map((_, i) => (
+                            <Star key={i} className={`w-3 h-3 ${i < Math.floor(product.rating || 0) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} />
+                          ))}
+                        </div>
+                        <span className="text-xs text-gray-500 ml-1">({product.rating?.toFixed(1) || '0.0'})</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm font-bold text-gray-900">₹{product.price?.toLocaleString() || '0'}</span>
+                        {originalPrice > product.price && (
+                          <span className="text-xs text-gray-500 line-through">₹{originalPrice.toLocaleString()}</span>
+                        )}
+                      </div>
                     </div>
-                    <div className="absolute top-2 right-2 bg-white rounded-full p-1">
-                      <Heart className="w-4 h-4 text-gray-400" />
-                    </div>
-                  </div>
-                  <h3 className="font-semibold text-gray-900 text-sm mb-1 line-clamp-2">{product.name}</h3>
-                  <div className="flex items-center mb-2">
-                    <div className="flex items-center">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className={`w-3 h-3 ${i < Math.floor(product.rating) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} />
-                      ))}
-                    </div>
-                    <span className="text-xs text-gray-500 ml-1">({product.rating})</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm font-bold text-gray-900">{product.price}</span>
-                    <span className="text-xs text-gray-500 line-through">{product.originalPrice}</span>
+                  );
+                })
+              ) : (
+                // Fallback when no suggestions available
+                <div className="col-span-full text-center py-8">
+                  <p className="text-gray-500 text-sm">No suggestions available</p>
                 </div>
-              </div>
-            ))}
+              )}
           </div>
         </div>
         </section>
@@ -1006,7 +1172,10 @@ const HomePage: React.FC = () => {
           <div className="px-4">
             <div className="flex items-center justify-between mb-4 md:mb-6">
               <h2 className="text-xl md:text-2xl font-bold text-gray-900">Random Products</h2>
-              <button className="text-blue-600 text-sm font-medium hover:text-blue-700 transition-colors">
+              <button 
+                onClick={() => navigate('/browse')}
+                className="text-blue-600 text-sm font-medium hover:text-blue-700 transition-colors"
+              >
                 Refresh →
               </button>
                     </div>
@@ -1018,7 +1187,7 @@ const HomePage: React.FC = () => {
                   const discount = Math.round(((originalPrice - product.price) / originalPrice) * 100);
                   
                   return (
-                    <div key={product.id || index} className="flex-shrink-0 bg-white border border-gray-200 rounded-lg p-3 w-40 md:w-48 hover:shadow-lg transition-shadow touch-manipulation">
+                    <div key={product.id || index} className="flex-shrink-0 bg-white border border-gray-200 rounded-lg p-3 w-40 md:w-48 hover:shadow-lg transition-shadow touch-manipulation cursor-pointer" onClick={() => handleProductClick(product.id)}>
                       <div className="relative mb-3">
                         <img 
                           src={product.image || product.imageUrl || `https://images.unsplash.com/photo-${1500000000000 + index * 1000000}?w=200&h=200&fit=crop`} 
@@ -1035,6 +1204,9 @@ const HomePage: React.FC = () => {
                         <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">{product.category || 'General'}</span>
                       </div>
                       <h3 className="font-semibold text-gray-900 text-xs md:text-sm mb-1 line-clamp-2">{product.name}</h3>
+                      {product.sellerName && (
+                        <p className="text-xs text-blue-600 font-medium mb-1">by {product.sellerName}</p>
+                      )}
                       <div className="flex items-center space-x-2">
                         <span className="text-sm md:text-lg font-bold text-blue-600">₹{product.price?.toLocaleString() || '0'}</span>
                         {originalPrice > product.price && (
@@ -1060,32 +1232,39 @@ const HomePage: React.FC = () => {
           <div className="px-4">
             <div className="flex items-center justify-between mb-4 md:mb-6">
               <h2 className="text-xl md:text-2xl font-bold text-gray-900">Recently Viewed</h2>
-              <button className="text-blue-600 text-sm font-medium hover:text-blue-700 transition-colors">
+              <button 
+                onClick={() => navigate('/browse')}
+                className="text-blue-600 text-sm font-medium hover:text-blue-700 transition-colors"
+              >
                 Clear All
               </button>
             </div>
             <div className="flex space-x-4 overflow-x-auto scrollbar-hide pb-2">
-              {sellers.length > 0 ? (
-                // Show actual products from sellers
-                sellers.slice(0, 4).map((seller, index) => {
-                  // Get a sample product for this seller (in real app, this would be from recently viewed)
-                  const sampleProduct = {
-                    name: seller.businessName + ' Store',
-                    price: '₹' + (Math.floor(Math.random() * 5000) + 500).toLocaleString(),
-                    image: `https://images.unsplash.com/photo-${1500000000000 + index * 1000000}?w=150&h=150&fit=crop`,
-                    time: index === 0 ? '2 hours ago' : index === 1 ? '1 day ago' : index === 2 ? '2 days ago' : '3 days ago'
-                  };
+              {allProducts.length > 0 ? (
+                // Show actual products from database as recently viewed
+                allProducts.slice(0, 4).map((product, index) => {
+                  const timeLabels = ['2 hours ago', '1 day ago', '2 days ago', '3 days ago'];
                   
                   return (
-                    <div key={seller.id} className="flex-shrink-0 bg-gray-50 rounded-lg p-3 w-32 md:w-40 hover:bg-gray-100 transition-colors touch-manipulation">
+                    <div 
+                      key={product.id || index} 
+                      className="flex-shrink-0 bg-gray-50 rounded-lg p-3 w-32 md:w-40 hover:bg-gray-100 transition-colors touch-manipulation cursor-pointer"
+                      onClick={() => handleProductClick(product.id)}
+                    >
                       <img 
-                        src={sampleProduct.image} 
-                        alt={sampleProduct.name}
+                        src={product.image || `https://images.unsplash.com/photo-${1500000000000 + index * 1000000}?w=150&h=150&fit=crop`} 
+                        alt={product.name}
                         className="w-full h-20 md:h-24 object-cover rounded mb-2"
+                        onError={(e) => {
+                          e.currentTarget.src = `https://images.unsplash.com/photo-${1500000000000 + index * 1000000}?w=150&h=150&fit=crop`;
+                        }}
                       />
-                      <h3 className="font-medium text-gray-900 text-xs mb-1 line-clamp-2">{sampleProduct.name}</h3>
-                      <p className="text-sm font-bold text-blue-600 mb-1">{sampleProduct.price}</p>
-                      <p className="text-xs text-gray-500">{sampleProduct.time}</p>
+                      <h3 className="font-medium text-gray-900 text-xs mb-1 line-clamp-2">{product.name}</h3>
+                      {product.sellerName && (
+                        <p className="text-xs text-blue-600 font-medium mb-1">by {product.sellerName}</p>
+                      )}
+                      <p className="text-sm font-bold text-blue-600 mb-1">₹{product.price?.toLocaleString() || '0'}</p>
+                      <p className="text-xs text-gray-500">{timeLabels[index] || 'Recently'}</p>
                     </div>
                   );
                 })
@@ -1337,13 +1516,13 @@ const HomePage: React.FC = () => {
                   <ArrowRight className="w-5 h-5" />
                 </button>
               ) : (
-                <Link 
-                  to="/browse" 
+                <button 
+                  onClick={() => navigate('/browse')}
                   className="inline-flex items-center space-x-2 bg-white text-blue-600 border-2 border-blue-600 py-3 px-8 rounded-xl font-semibold hover:bg-blue-50 transition-colors"
                 >
                   <span>View All Stores</span>
                   <ArrowRight className="w-5 h-5" />
-                </Link>
+                </button>
               )}
             </div>
           </div>
