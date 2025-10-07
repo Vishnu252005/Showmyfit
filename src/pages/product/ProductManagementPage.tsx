@@ -271,13 +271,13 @@ const ProductManagementPage: React.FC = () => {
     setFormData({
       name: '',
       description: '',
-      price: 0,
-      originalPrice: 0,
+      price: '' as any,
+      originalPrice: '' as any,
       category: 'electronics',
       brand: '',
       image: '',
       images: [],
-      stock: 0,
+      stock: '' as any,
       rating: 0,
       reviews: 0,
       tags: [],
@@ -555,13 +555,13 @@ const ProductManagementPage: React.FC = () => {
                         type="number"
                         min="0"
                         step="0.01"
-                        value={formData.price}
+                        value={formData.price || ''}
                         onChange={(e) => {
-                          const value = Math.max(0, parseFloat(e.target.value) || 0);
+                          const value = e.target.value === '' ? 0 : Math.max(0, parseFloat(e.target.value));
                           setFormData({...formData, price: value});
                         }}
+                        placeholder="Enter price"
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                        placeholder="0.00"
                         required
                       />
                       <p className="text-xs text-gray-500 mt-1">Enter price in rupees (0 or more)</p>
@@ -575,13 +575,13 @@ const ProductManagementPage: React.FC = () => {
                         type="number"
                         min="0"
                         step="0.01"
-                        value={formData.originalPrice}
+                        value={formData.originalPrice || ''}
                         onChange={(e) => {
-                          const value = Math.max(0, parseFloat(e.target.value) || 0);
+                          const value = e.target.value === '' ? 0 : Math.max(0, parseFloat(e.target.value));
                           setFormData({...formData, originalPrice: value});
                         }}
+                        placeholder="Enter original price (optional)"
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                        placeholder="0.00"
                       />
                       <p className="text-xs text-gray-500 mt-1">Enter original price for discount calculation (optional)</p>
                     </div>
@@ -652,13 +652,13 @@ const ProductManagementPage: React.FC = () => {
                         type="number"
                         min="0"
                         step="1"
-                        value={formData.stock}
+                        value={formData.stock === 0 ? '' : formData.stock}
                         onChange={(e) => {
-                          const value = Math.max(0, parseInt(e.target.value) || 0);
+                          const value = e.target.value === '' ? 0 : Math.max(0, parseInt(e.target.value));
                           setFormData({...formData, stock: value});
                         }}
+                        placeholder="Enter stock quantity"
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                        placeholder="Enter quantity (0 or more)"
                         required
                       />
                       <p className="text-xs text-gray-500 mt-1">Enter 0 or a positive number</p>
@@ -795,7 +795,7 @@ const ProductManagementPage: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Description (Optional)
+                      Description
                     </label>
                     <textarea
                       value={formData.description}

@@ -1479,13 +1479,13 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
                         type="number"
                         min="0"
                         step="0.01"
-                        value={formData.price}
+                        value={formData.price || ''}
                         onChange={(e) => {
-                          const value = Math.max(0, parseFloat(e.target.value) || 0);
+                          const value = e.target.value === '' ? 0 : Math.max(0, parseFloat(e.target.value));
                           setFormData({...formData, price: value});
                         }}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        placeholder="0.00"
+                        placeholder="Enter price"
                         required
                       />
                       <p className="text-xs text-gray-500 mt-1">Enter price in rupees (0 or more)</p>
@@ -1499,13 +1499,13 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
                         type="number"
                         min="0"
                         step="0.01"
-                        value={formData.originalPrice}
+                        value={formData.originalPrice || ''}
                         onChange={(e) => {
-                          const value = Math.max(0, parseFloat(e.target.value) || 0);
+                          const value = e.target.value === '' ? 0 : Math.max(0, parseFloat(e.target.value));
                           setFormData({...formData, originalPrice: value});
                         }}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        placeholder="0.00"
+                        placeholder="Enter original price (optional)"
                       />
                       <p className="text-xs text-gray-500 mt-1">Enter original price for discount calculation (optional)</p>
                     </div>
@@ -1824,15 +1824,14 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Description *
+                      Description
                     </label>
                     <textarea
                       value={formData.description}
                       onChange={(e) => setFormData({...formData, description: e.target.value})}
                       rows={4}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      placeholder="Enter product description"
-                      required
+                      placeholder="Enter product description (optional)"
                     />
                   </div>
 
