@@ -9,5 +9,13 @@
   "orientation": "portrait-primary",
   "scope": "/",
   "lang": "en",
-  "categories": ["shopping", "business", "lifestyle"]
+  "categories": ["shopping", "business", "lifestyle"],
+  "icons": [
+    {
+      "src": "/logo.jpg",
+      "sizes": "any",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
 }
