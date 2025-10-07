@@ -40,7 +40,7 @@ interface SellerProfilePageProps {
 }
 
 const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, userData }) => {
-  const { signOut, refreshUserData } = useAuth();
+  const { signOut, refreshUserData, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({
@@ -289,12 +289,12 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
     loadProducts();
   }, [currentUser]);
 
-  // Handle authentication redirect
+  // Handle authentication redirect - only redirect if loading is complete and no user
   useEffect(() => {
-    if (!currentUser) {
+    if (!authLoading && !currentUser) {
       navigate('/auth');
     }
-  }, [currentUser, navigate]);
+  }, [authLoading, currentUser, navigate]);
 
   const handleSignOut = async () => {
     try {
@@ -559,7 +559,19 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
     }
   };
 
-  // Show loading or redirect if not authenticated
+  // Show loading while authentication is loading
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect if not authenticated (after loading is complete)
   if (!currentUser) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 flex items-center justify-center">
