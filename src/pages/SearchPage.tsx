@@ -148,6 +148,7 @@ const SearchPage: React.FC = () => {
               businessType: userData.businessType || 'No type',
               address: userData.address || userData.businessAddress || 'No address',
               location: locationData, // Properly formatted location data
+              profileImage: userData.profileImage || '', // Add profile picture
               stats: userData.stats || {
                 totalProducts: Math.floor(Math.random() * 50) + 10,
                 totalSales: Math.floor(Math.random() * 1000) + 100,
@@ -468,9 +469,28 @@ const SearchPage: React.FC = () => {
                     {/* Store Identity */}
                     <div className="p-3 border-b border-gray-100">
                       <div className="flex items-center space-x-2 mb-2">
-                        <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-md flex-shrink-0">
-                          <span className="text-xl font-bold text-white">{seller.businessName.charAt(0).toUpperCase()}</span>
-                        </div>
+                        {seller.profileImage ? (
+                          <img 
+                            src={seller.profileImage} 
+                            alt={seller.businessName}
+                            className="w-12 h-12 rounded-lg object-cover shadow-md flex-shrink-0 border-2 border-blue-200"
+                            onError={(e) => {
+                              // Fallback to gradient icon if image fails to load
+                              e.currentTarget.style.display = 'none';
+                              const parent = e.currentTarget.parentElement;
+                              if (parent) {
+                                const fallback = document.createElement('div');
+                                fallback.className = 'w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-md flex-shrink-0';
+                                fallback.innerHTML = `<span class="text-xl font-bold text-white">${seller.businessName.charAt(0).toUpperCase()}</span>`;
+                                parent.insertBefore(fallback, e.currentTarget);
+                              }
+                            }}
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-md flex-shrink-0">
+                            <span className="text-xl font-bold text-white">{seller.businessName.charAt(0).toUpperCase()}</span>
+                          </div>
+                        )}
                         <div className="flex-1 min-w-0">
                           <h3 className="text-sm font-bold text-gray-900 line-clamp-1 mb-1">{seller.businessName}</h3>
                           {seller.distance && (

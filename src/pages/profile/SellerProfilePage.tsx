@@ -51,7 +51,7 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
     businessType: userData?.businessType || '',
     businessDescription: userData?.businessDescription || '',
     location: userData?.location || null,
-    profilePicture: userData?.profilePicture || ''
+    profilePicture: userData?.profileImage || ''
   });
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -315,7 +315,7 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
       businessType: userData?.businessType || '',
       businessDescription: userData?.businessDescription || '',
       location: userData?.location || null,
-      profilePicture: userData?.profilePicture || ''
+      profilePicture: userData?.profileImage || ''
     });
   };
 
@@ -369,17 +369,69 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
       businessType: userData?.businessType || '',
       businessDescription: userData?.businessDescription || '',
       location: userData?.location || null,
-      profilePicture: userData?.profilePicture || ''
+      profilePicture: userData?.profileImage || ''
     });
   };
 
-  const handleProfilePicUpload = (url: string) => {
+  const handleProfilePicUpload = async (url: string) => {
     setEditData({...editData, profilePicture: url});
+    
+    // Save profile picture to database immediately
+    if (currentUser) {
+      try {
+        console.log('💾 Saving profile picture to database:', url);
+        await updateUserProfile(currentUser.uid, {
+          profileImage: url
+        });
+        
+        // Refresh user data to reflect the change
+        await refreshUserData();
+        
+        setMessage('Profile picture updated successfully!');
+        setIsSuccess(true);
+        setTimeout(() => {
+          setMessage('');
+          setIsSuccess(false);
+        }, 3000);
+      } catch (error) {
+        console.error('Error saving profile picture:', error);
+        setMessage('Failed to save profile picture. Please try again.');
+        setIsSuccess(false);
+        setTimeout(() => setMessage(''), 3000);
+      }
+    }
+    
     setShowProfilePicUpload(false);
   };
 
-  const handleProfilePicRemove = () => {
+  const handleProfilePicRemove = async () => {
     setEditData({...editData, profilePicture: ''});
+    
+    // Remove profile picture from database immediately
+    if (currentUser) {
+      try {
+        console.log('💾 Removing profile picture from database');
+        await updateUserProfile(currentUser.uid, {
+          profileImage: ''
+        });
+        
+        // Refresh user data to reflect the change
+        await refreshUserData();
+        
+        setMessage('Profile picture removed successfully!');
+        setIsSuccess(true);
+        setTimeout(() => {
+          setMessage('');
+          setIsSuccess(false);
+        }, 3000);
+      } catch (error) {
+        console.error('Error removing profile picture:', error);
+        setMessage('Failed to remove profile picture. Please try again.');
+        setIsSuccess(false);
+        setTimeout(() => setMessage(''), 3000);
+      }
+    }
+    
     setShowProfilePicUpload(false);
   };
 

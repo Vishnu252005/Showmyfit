@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   MapPin, Package, Star, Heart, Clock, 
-  ArrowRight, Sparkles, Eye, ShoppingCart, Phone, MapIcon, ThumbsUp, X,
+  ArrowRight, Sparkles, Eye, ShoppingCart, Phone, Map, ThumbsUp, X,
   DollarSign, Percent, TrendingUp
 } from 'lucide-react';
 import ReserveButton from '../components/common/ReserveButton';

@@ -10,14 +10,14 @@ import AdminProfilePage from './AdminProfilePage';
 import SellerProfilePage from './SellerProfilePage';
 
 const ProfilePage: React.FC = () => {
-  const { currentUser, userData, signOut } = useAuth();
+  const { currentUser, userData, signOut, refreshUserData } = useAuth();
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({
     displayName: userData?.displayName || currentUser?.displayName || '',
     phone: userData?.phone || '',
     address: userData?.address || '',
-    profilePicture: userData?.profilePicture || ''
+    profilePicture: userData?.profileImage || ''
   });
   const [applicationStatus, setApplicationStatus] = useState<'not_applied' | 'pending' | 'approved' | 'rejected'>('not_applied');
   const [showProfilePicUpload, setShowProfilePicUpload] = useState(false);
@@ -62,7 +62,7 @@ const ProfilePage: React.FC = () => {
       displayName: userData?.displayName || currentUser?.displayName || '',
       phone: userData?.phone || '',
       address: userData?.address || '',
-      profilePicture: userData?.profilePicture || ''
+      profilePicture: userData?.profileImage || ''
     });
   };
 
@@ -85,17 +85,59 @@ const ProfilePage: React.FC = () => {
       displayName: userData?.displayName || currentUser?.displayName || '',
       phone: userData?.phone || '',
       address: userData?.address || '',
-      profilePicture: userData?.profilePicture || ''
+      profilePicture: userData?.profileImage || ''
     });
   };
 
-  const handleProfilePicUpload = (url: string) => {
+  const handleProfilePicUpload = async (url: string) => {
     setEditData({...editData, profilePicture: url});
+    
+    // Save profile picture to database immediately
+    if (currentUser) {
+      try {
+        console.log('💾 Saving profile picture to database:', url);
+        await updateUserProfile(currentUser.uid, {
+          profileImage: url
+        });
+        
+        // Refresh user data to reflect the change
+        if (refreshUserData) {
+          await refreshUserData();
+        }
+        
+        alert('Profile picture updated successfully!');
+      } catch (error) {
+        console.error('Error saving profile picture:', error);
+        alert('Failed to save profile picture. Please try again.');
+      }
+    }
+    
     setShowProfilePicUpload(false);
   };
 
-  const handleProfilePicRemove = () => {
+  const handleProfilePicRemove = async () => {
     setEditData({...editData, profilePicture: ''});
+    
+    // Remove profile picture from database immediately
+    if (currentUser) {
+      try {
+        console.log('💾 Removing profile picture from database');
+        await updateUserProfile(currentUser.uid, {
+          profileImage: ''
+        });
+        
+        // Refresh user data to reflect the change
+        if (refreshUserData) {
+          await refreshUserData();
+        }
+        
+        alert('Profile picture removed successfully!');
+      } catch (error) {
+        console.error('Error removing profile picture:', error);
+        alert('Failed to remove profile picture. Please try again.');
+      }
+    }
+    
     setShowProfilePicUpload(false);
   };
 

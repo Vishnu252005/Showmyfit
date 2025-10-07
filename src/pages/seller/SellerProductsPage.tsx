@@ -44,6 +44,7 @@ interface Seller {
   businessName: string;
   businessType: string;
   address: string;
+  profileImage?: string;
   stats: {
     totalProducts: number;
     totalSales: number;
@@ -299,9 +300,28 @@ const SellerProductsPage: React.FC = () => {
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
                 <div className="flex items-center space-x-6 mb-6 lg:mb-0">
                   <div className="relative">
-                    <div className="w-20 h-20 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center text-white text-3xl font-bold shadow-lg">
-                      {seller.businessName.charAt(0).toUpperCase()}
-                    </div>
+                    {seller.profileImage ? (
+                      <img 
+                        src={seller.profileImage} 
+                        alt={seller.businessName}
+                        className="w-20 h-20 rounded-2xl object-cover shadow-lg border-4 border-white"
+                        onError={(e) => {
+                          // Fallback to gradient icon if image fails to load
+                          e.currentTarget.style.display = 'none';
+                          const parent = e.currentTarget.parentElement;
+                          if (parent) {
+                            const fallback = document.createElement('div');
+                            fallback.className = 'w-20 h-20 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center text-white text-3xl font-bold shadow-lg';
+                            fallback.innerHTML = `<span>${seller.businessName.charAt(0).toUpperCase()}</span>`;
+                            parent.insertBefore(fallback, e.currentTarget);
+                          }
+                        }}
+                      />
+                    ) : (
+                      <div className="w-20 h-20 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center text-white text-3xl font-bold shadow-lg">
+                        {seller.businessName.charAt(0).toUpperCase()}
+                      </div>
+                    )}
                     <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
                       <Check className="w-3 h-3 text-white" />
                     </div>
