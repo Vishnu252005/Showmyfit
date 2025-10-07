@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Search, MapPin, Star, Package, Phone, Eye, Heart, Filter,
-  Store, Navigation, Clock, Truck, Shield, Users, TrendingUp
+  Store, Navigation, Clock, Truck, Shield, Users, TrendingUp, Map
 } from 'lucide-react';
 import GoogleMapLocation from '../components/common/GoogleMapLocation';
 import { collection, query, getDocs, where } from 'firebase/firestore';
@@ -410,26 +410,28 @@ const SearchPage: React.FC = () => {
           </div>
 
           {/* Filter Tabs */}
-          <div className="flex items-center space-x-4 mb-6 overflow-x-auto scrollbar-hide">
-            <div className="flex space-x-2">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-3 mb-6">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-semibold text-gray-700 flex items-center">
+                <Filter className="w-4 h-4 mr-2" />
+                Categories
+              </h3>
+            </div>
+            <div className="flex space-x-2 overflow-x-auto scrollbar-hide pb-1">
               {categories.map((category) => (
                 <button
                   key={category}
                   onClick={() => setSelectedCategory(category)}
-                  className={`px-4 py-2 rounded-full font-medium transition-colors whitespace-nowrap ${
+                  className={`px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap text-sm ${
                     selectedCategory === category
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
                   {category}
                 </button>
               ))}
             </div>
-            <button className="bg-white border border-gray-200 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-2">
-              <Filter className="w-4 h-4" />
-              <span>More Filters</span>
-            </button>
           </div>
 
           {/* Results */}
@@ -457,153 +459,70 @@ const SearchPage: React.FC = () => {
               <p className="text-gray-600">Try adjusting your search or location filters.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-2 gap-3 md:gap-4">
               {filteredSellers.map((seller) => (
-                <div key={seller.id} className="group">
-                  {/* Modern Card Container */}
-                  <div className="bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 hover:border-blue-200 transform hover:-translate-y-2">
+                <div key={seller.id}>
+                  {/* ULTIMATE Modern Card */}
+                  <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 h-full flex flex-col">
                     
-                    {/* Hero Section with Gradient */}
-                    <div className="relative h-48 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 overflow-hidden">
-                      {/* Animated Background Pattern */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20"></div>
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
-                      <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-12 -translate-x-12"></div>
-                      
-                      {/* Store Avatar & Info */}
-                      <div className="relative z-10 h-full flex flex-col justify-between p-6">
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/30">
-                              <span className="text-2xl font-bold text-white">{seller.businessName.charAt(0).toUpperCase()}</span>
-                            </div>
-                            <div>
-                              <h3 className="text-xl font-bold text-white mb-1">{seller.businessName}</h3>
-                              <p className="text-white/80 text-sm">by {seller.name}</p>
-                            </div>
-                          </div>
-                          
-                          {/* Status Badge */}
-                          <div className="flex flex-col items-end space-y-2">
-                            <div className="flex items-center space-x-1 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
-                              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                              <span className="text-white text-xs font-medium">Online</span>
-                            </div>
-                            {seller.distance && (
-                              <div className="bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
-                                <span className="text-white text-xs font-medium">{(seller.distance || 0).toFixed(1)} km</span>
-                              </div>
-                            )}
-                          </div>
+                    {/* Store Identity */}
+                    <div className="p-3 border-b border-gray-100">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-md flex-shrink-0">
+                          <span className="text-xl font-bold text-white">{seller.businessName.charAt(0).toUpperCase()}</span>
                         </div>
-                        
-                        {/* Rating & Business Type */}
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <div className="flex items-center space-x-1 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
-                              <Star className="w-4 h-4 text-yellow-300 fill-current" />
-                              <span className="text-white font-semibold">{(seller.stats?.rating || 0).toFixed(1)}</span>
-                              <span className="text-white/70 text-sm">({seller.stats.totalOrders})</span>
-                            </div>
-                          </div>
-                          <div className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1">
-                            <span className="text-white text-sm font-medium">{seller.businessType}</span>
-                          </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-sm font-bold text-gray-900 line-clamp-1 mb-1">{seller.businessName}</h3>
+                          {seller.distance && (
+                            <span className="text-xs text-gray-500 flex items-center">
+                              <Navigation className="w-3 h-3 mr-1" />
+                              {(seller.distance || 0).toFixed(1)} km away
+                            </span>
+                          )}
                         </div>
+                      </div>
+                      <div className="flex items-center">
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-gradient-to-r from-blue-50 to-purple-50 text-blue-700 border border-blue-200">
+                          <Store className="w-3 h-3 mr-1" />
+                          {seller.businessType}
+                        </span>
                       </div>
                     </div>
 
-                    {/* Content Section */}
-                    <div className="p-6">
-
-                      {/* Contact Info */}
-                      <div className="space-y-3 mb-6">
-                        <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
-                          <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                            <MapPin className="w-5 h-5 text-blue-600" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">{seller.address}</p>
-                            {seller.location && (
-                              <div className="flex items-center space-x-2 mt-1">
-                                <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
-                                  ✓ Verified
-                                </span>
-                                <button
-                                  onClick={() => {
-                                    const { lat, lng } = seller.location;
-                                    const mapsUrl = `https://www.google.com/maps?q=${lat},${lng}&z=15&t=m&hl=en&gl=IN&mapclient=embed`;
-                                    window.open(mapsUrl, '_blank');
-                                  }}
-                                  className="text-xs text-blue-600 hover:text-blue-700 font-medium"
-                                >
-                                  View on Maps →
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
-                          <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
-                            <Phone className="w-5 h-5 text-green-600" />
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-sm font-medium text-gray-900">{seller.phone}</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Map Section */}
-                      {seller.location && (
-                        <div className="mb-6">
-                          <div className="flex items-center justify-between mb-3">
-                            <h4 className="text-sm font-semibold text-gray-700 flex items-center">
-                              <MapPin className="w-4 h-4 mr-2 text-blue-600" />
-                              Store Location
-                            </h4>
+                    {/* Store Details */}
+                    <div className="p-4 space-y-3 flex-1">
+                      <div className="space-y-2">
+                        <div className="flex items-start space-x-2">
+                          <MapPin className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                          <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed flex-1">{seller.address}</p>
+                          {seller.location && (
                             <button
                               onClick={() => {
                                 const { lat, lng } = seller.location;
-                                const mapsUrl = `https://www.google.com/maps?q=${lat},${lng}&z=15&t=m&hl=en&gl=IN&mapclient=embed`;
-                                window.open(mapsUrl, '_blank');
+                                window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
                               }}
-                              className="text-xs text-blue-600 hover:text-blue-700 font-medium bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded-full transition-colors"
+                              className="bg-blue-100 hover:bg-blue-200 rounded-lg p-1.5 transition-colors flex-shrink-0"
+                              title="Open in Google Maps"
                             >
-                              Open in Maps
+                              <Map className="w-4 h-4 text-blue-600" />
                             </button>
-                          </div>
-                          <div className="rounded-2xl overflow-hidden border border-gray-200">
-                            <GoogleMapLocation
-                              location={seller.location}
-                              onLocationChange={() => {}}
-                              isEditing={false}
-                              height="120px"
-                            />
-                          </div>
+                          )}
                         </div>
-                      )}
-
-                      {/* Action Buttons */}
-                      <div className="flex space-x-3">
-                        <Link
-                          to={`/seller/${seller.id}`}
-                          className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-6 rounded-2xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-105"
-                        >
-                          <Eye className="w-5 h-5 mr-2" />
-                          Visit Store
-                        </Link>
-                        <button 
-                          onClick={() => toggleWishlist(seller)}
-                          className="w-14 h-14 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-2xl transition-all duration-300 flex items-center justify-center group"
-                          title={isInWishlist(`shop-${seller.id}`) ? 'Remove from favorites' : 'Add to favorites'}
-                          aria-label={isInWishlist(`shop-${seller.id}`) ? 'Remove from favorites' : 'Add to favorites'}
-                        >
-                          <Heart className={`w-5 h-5 transition-colors ${
-                            isInWishlist(`shop-${seller.id}`) ? 'text-red-500 fill-current' : 'group-hover:text-red-500'
-                          }`} />
-                        </button>
+                        
+                        <div className="flex items-center space-x-2">
+                          <Phone className="w-4 h-4 text-green-600 flex-shrink-0" />
+                          <a href={`tel:${seller.phone}`} className="text-xs text-gray-600 hover:text-blue-600 transition-colors">{seller.phone}</a>
+                        </div>
                       </div>
+
+                      {/* Action Button */}
+                      <Link
+                        to={`/seller/${seller.id}`}
+                        className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-xl text-sm font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-200 flex items-center justify-center shadow-md hover:shadow-lg"
+                      >
+                        <Store className="w-4 h-4 mr-2" />
+                        Visit Store
+                      </Link>
                     </div>
                   </div>
                 </div>

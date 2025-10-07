@@ -60,21 +60,16 @@ const CategoriesPage: React.FC = () => {
   
   // SEO Configuration
   useSEO(SEOConfigs.categories);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [sortBy, setSortBy] = useState<'price' | 'rating' | 'newest'>('newest');
+  const [searchTerm, setSearchTerm] = useState('');
   const { addToCart, getCartItemCount, updateQuantity } = useCart();
   const categories = [
-    { name: 'Women', image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=300&h=300&fit=crop&crop=face' },
-    { name: 'Footwear', image: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=300&h=300&fit=crop' },
-    { name: 'Jewellery', image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=300&h=300&fit=crop' },
-    { name: 'Lingerie', image: 'https://images.unsplash.com/photo-1619194617062-5d61c9c860f8?w=300&h=300&fit=crop' },
-    { name: 'Watches', image: 'https://images.unsplash.com/photo-1523170335258-f5e6a7c0c4c4?w=300&h=300&fit=crop' },
-    { name: 'Gifting Guide', image: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=300&h=300&fit=crop' },
+    { name: 'Women', image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=300&h=300&fit=crop' },
     { name: 'Kids', image: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=300&h=300&fit=crop' },
-    { name: 'Home & Lifestyle', image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=300&h=300&fit=crop' },
+    { name: 'Men', image: 'https://images.unsplash.com/photo-1490578474895-699cd4e2cf59?w=300&h=300&fit=crop&crop=face' },
+    { name: 'Watches', image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=300&fit=crop' },
     { name: 'Accessories', image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&h=300&fit=crop' },
-    { name: 'Beauty by Tira', image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=300&h=300&fit=crop' },
-    { name: 'Sportswear', image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=300&fit=crop' }
+    { name: 'Jewellery', image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=300&h=300&fit=crop' },
+    { name: 'Sports', image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=300&fit=crop' }
   ];
 
   // Fetch products and sellers
@@ -108,7 +103,7 @@ const CategoriesPage: React.FC = () => {
             totalProducts: 0,
             totalSales: 0,
             totalOrders: 0,
-            rating: 4.5
+            rating: 0
           }
         })) as Seller[];
 
@@ -124,26 +119,17 @@ const CategoriesPage: React.FC = () => {
     fetchData();
   }, []);
 
-  // Filter products by category if selected
+  // Filter products by category and search term
   const filteredProducts = selectedCategory 
-    ? products.filter(product => 
-        product.category.toLowerCase().includes(selectedCategory.toLowerCase()) ||
-        product.name.toLowerCase().includes(selectedCategory.toLowerCase())
-      )
+    ? products.filter(product => {
+        const matchesCategory = product.category.toLowerCase().includes(selectedCategory.toLowerCase()) ||
+                                product.name.toLowerCase().includes(selectedCategory.toLowerCase());
+        const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                             (product.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
+                             product.brand.toLowerCase().includes(searchTerm.toLowerCase());
+        return matchesCategory && matchesSearch;
+      })
     : products;
-
-  // Sort products
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    switch (sortBy) {
-      case 'price':
-        return a.price - b.price;
-      case 'rating':
-        return b.rating - a.rating;
-      case 'newest':
-      default:
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    }
-  });
 
   // Get seller info for a product
   const getSellerInfo = (sellerId: string) => {
@@ -175,50 +161,28 @@ const CategoriesPage: React.FC = () => {
         <div className="bg-white border-b border-gray-200 px-4 py-4 pt-32">
           <div className="flex items-center space-x-4 mb-4">
             <Link 
-              to="/categories"
+              to="/"
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              aria-label="Back to home"
             >
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <div className="flex-1">
               <h1 className="text-2xl font-bold text-gray-900">{selectedCategory}</h1>
-              <p className="text-gray-600">{sortedProducts.length} products found</p>
+              <p className="text-gray-600">{filteredProducts.length} products found</p>
             </div>
           </div>
 
-          {/* Filters and Sort */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as any)}
-                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                aria-label="Sort products by"
-              >
-                <option value="newest">Newest First</option>
-                <option value="price">Price: Low to High</option>
-                <option value="rating">Highest Rated</option>
-              </select>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => setViewMode('grid')}
-                className={`p-2 rounded-lg ${viewMode === 'grid' ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
-                aria-label="Grid view"
-                title="Grid view"
-              >
-                <Grid className="w-5 h-5" />
-              </button>
-              <button
-                onClick={() => setViewMode('list')}
-                className={`p-2 rounded-lg ${viewMode === 'list' ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
-                aria-label="List view"
-                title="List view"
-              >
-                <List className="w-5 h-5" />
-              </button>
-            </div>
+          {/* Search Bar */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Search products..."
+            />
           </div>
         </div>
 
@@ -229,36 +193,28 @@ const CategoriesPage: React.FC = () => {
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
               <p className="text-gray-600 mt-4">Loading products...</p>
             </div>
-          ) : sortedProducts.length === 0 ? (
+          ) : filteredProducts.length === 0 ? (
             <div className="text-center py-12">
               <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">No products found</h3>
               <p className="text-gray-600">No products available in this category yet.</p>
             </div>
           ) : (
-            <div className={`grid gap-6 ${
-              viewMode === 'grid' 
-                ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
-                : 'grid-cols-1'
-            }`}>
-              {sortedProducts.map((product) => {
+            <div className="grid gap-4 grid-cols-2">
+              {filteredProducts.map((product) => {
                 const seller = getSellerInfo(product.sellerId);
                 
                 return (
                   <div 
                     key={product.id} 
-                    className={`bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-100 cursor-pointer ${
-                      viewMode === 'list' ? 'flex' : ''
-                    }`}
+                    className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-gray-200 cursor-pointer"
                     onClick={() => handleProductClick(product.id)}
                   >
-                    <div className={`relative ${viewMode === 'list' ? 'w-48 flex-shrink-0' : ''}`}>
+                    <div className="relative">
                       <img
                         src={product.image}
                         alt={product.name}
-                        className={`w-full object-cover transition-transform duration-300 group-hover:scale-105 ${
-                          viewMode === 'list' ? 'h-48' : 'h-48'
-                        }`}
+                        className="w-full h-40 object-cover"
                       />
                       
                       {/* Badges */}
@@ -276,7 +232,7 @@ const CategoriesPage: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className={`p-4 ${viewMode === 'list' ? 'flex-1' : ''}`}>
+                    <div className="p-3">
                       {/* Seller Info */}
                       {seller && (
                         <div className="flex items-center space-x-2 mb-3">
@@ -292,54 +248,35 @@ const CategoriesPage: React.FC = () => {
                             {seller.businessName}
                             <ExternalLink className="w-3 h-3 ml-1" />
                           </Link>
-                          <div className="flex items-center space-x-1">
-                            <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                            <span className="text-xs text-gray-600">{seller.stats.rating.toFixed(1)}</span>
-                          </div>
                         </div>
                       )}
 
                       {/* Product Info */}
                       <div>
-                        <h3 className="font-bold text-gray-900 line-clamp-2 text-sm md:text-lg mb-2 group-hover:text-blue-600 transition-colors">
+                        <h3 className="font-semibold text-gray-900 line-clamp-2 text-sm mb-1">
                           {product.name}
                         </h3>
-                        <p className="text-xs md:text-sm text-gray-600 font-medium mb-2">{product.brand}</p>
-                        
-                        {/* Rating */}
-                        <div className="flex items-center space-x-1 md:space-x-2 mb-3">
-                          <div className="flex items-center bg-yellow-50 px-1.5 py-1 md:px-2 md:py-1 rounded-full">
-                            <Star className="w-3 h-3 md:w-4 md:h-4 text-yellow-500 fill-current" />
-                            <span className="text-xs md:text-sm font-bold ml-1">{product.rating?.toFixed(1) || '0.0'}</span>
-                          </div>
-                          <span className="text-xs md:text-sm text-gray-500">({product.reviews || 0})</span>
-                        </div>
+                        <p className="text-xs text-gray-600 mb-2">{product.brand}</p>
 
                         {/* Price */}
-                        <div className="flex items-center justify-between mb-3">
-                          <div>
-                            <span className="text-lg md:text-2xl font-bold text-gray-900">₹{product.price.toLocaleString()}</span>
-                            {product.originalPrice && product.originalPrice > product.price && (
-                              <div className="text-xs md:text-sm text-gray-500 line-through">
-                                ₹{product.originalPrice.toLocaleString()}
-                              </div>
-                            )}
-                          </div>
-                          <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 md:px-3 md:py-1 rounded-full font-medium">
-                            {product.category}
-                          </span>
+                        <div className="mb-2">
+                          <span className="text-lg font-bold text-gray-900">₹{product.price.toLocaleString()}</span>
+                          {product.originalPrice && product.originalPrice > product.price && (
+                            <span className="text-xs text-gray-500 line-through ml-2">
+                              ₹{product.originalPrice.toLocaleString()}
+                            </span>
+                          )}
                         </div>
 
                         {/* Stock Status */}
-                        <div className="flex items-center justify-between text-xs md:text-sm mb-3">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            (product.stock || 0) > 10 ? 'bg-green-100 text-green-800' :
-                            (product.stock || 0) > 0 ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-red-100 text-red-800'
+                        <div className="text-xs mb-2">
+                          <span className={`px-2 py-1 rounded-md ${
+                            (product.stock || 0) > 10 ? 'bg-green-100 text-green-700' :
+                            (product.stock || 0) > 0 ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-red-100 text-red-700'
                           }`}>
-                            {(product.stock || 0) > 10 ? 'In Stock' : (product.stock || 0) > 0 ? 'Low Stock' : 'Out of Stock'}
+                            {(product.stock || 0) > 10 ? 'In Stock' : (product.stock || 0) > 0 ? `Only ${product.stock} left` : 'Out of Stock'}
                           </span>
-                          <span className="text-gray-500 text-xs">{product.stock || 0} left</span>
                         </div>
 
                         {/* Reserve Button */}
@@ -356,7 +293,7 @@ const CategoriesPage: React.FC = () => {
                             category: product.category
                           }}
                           size="sm"
-                          className="w-full text-xs md:text-sm"
+                          className="w-full text-xs"
                           variant="primary"
                         />
                       </div>
