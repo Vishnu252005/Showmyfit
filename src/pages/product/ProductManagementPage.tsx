@@ -14,7 +14,7 @@ import { db } from '../../firebase/config';
 interface Product {
   id?: string;
   name: string;
-  description: string;
+  description?: string;
   price: number;
   originalPrice?: number;
   category: string;
@@ -223,7 +223,7 @@ const ProductManagementPage: React.FC = () => {
   // Filter products
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (product.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
                          product.brand.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = filterCategory === 'all' || product.category === filterCategory;
     return matchesSearch && matchesCategory;
@@ -795,15 +795,14 @@ const ProductManagementPage: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Description *
+                      Description (Optional)
                     </label>
                     <textarea
                       value={formData.description}
                       onChange={(e) => setFormData({...formData, description: e.target.value})}
                       rows={4}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      placeholder="Enter product description"
-                      required
+                      placeholder="Enter product description (optional)"
                     />
                   </div>
 

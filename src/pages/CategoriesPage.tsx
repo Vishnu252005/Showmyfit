@@ -15,7 +15,7 @@ import { useSEO, SEOConfigs } from '../hooks/useSEO';
 interface Product {
   id: string;
   name: string;
-  description: string;
+  description?: string;
   price: number;
   originalPrice?: number;
   category: string;

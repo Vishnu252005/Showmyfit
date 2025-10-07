@@ -511,40 +511,6 @@ const HomePage: React.FC = () => {
     }
   ];
 
-
-  const featuredBrands = [
-    { 
-      name: 'Apple', 
-      image: 'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=120&h=60&fit=crop&crop=center',
-      description: 'Premium Technology'
-    },
-    { 
-      name: 'Samsung', 
-      image: 'https://images.unsplash.com/photo-1511707171631-9ad203683d6d?w=120&h=60&fit=crop&crop=center',
-      description: 'Innovation & Quality'
-    },
-    { 
-      name: 'Nike', 
-      image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=120&h=60&fit=crop&crop=center',
-      description: 'Just Do It'
-    },
-    { 
-      name: 'Adidas', 
-      image: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=120&h=60&fit=crop&crop=center',
-      description: 'Impossible is Nothing'
-    },
-    { 
-      name: 'Sony', 
-      image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=120&h=60&fit=crop&crop=center',
-      description: 'Be Moved'
-    },
-    { 
-      name: 'LG', 
-      image: 'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=120&h=60&fit=crop&crop=center',
-      description: 'Life\'s Good'
-    }
-  ];
-
   return (
     <div className={`min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 transition-all duration-1000 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
       {/* Main Content */}
@@ -1041,55 +1007,6 @@ const HomePage: React.FC = () => {
                   className="w-12 h-12 md:w-16 md:h-16 object-cover rounded"
                 />
               </div>
-            </div>
-          </div>
-        </section>
-
-
-        {/* Featured Brands - Professional Design */}
-        <section className="py-12 md:py-16 bg-gradient-to-br from-gray-50 to-white">
-          <div className="max-w-7xl mx-auto px-3 md:px-4">
-            <div className="text-center mb-8 md:mb-12">
-              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">Trusted Brands</h2>
-              <p className="text-gray-600 text-sm md:text-lg">Shop from your favorite premium brands</p>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 md:gap-6">
-              {featuredBrands.map((brand, index) => (
-                <div key={index} className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 hover:shadow-xl transition-all duration-300 group cursor-pointer border border-gray-100 hover:border-blue-200">
-                  <div className="flex flex-col items-center text-center">
-                    <div className="w-16 h-16 md:w-20 md:h-20 mb-3 rounded-lg overflow-hidden bg-gray-50 flex items-center justify-center group-hover:bg-blue-50 transition-colors duration-300">
-                      <img 
-                        src={brand.image} 
-                        alt={brand.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                          e.currentTarget.nextElementSibling.style.display = 'flex';
-                        }}
-                      />
-                      <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg hidden">
-                        {brand.name.charAt(0)}
-                      </div>
-                    </div>
-                    <h3 className="text-sm md:text-base font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
-                      {brand.name}
-                    </h3>
-                    <p className="text-xs text-gray-500 hidden md:block">
-                      {brand.description}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            {/* View All Brands Button */}
-            <div className="text-center mt-8">
-              <button 
-                onClick={() => navigate('/browse')}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-              >
-                View All Brands
-              </button>
             </div>
           </div>
         </section>

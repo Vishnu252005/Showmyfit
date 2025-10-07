@@ -16,7 +16,7 @@ import { db } from '../../firebase/config';
 interface Product {
   id: string;
   name: string;
-  description: string;
+  description?: string;
   price: number;
   originalPrice?: number;
   category: string;
@@ -157,7 +157,7 @@ const SellerProductsPage: React.FC = () => {
   const filteredProducts = products
     .filter(product => {
       const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           (product.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
                            product.brand.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
       const matchesPrice = product.price >= priceRange.min && product.price <= priceRange.max;
@@ -834,7 +834,7 @@ const SellerProductsPage: React.FC = () => {
                                   <Link to={`/product/${product.id}`}>
                                     <h3 className="text-lg font-semibold text-gray-900 mb-1 hover:text-blue-600 transition-colors">{product.name}</h3>
                                   <p className="text-gray-600 mb-2">{product.brand}</p>
-                                  <p className="text-sm text-gray-500 mb-3 line-clamp-2">{product.description}</p>
+                                  {product.description && <p className="text-sm text-gray-500 mb-3 line-clamp-2">{product.description}</p>}
                                   </Link>
                                   
                                   <div className="flex items-center space-x-4 mb-3">

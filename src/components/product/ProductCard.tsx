@@ -7,7 +7,7 @@ interface Product {
   name: string;
   price: number;
   category: string;
-  description: string;
+  description?: string;
   imageUrl: string;
 }
 
@@ -57,9 +57,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
           {product.name}
         </h3>
         
-        <p className="text-warm-600 text-sm mb-4 line-clamp-2 leading-relaxed">
-          {product.description}
-        </p>
+        {product.description && (
+          <p className="text-warm-600 text-sm mb-4 line-clamp-2 leading-relaxed">
+            {product.description}
+          </p>
+        )}
         
         {shop && (
           <div className="flex items-center justify-between text-sm pt-3 border-t border-warm-100">

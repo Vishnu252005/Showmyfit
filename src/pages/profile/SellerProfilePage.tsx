@@ -17,7 +17,7 @@ import ReservedProducts from '../../components/seller/ReservedProducts';
 interface Product {
   id?: string;
   name: string;
-  description: string;
+  description?: string;
   price: number;
   originalPrice?: number;
   category: string;
@@ -966,7 +966,7 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
                             </span>
                           </div>
                           
-                          <p className="text-gray-600 text-sm mb-3 line-clamp-2">{product.description}</p>
+                          {product.description && <p className="text-gray-600 text-sm mb-3 line-clamp-2">{product.description}</p>}
                           
                           <div className="flex items-center justify-between mb-3">
                             <span className="text-lg font-bold text-blue-600">₹{product.price.toLocaleString()}</span>

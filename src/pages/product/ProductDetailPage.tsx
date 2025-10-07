@@ -16,7 +16,7 @@ import { db } from '../../firebase/config';
 interface Product {
   id: string;
   name: string;
-  description: string;
+  description?: string;
   price: number;
   originalPrice?: number;
   category: string;
@@ -544,10 +544,12 @@ const ProductDetailPage: React.FC = () => {
               </div>
 
               {/* Description */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Description</h3>
-                <p className="text-gray-600 leading-relaxed">{product.description}</p>
-              </div>
+              {product.description && (
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Description</h3>
+                  <p className="text-gray-600 leading-relaxed">{product.description}</p>
+                </div>
+              )}
 
               {/* Category Specific Fields */}
               {product.categorySpecificData && Object.keys(product.categorySpecificData).length > 0 && (
@@ -780,6 +782,67 @@ const ProductDetailPage: React.FC = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Seller Location Map */}
+              {seller.location?.lat && seller.location?.lng && (
+                <div className="mt-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Store Location</h3>
+                  <div className="relative rounded-xl overflow-hidden border-2 border-gray-200 hover:border-blue-400 transition-all duration-300 cursor-pointer group">
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${seller.location.lat},${seller.location.lng}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block"
+                    >
+                      {/* Static Map Preview */}
+                      <div className="relative h-64 bg-gray-100">
+                        <img
+                          src={`https://maps.googleapis.com/maps/api/staticmap?center=${seller.location.lat},${seller.location.lng}&zoom=15&size=600x300&markers=color:red%7C${seller.location.lat},${seller.location.lng}&key=AIzaSyBl8RFDcvM3_D5Y43v7xZmY-8_4Kv_qYmM`}
+                          alt="Store Location"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            // Fallback to a different static map service or placeholder
+                            e.currentTarget.src = `https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/pin-l-shop+ff0000(${seller.location.lng},${seller.location.lat})/${seller.location.lng},${seller.location.lat},14,0/600x300@2x?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw`;
+                          }}
+                        />
+                        
+                        {/* Overlay with Instructions */}
+                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300 flex items-center justify-center">
+                          <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 transform scale-90 group-hover:scale-100">
+                            <div className="bg-white rounded-full px-6 py-3 shadow-2xl flex items-center space-x-2">
+                              <MapPin className="w-5 h-5 text-blue-600" />
+                              <span className="font-semibold text-gray-900">Open in Google Maps</span>
+                              <ExternalLink className="w-4 h-4 text-gray-600" />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Location Pin Indicator */}
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-full pointer-events-none">
+                          <MapPin className="w-10 h-10 text-red-600 drop-shadow-lg animate-bounce" />
+                        </div>
+                      </div>
+
+                      {/* Location Details */}
+                      <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-900 mb-1">
+                              {seller.location.address || seller.address}
+                            </p>
+                            <p className="text-xs text-gray-600">
+                              Tap to get directions in Google Maps
+                            </p>
+                          </div>
+                          <div className="ml-3 bg-blue-600 rounded-full p-2 group-hover:bg-blue-700 transition-colors">
+                            <ExternalLink className="w-4 h-4 text-white" />
+                          </div>
+                        </div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

@@ -44,7 +44,7 @@ const UserBrowse: React.FC = () => {
     .filter(product => selectedCategory === 'All' || product.category === selectedCategory)
     .filter(product => 
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchTerm.toLowerCase())
+      (product.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
     );
 
   const getShopWithDistance = (shopId: string) => {

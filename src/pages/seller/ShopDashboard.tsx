@@ -40,7 +40,7 @@ const ShopDashboard: React.FC = () => {
     e.preventDefault();
     if (!state.currentShop) return;
 
-    if (!productForm.name || !productForm.price || !productForm.description) {
+    if (!productForm.name || !productForm.price) {
       error('Please fill in all required fields');
       return;
     }
@@ -223,12 +223,11 @@ const ShopDashboard: React.FC = () => {
 
                 <div className="md:col-span-2">
                   <FormInput
-                    label="Description"
+                    label="Description (Optional)"
                     type="textarea"
                     value={productForm.description}
                     onChange={updateProductForm('description')}
                     rows={3}
-                    required
                   />
                 </div>
 
