@@ -70,6 +70,7 @@ const ProductManagementPage: React.FC = () => {
 
   const categories = [
     { value: 'women', label: 'Women', icon: '👗' },
+    { value: 'men', label: 'Men', icon: '👨' },
     { value: 'footwear', label: 'Footwear', icon: '👟' },
     { value: 'jewellery', label: 'Jewellery', icon: '💍' },
     { value: 'lingerie', label: 'Lingerie', icon: '👙' },
@@ -97,6 +98,14 @@ const ProductManagementPage: React.FC = () => {
           color: { type: 'text', label: 'Color' },
           material: { type: 'text', label: 'Material' },
           occasion: { type: 'select', options: ['Casual', 'Formal', 'Party', 'Wedding', 'Office'], label: 'Occasion' },
+          season: { type: 'select', options: ['Summer', 'Winter', 'All Season'], label: 'Season' }
+        };
+      case 'men':
+        return {
+          size: { type: 'select', options: ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'], label: 'Size' },
+          color: { type: 'text', label: 'Color' },
+          material: { type: 'text', label: 'Material' },
+          occasion: { type: 'select', options: ['Casual', 'Formal', 'Business', 'Party', 'Sports'], label: 'Occasion' },
           season: { type: 'select', options: ['Summer', 'Winter', 'All Season'], label: 'Season' }
         };
       case 'footwear':

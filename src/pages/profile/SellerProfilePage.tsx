@@ -87,6 +87,7 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
 
   const categories = [
     { value: 'women', label: 'Women', icon: '👗' },
+    { value: 'men', label: 'Men', icon: '👨' },
     { value: 'footwear', label: 'Footwear', icon: '👟' },
     { value: 'jewellery', label: 'Jewellery', icon: '💍' },
     { value: 'lingerie', label: 'Lingerie', icon: '👙' },
@@ -114,6 +115,16 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
           colors: { type: 'multi-text', label: 'Available Colors', placeholder: 'Enter colors separated by commas' },
           material: { type: 'text', label: 'Material' },
           occasion: { type: 'select', options: ['Casual', 'Formal', 'Party', 'Wedding', 'Office'], label: 'Occasion' },
+          season: { type: 'select', options: ['Summer', 'Winter', 'All Season'], label: 'Season' },
+          careInstructions: { type: 'text', label: 'Care Instructions', placeholder: 'e.g., Machine wash cold, hang dry' },
+          fit: { type: 'select', options: ['Slim Fit', 'Regular Fit', 'Loose Fit', 'Oversized'], label: 'Fit Type' }
+        };
+      case 'men':
+        return {
+          sizes: { type: 'multi-select', options: ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'], label: 'Available Sizes' },
+          colors: { type: 'multi-text', label: 'Available Colors', placeholder: 'Enter colors separated by commas' },
+          material: { type: 'text', label: 'Material' },
+          occasion: { type: 'select', options: ['Casual', 'Formal', 'Business', 'Party', 'Sports'], label: 'Occasion' },
           season: { type: 'select', options: ['Summer', 'Winter', 'All Season'], label: 'Season' },
           careInstructions: { type: 'text', label: 'Care Instructions', placeholder: 'e.g., Machine wash cold, hang dry' },
           fit: { type: 'select', options: ['Slim Fit', 'Regular Fit', 'Loose Fit', 'Oversized'], label: 'Fit Type' }
