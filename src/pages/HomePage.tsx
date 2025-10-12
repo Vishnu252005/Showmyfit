@@ -424,19 +424,19 @@ const HomePage: React.FC = () => {
     }
   };
 
-  // Render section background gradient based on type
+  // Render section background gradient based on type - Diwali Theme
   const getSectionGradient = (type: string) => {
     switch (type) {
       case 'featured':
-        return 'from-purple-500 to-pink-600';
+        return 'from-yellow-500 to-orange-500';
       case 'bestDeals':
-        return 'from-green-500 to-emerald-600';
+        return 'from-red-500 to-pink-500';
       case 'offers':
-        return 'from-orange-500 to-red-600';
+        return 'from-orange-500 to-red-500';
       case 'trending':
-        return 'from-red-500 to-pink-600';
+        return 'from-red-500 to-yellow-500';
       default:
-        return 'from-blue-500 to-purple-600';
+        return 'from-orange-500 to-yellow-500';
     }
   };
 
@@ -679,17 +679,26 @@ const HomePage: React.FC = () => {
           </div>
         </section>
 
-        {/* Enhanced Hero Banner - Mobile First */}
-        <section className="bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 py-4 md:py-12 relative overflow-hidden">
-          <div className="absolute inset-0 bg-black opacity-10"></div>
+        {/* Enhanced Hero Banner - Diwali Festive */}
+        <section className="bg-gradient-to-br from-orange-500 via-red-500 to-yellow-500 py-4 md:py-12 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-yellow-300/20 via-orange-300/20 to-red-300/20"></div>
+          {/* Diwali Sparkles */}
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute top-10 left-10 w-4 h-4 bg-yellow-300 rounded-full animate-pulse"></div>
+            <div className="absolute top-20 right-20 w-3 h-3 bg-orange-300 rounded-full animate-pulse delay-1000"></div>
+            <div className="absolute bottom-20 left-20 w-5 h-5 bg-red-300 rounded-full animate-pulse delay-2000"></div>
+            <div className="absolute bottom-10 right-10 w-2 h-2 bg-yellow-400 rounded-full animate-pulse delay-500"></div>
+            <div className="absolute top-1/2 left-1/4 w-3 h-3 bg-orange-400 rounded-full animate-pulse delay-1500"></div>
+            <div className="absolute top-1/3 right-1/3 w-4 h-4 bg-red-400 rounded-full animate-pulse delay-3000"></div>
+          </div>
           <div className="max-w-7xl mx-auto px-3 md:px-4 relative">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between">
               <div className="flex-1 mb-6 md:mb-0 text-center md:text-left">
-                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-3 md:mb-6 leading-tight">
-                  SHOWMYFIT MEGA SALE
+                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-3 md:mb-6 leading-tight drop-shadow-lg">
+                  🪔 DIWALI MEGA FESTIVAL SALE 🪔
                 </h1>
-                <p className="text-lg sm:text-xl md:text-2xl text-white/90 mb-3 md:mb-4 leading-relaxed">
-                  Fashion, Electronics, Home & More from Local Stores
+                <p className="text-lg sm:text-xl md:text-2xl text-white/95 mb-3 md:mb-4 leading-relaxed drop-shadow-md">
+                  ✨ Celebrate with Amazing Deals on Fashion, Electronics & More ✨
                 </p>
                 <p className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-4 md:mb-5">Up to 70% OFF</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 mb-4 md:mb-6 max-w-md mx-auto md:mx-0">
@@ -721,7 +730,7 @@ const HomePage: React.FC = () => {
         </section>
 
         {/* Continue Browsing These Products */}
-        <section className="py-4 bg-white">
+        <section className="py-4 bg-gradient-to-r from-yellow-50 to-orange-50">
           <div className="px-4">
             <div className="flex items-center justify-center mb-4">
               <h2 className="text-xl font-bold text-gray-900 text-center">
@@ -730,7 +739,7 @@ const HomePage: React.FC = () => {
             </div>
             <div className="relative">
               <div className="flex space-x-3 overflow-x-auto scrollbar-hide pb-2">
-                {allProducts.map((product, index) => {
+                {allProducts.slice(0, Math.floor(allProducts.length / 2) * 2).map((product, index) => {
                   const originalPrice = product.originalPrice || product.price * 1.3;
                   const discount = Math.round(((originalPrice - product.price) / originalPrice) * 100);
                   
@@ -740,7 +749,7 @@ const HomePage: React.FC = () => {
                       className="flex-shrink-0 w-32 cursor-pointer"
                       onClick={() => handleProductClick(product.id)}
                     >
-                      <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-gray-100">
+                      <div className="bg-white rounded-lg shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border-2 border-orange-200 hover:border-yellow-300">
                         {/* Product Image */}
                         <div className="relative aspect-square overflow-hidden bg-gray-100">
                           <img 
@@ -753,8 +762,8 @@ const HomePage: React.FC = () => {
                           />
                           {/* Discount Badge */}
                           {discount > 0 && (
-                            <div className="absolute top-1 left-1 bg-red-500 text-white px-1 py-0.5 rounded text-xs font-bold">
-                              {discount}%
+                            <div className="absolute top-1 left-1 bg-gradient-to-r from-red-500 to-orange-500 text-white px-1 py-0.5 rounded text-xs font-bold shadow-md">
+                              🎉 {discount}%
                             </div>
                           )}
                           {/* Wishlist Button */}
@@ -813,7 +822,7 @@ const HomePage: React.FC = () => {
         </section>
 
         {/* Suggestions for You - Mobile Optimized */}
-        <section className="py-3 md:py-4 bg-gray-50">
+        <section className="py-3 md:py-4 bg-gradient-to-r from-red-50 to-pink-50">
           <div className="px-4">
             <div className="flex items-center justify-between mb-3 md:mb-4">
               <h2 className="text-lg md:text-xl font-bold text-gray-900">Suggestions for You</h2>
@@ -827,7 +836,7 @@ const HomePage: React.FC = () => {
             <div className="relative">
               <div className="flex space-x-3 overflow-x-auto scrollbar-hide pb-2">
               {allProducts.length > 0 ? (
-                allProducts.map((product, index) => {
+                allProducts.slice(0, Math.floor(allProducts.length / 2) * 2).map((product, index) => {
                   const originalPrice = product.originalPrice || product.price * 1.5;
                   const discount = Math.round(((originalPrice - product.price) / originalPrice) * 100);
                   
@@ -837,7 +846,7 @@ const HomePage: React.FC = () => {
                       className="flex-shrink-0 w-32 cursor-pointer"
                       onClick={() => handleProductClick(product.id)}
                     >
-                      <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-gray-100">
+                      <div className="bg-white rounded-lg shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border-2 border-orange-200 hover:border-yellow-300">
                         {/* Product Image */}
                         <div className="relative aspect-square overflow-hidden bg-gray-100">
                           <img 
@@ -850,8 +859,8 @@ const HomePage: React.FC = () => {
                           />
                           {/* Discount Badge */}
                           {discount > 0 && (
-                            <div className="absolute top-1 left-1 bg-red-500 text-white px-1 py-0.5 rounded text-xs font-bold">
-                              {discount}%
+                            <div className="absolute top-1 left-1 bg-gradient-to-r from-red-500 to-orange-500 text-white px-1 py-0.5 rounded text-xs font-bold shadow-md">
+                              🎉 {discount}%
                             </div>
                           )}
                           {/* Wishlist Button */}
@@ -955,7 +964,7 @@ const HomePage: React.FC = () => {
             }
             
             return (
-              <section key={section.id} className={section.type === 'trending' ? 'py-6 md:py-8 bg-gradient-to-r from-orange-500 to-red-500' : 'py-16 bg-gradient-to-br from-gray-50 to-white'}>
+              <section key={section.id} className={section.type === 'trending' ? 'py-6 md:py-8 bg-gradient-to-r from-orange-500 to-red-500' : 'py-16 bg-gradient-to-br from-yellow-50 via-orange-50 to-red-50'}>
                 <div className={section.type === 'trending' ? 'px-4' : 'max-w-7xl mx-auto px-4'}>
                   {section.type === 'trending' ? (
                     <div className="flex items-center justify-between mb-3 md:mb-4">
@@ -969,7 +978,7 @@ const HomePage: React.FC = () => {
                       <div className={`inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br ${getSectionGradient(section.type)} rounded-full mb-4`}>
                         {getSectionIcon(section.type)}
                       </div>
-                      <h2 className="text-2xl font-bold text-gray-900 mb-4">{section.title}</h2>
+                      <h2 className="text-2xl font-bold text-gray-900 mb-4">🪔 {section.title} 🪔</h2>
                       {section.subtitle && (
                         <p className="text-gray-600 text-base max-w-2xl mx-auto">{section.subtitle}</p>
                       )}
@@ -980,7 +989,7 @@ const HomePage: React.FC = () => {
                       {sectionProducts.map((product) => (
                         <div 
                           key={product.id} 
-                          className={`${section.type === 'trending' ? 'bg-white rounded-lg p-3 hover:shadow-lg transition-shadow touch-manipulation' : 'bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden group border border-gray-100'} cursor-pointer`}
+                          className={`${section.type === 'trending' ? 'bg-white rounded-lg p-3 hover:shadow-lg transition-shadow touch-manipulation border-2 border-red-200' : 'bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden group border-2 border-orange-200 hover:border-yellow-300'} cursor-pointer`}
                           onClick={() => handleProductClick(product.id)}
                         >
                           {section.type === 'trending' ? (
@@ -992,11 +1001,11 @@ const HomePage: React.FC = () => {
                                   alt={product.name}
                                   className="w-full h-28 object-cover rounded"
                                 />
-                                <div className="absolute top-2 left-2 bg-orange-500 text-white px-2 py-1 rounded text-xs font-bold">
-                                  Trending
+                                <div className="absolute top-2 left-2 bg-gradient-to-r from-orange-500 to-yellow-500 text-white px-2 py-1 rounded text-xs font-bold shadow-md">
+                                  🔥 Trending
                                 </div>
-                                <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
-                                  {section.discountPercentage ? `${section.discountPercentage}% OFF` : 'HOT'}
+                                <div className="absolute top-2 right-2 bg-gradient-to-r from-red-500 to-orange-500 text-white px-2 py-1 rounded text-xs font-bold shadow-md">
+                                  {section.discountPercentage ? `🎉 ${section.discountPercentage}% OFF` : '🔥 HOT'}
                                 </div>
                               </div>
                               <h3 className="font-semibold text-gray-900 text-sm md:text-base mb-2">{product.name}</h3>
@@ -1062,19 +1071,19 @@ const HomePage: React.FC = () => {
                               {/* Badges */}
                               <div className="absolute top-2 left-2 flex flex-col space-y-1">
                                 {product.featured && (
-                                  <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg">
-                                    ⭐ Featured
+                                  <span className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg">
+                                    🪔 Featured
                                   </span>
                                 )}
                                 {product.originalPrice && product.originalPrice > product.price && (
-                                  <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-                                    {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
+                                  <span className="bg-gradient-to-r from-red-500 to-orange-500 text-white px-2 py-1 rounded-full text-xs font-bold shadow-md">
+                                    🎉 {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
                                   </span>
                                 )}
                                 {/* Admin-managed discount badge */}
                                 {section.discountPercentage && section.discountPercentage > 0 && (
-                                  <span className="bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-                                    {section.discountPercentage}% OFF
+                                  <span className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-2 py-1 rounded-full text-xs font-bold shadow-md">
+                                    🎉 {section.discountPercentage}% OFF
                                   </span>
                                 )}
                                 {section.discountType === 'fixed' && section.discountValue && section.discountValue > 0 && (
