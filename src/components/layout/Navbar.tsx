@@ -1,19 +1,115 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Home, Search, User, Store, Shield, Heart, ShoppingBag, Bookmark, Menu, X, LogOut } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Search, Store, Shield, Heart, Bookmark, Menu, LogOut, TrendingUp, Package } from 'lucide-react';
 import Sidebar from './Sidebar';
 import ShowMyFITLogo from '../common/ShowMyFITLogo';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
 import { useWishlist } from '../../contexts/WishlistContext';
+import { collection, query, getDocs } from 'firebase/firestore';
+import { db } from '../../firebase/config';
 
 interface NavbarProps {
   userRole?: 'user' | 'shop' | 'admin';
 }
 
 const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
-  const location = useLocation();
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Fetch product suggestions from Firebase
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (searchQuery.trim().length < 2) {
+        setSuggestions([]);
+        setShowSuggestions(false);
+        return;
+      }
+
+      setLoadingSuggestions(true);
+      try {
+        // Fetch products from Firebase
+        const productsQuery = query(collection(db, 'products'));
+        const snapshot = await getDocs(productsQuery);
+        
+        const allProducts: any[] = [];
+        snapshot.docs.forEach((doc) => {
+          const productData = doc.data();
+          if (productData.status === 'active') {
+            allProducts.push({
+              id: doc.id,
+              ...productData
+            });
+          }
+        });
+
+        // Filter products based on search query
+        const filtered = allProducts.filter(product => {
+          const searchLower = searchQuery.toLowerCase();
+          return (
+            product.name.toLowerCase().includes(searchLower) ||
+            product.brand?.toLowerCase().includes(searchLower) ||
+            product.category?.toLowerCase().includes(searchLower) ||
+            product.description?.toLowerCase().includes(searchLower)
+          );
+        }).slice(0, 8); // Limit to 8 suggestions
+
+        setSuggestions(filtered);
+        setShowSuggestions(filtered.length > 0);
+      } catch (error) {
+        console.error('Error fetching suggestions:', error);
+        setSuggestions([]);
+      } finally {
+        setLoadingSuggestions(false);
+      }
+    };
+
+    const debounceTimer = setTimeout(fetchSuggestions, 300);
+    return () => clearTimeout(debounceTimer);
+  }, [searchQuery]);
+
+  // Handle search functionality
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery(''); // Clear search after navigation
+      setShowSuggestions(false);
+    }
+  };
+
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSearch(e);
+    }
+  };
+
+  const handleSuggestionClick = (productId: string) => {
+    navigate(`/product/${productId}`);
+    setSearchQuery('');
+    setShowSuggestions(false);
+  };
   
   // Safe context access with fallbacks
   let currentUser = null;
@@ -151,20 +247,82 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
           <div className="bg-white/10 backdrop-blur-sm border-t border-white/20">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
               <div className="flex items-center justify-center">
-                <div className="w-full max-w-2xl">
-                  <div className="relative">
+                <div className="w-full max-w-2xl relative" ref={searchRef}>
+                  <form onSubmit={handleSearch} className="relative">
                     <input
                       type="text"
+                      value={searchQuery}
+                      onChange={handleSearchInputChange}
+                      onKeyPress={handleKeyPress}
+                      onFocus={() => {
+                        if (suggestions.length > 0) {
+                          setShowSuggestions(true);
+                        }
+                      }}
                       placeholder="Search for Products, Brands and More"
                       className="w-full pl-4 pr-16 py-3 border border-white/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-300 focus:border-transparent text-sm shadow-lg bg-white/90 backdrop-blur-sm placeholder-gray-600"
                     />
                     <button 
+                      type="submit"
                       className="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-2 bg-white/20 text-white rounded-md hover:bg-white/30 transition-colors border border-white/30"
                       aria-label="Search"
                     >
                       <Search className="w-4 h-4" />
                     </button>
-                  </div>
+                  </form>
+
+                  {/* Suggestions Dropdown */}
+                  {showSuggestions && (
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-2xl border border-gray-200 overflow-hidden z-50 max-h-96 overflow-y-auto">
+                      {loadingSuggestions ? (
+                        <div className="p-4 text-center text-gray-500">
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
+                        </div>
+                      ) : (
+                        <>
+                          {suggestions.map((product) => (
+                            <button
+                              key={product.id}
+                              onClick={() => handleSuggestionClick(product.id)}
+                              className="w-full flex items-center space-x-3 p-3 hover:bg-gray-50 transition-colors text-left border-b border-gray-100 last:border-b-0"
+                            >
+                              <img 
+                                src={product.image || 'https://via.placeholder.com/50'} 
+                                alt={product.name}
+                                className="w-12 h-12 object-cover rounded-md flex-shrink-0"
+                                onError={(e) => {
+                                  e.currentTarget.src = 'https://via.placeholder.com/50';
+                                }}
+                              />
+                              <div className="flex-1 min-w-0">
+                                <h4 className="text-sm font-semibold text-gray-900 truncate">
+                                  {product.name}
+                                </h4>
+                                <p className="text-xs text-gray-500">
+                                  {product.brand} • {product.category}
+                                </p>
+                                <p className="text-sm font-bold text-blue-600 mt-1">
+                                  ₹{product.price}
+                                </p>
+                              </div>
+                              <Package className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                            </button>
+                          ))}
+                          
+                          {/* View All Results */}
+                          <button
+                            onClick={() => {
+                              handleSearch(new Event('submit') as any);
+                            }}
+                            className="w-full flex items-center justify-center space-x-2 p-3 bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 transition-colors text-blue-700 font-semibold text-sm"
+                          >
+                            <TrendingUp className="w-4 h-4" />
+                            <span>View all results for "{searchQuery}"</span>
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

@@ -41,9 +41,19 @@ const HomePage: React.FC = () => {
     fashion: { discountPercentage: 30 },
     home: { discountPercentage: 40 }
   });
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
     setIsLoaded(true);
+  }, []);
+
+  // Auto-slide carousel
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % 3);
+    }, 5000); // Change slide every 5 seconds
+
+    return () => clearInterval(interval);
   }, []);
 
   // Update suggestions when products or recently viewed changes
@@ -510,50 +520,169 @@ const HomePage: React.FC = () => {
           </div>
         </section>
 
-        {/* Enhanced Categories Section - Mobile First */}
-        <section className="bg-white shadow-sm border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-3 md:px-4 py-6 md:py-8">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 md:mb-8">
-              <div className="mb-4 sm:mb-0">
-                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Shop by Category</h2>
-                <p className="text-gray-600 text-sm md:text-base">Discover amazing products across all categories</p>
-              </div>
-              <button 
-                onClick={() => navigate('/browse')}
-                className="text-blue-600 font-medium hover:text-blue-700 transition-colors text-sm md:text-base"
-              >
-                View All →
-              </button>
-            </div>
-            
-            {/* Mobile-optimized Category Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
-              {categories.map((category) => (
-                <button
-                  key={category.name}
-                  onClick={() => navigate(`/categories?category=${encodeURIComponent(category.name)}`)}
-                  className="group rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-105"
+        {/* Promotional Banner Carousel Section */}
+        <section className="bg-white">
+          <div className="max-w-7xl mx-auto px-3 md:px-4 py-2 md:py-6">
+            <div className="relative rounded-lg md:rounded-xl lg:rounded-2xl overflow-hidden shadow-lg">
+              <div className="relative h-56 sm:h-64 md:h-72 lg:h-80 overflow-hidden">
+                <div 
+                  className="flex transition-transform duration-1000 ease-in-out" 
+                  style={{ transform: `translateX(-${currentSlide * 100}%)` }}
                 >
-                  <div className="relative aspect-square">
+                  {/* Slide 1 - Fashion Girl */}
+                  <div className="w-full flex-shrink-0 relative">
                     <img
-                      src={category.image}
-                      alt={category.name}
+                      src="https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1200&h=400&fit=crop"
+                      alt="Fashion Collection"
                       className="w-full h-full object-cover"
                     />
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
-                      <p className="text-white text-xs md:text-sm font-semibold text-center">
-                        {category.name}
-                      </p>
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-transparent"></div>
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="px-4 sm:px-6 md:px-8 lg:px-12">
+                        <div className="max-w-sm sm:max-w-md">
+                          <div className="mb-2">
+                            <span className="bg-pink-600 text-white px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-bold">
+                              Women's Fashion
+                            </span>
+                          </div>
+                          <h2 className="text-xl sm:text-2xl md:text-4xl lg:text-5xl font-bold text-white mb-2 sm:mb-3 md:mb-4 leading-tight">
+                            UP TO 60% OFF
+                          </h2>
+                          <p className="text-white/90 text-xs sm:text-sm md:text-lg mb-3 sm:mb-4 md:mb-6 leading-relaxed">
+                            Discover trendy fashion for every occasion
+                          </p>
+                          <button 
+                            onClick={() => navigate('/browse')}
+                            className="bg-white text-gray-900 px-4 sm:px-6 md:px-8 py-2 sm:py-3 md:py-4 rounded-lg font-bold text-xs sm:text-sm md:text-base hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                          >
+                            Shop Now
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="absolute bottom-4 right-4">
+                      <span className="bg-black/70 text-white px-2 py-1 rounded text-xs font-medium">
+                        AD
+                      </span>
                     </div>
                   </div>
+
+                  {/* Slide 2 - Electronics */}
+                  <div className="w-full flex-shrink-0 relative">
+                    <img
+                      src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1200&h=400&fit=crop"
+                      alt="Electronics Sale"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-transparent"></div>
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="px-4 sm:px-6 md:px-8 lg:px-12">
+                        <div className="max-w-sm sm:max-w-md">
+                          <div className="mb-2">
+                            <span className="bg-blue-600 text-white px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-bold">
+                              Electronics
+                            </span>
+                          </div>
+                          <h2 className="text-xl sm:text-2xl md:text-4xl lg:text-5xl font-bold text-white mb-2 sm:mb-3 md:mb-4 leading-tight">
+                            UP TO 50% OFF
+                          </h2>
+                          <p className="text-white/90 text-xs sm:text-sm md:text-lg mb-3 sm:mb-4 md:mb-6 leading-relaxed">
+                            Latest gadgets at amazing prices
+                          </p>
+                          <button 
+                            onClick={() => navigate('/browse')}
+                            className="bg-white text-gray-900 px-4 sm:px-6 md:px-8 py-2 sm:py-3 md:py-4 rounded-lg font-bold text-xs sm:text-sm md:text-base hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                          >
+                            Shop Now
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="absolute bottom-4 right-4">
+                      <span className="bg-black/70 text-white px-2 py-1 rounded text-xs font-medium">
+                        AD
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Slide 3 - Beauty & Fashion Girl */}
+                  <div className="w-full flex-shrink-0 relative">
+                    <img
+                      src="https://images.unsplash.com/photo-1488161628813-04466f872be2?w=1200&h=400&fit=crop"
+                      alt="Beauty Collection"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-transparent"></div>
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="px-4 sm:px-6 md:px-8 lg:px-12">
+                        <div className="max-w-sm sm:max-w-md">
+                          <div className="mb-2">
+                            <span className="bg-purple-600 text-white px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-bold">
+                              Beauty & Fashion
+                            </span>
+                          </div>
+                          <h2 className="text-xl sm:text-2xl md:text-4xl lg:text-5xl font-bold text-white mb-2 sm:mb-3 md:mb-4 leading-tight">
+                            UP TO 70% OFF
+                          </h2>
+                          <p className="text-white/90 text-xs sm:text-sm md:text-lg mb-3 sm:mb-4 md:mb-6 leading-relaxed">
+                            Look fabulous with our beauty collection
+                          </p>
+                          <button 
+                            onClick={() => navigate('/browse')}
+                            className="bg-white text-gray-900 px-4 sm:px-6 md:px-8 py-2 sm:py-3 md:py-4 rounded-lg font-bold text-xs sm:text-sm md:text-base hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                          >
+                            Shop Now
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="absolute bottom-4 right-4">
+                      <span className="bg-black/70 text-white px-2 py-1 rounded text-xs font-medium">
+                        AD
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Navigation Dots */}
+                <div className="absolute bottom-2 sm:bottom-3 left-1/2 transform -translate-x-1/2 flex space-x-2 sm:space-x-3 z-10">
+                  {[0, 1, 2].map((index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentSlide(index)}
+                      className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all duration-300 shadow-lg ${
+                        currentSlide === index ? 'bg-white' : 'bg-white/60'
+                      }`}
+                      title={`Go to slide ${index + 1}`}
+                      aria-label={`Go to slide ${index + 1}`}
+                    />
+                  ))}
+                </div>
+
+                {/* Navigation Arrows */}
+                <button
+                  onClick={() => setCurrentSlide((prev) => (prev - 1 + 3) % 3)}
+                  className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-2 sm:p-2.5 rounded-full transition-all duration-300 shadow-lg z-10"
+                  title="Previous slide"
+                  aria-label="Previous slide"
+                >
+                  <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6 rotate-180" />
                 </button>
-              ))}
+                <button
+                  onClick={() => setCurrentSlide((prev) => (prev + 1) % 3)}
+                  className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-2 sm:p-2.5 rounded-full transition-all duration-300 shadow-lg z-10"
+                  title="Next slide"
+                  aria-label="Next slide"
+                >
+                  <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6" />
+                </button>
+              </div>
             </div>
           </div>
         </section>
 
         {/* Enhanced Hero Banner - Mobile First */}
-        <section className="bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 py-8 md:py-16 relative overflow-hidden">
+        <section className="bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 py-4 md:py-12 relative overflow-hidden">
           <div className="absolute inset-0 bg-black opacity-10"></div>
           <div className="max-w-7xl mx-auto px-3 md:px-4 relative">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between">
@@ -561,11 +690,11 @@ const HomePage: React.FC = () => {
                 <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-3 md:mb-6 leading-tight">
                   SHOWMYFIT MEGA SALE
                 </h1>
-                <p className="text-lg sm:text-xl md:text-2xl text-white/90 mb-3 md:mb-6 leading-relaxed">
+                <p className="text-lg sm:text-xl md:text-2xl text-white/90 mb-3 md:mb-4 leading-relaxed">
                   Fashion, Electronics, Home & More from Local Stores
                 </p>
-                <p className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-4 md:mb-6">Up to 70% OFF</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 mb-6 md:mb-8 max-w-md mx-auto md:mx-0">
+                <p className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-4 md:mb-5">Up to 70% OFF</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 mb-4 md:mb-6 max-w-md mx-auto md:mx-0">
                   <div className="bg-white/20 backdrop-blur-sm px-4 py-3 md:px-6 md:py-4 rounded-xl border border-white/30">
                     <p className="text-xs md:text-sm font-bold text-white">FREE DELIVERY</p>
                     <p className="text-xs text-white/80">On orders above ₹999</p>
@@ -577,7 +706,7 @@ const HomePage: React.FC = () => {
                 </div>
                 <button 
                   onClick={() => navigate('/browse')}
-                  className="bg-white text-purple-600 px-6 py-3 md:px-8 md:py-4 rounded-xl font-bold text-base md:text-lg hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 w-full sm:w-auto"
+                  className="bg-white text-purple-600 px-6 py-3 md:px-8 md:py-4 rounded-xl font-bold text-base md:text-lg hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 w-full sm:w-auto mb-2"
                 >
                   Shop Now
                 </button>
@@ -594,7 +723,7 @@ const HomePage: React.FC = () => {
         </section>
 
         {/* Suggestions for You - Mobile Optimized */}
-        <section className="py-6 md:py-8 bg-gray-50">
+        <section className="py-4 md:py-6 bg-gray-50">
           <div className="px-4">
             <div className="flex items-center justify-between mb-4 md:mb-6">
               <h2 className="text-xl md:text-2xl font-bold text-gray-900">Suggestions for You</h2>

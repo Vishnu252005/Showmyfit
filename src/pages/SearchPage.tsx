@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { 
   Search, MapPin, Star, Package, Phone, Eye, Heart, Filter,
   Store, Navigation, Clock, Truck, Shield, Users, TrendingUp, Map
@@ -11,13 +11,26 @@ import { useWishlist } from '../contexts/WishlistContext';
 
 const SearchPage: React.FC = () => {
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [sellers, setSellers] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
   const [loadingSellers, setLoadingSellers] = useState(true);
+  const [loadingProducts, setLoadingProducts] = useState(true);
   const [currentLocation, setCurrentLocation] = useState<string>('');
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [searchType, setSearchType] = useState<'products' | 'shops'>('products');
+
+  // Get search query from URL parameters
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const queryParam = urlParams.get('q');
+    if (queryParam) {
+      setSearchQuery(decodeURIComponent(queryParam));
+    }
+  }, [location.search]);
 
   const toggleWishlist = async (seller: any) => {
     // For shop cards, we'll use the seller ID as the product ID
@@ -217,6 +230,46 @@ const SearchPage: React.FC = () => {
     fetchSellers();
   }, []);
 
+  // Fetch products from Firebase
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoadingProducts(true);
+      try {
+        console.log('Loading products from Firebase...');
+        
+        const productsQuery = query(collection(db, 'products'));
+        const snapshot = await getDocs(productsQuery);
+        
+        console.log('Total products found:', snapshot.docs.length);
+        
+        const productsList: any[] = [];
+        snapshot.docs.forEach((doc) => {
+          const productData = doc.data();
+          
+          // Only include active products
+          if (productData.status === 'active') {
+            productsList.push({
+              id: doc.id,
+              ...productData,
+              createdAt: productData.createdAt?.toDate() || new Date(),
+              updatedAt: productData.updatedAt?.toDate() || new Date()
+            });
+          }
+        });
+        
+        console.log('Active products found:', productsList.length);
+        setProducts(productsList);
+      } catch (error) {
+        console.error('Error loading products:', error);
+        setProducts([]);
+      } finally {
+        setLoadingProducts(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
   // Get current location
   const getCurrentLocation = () => {
     setIsGettingLocation(true);
@@ -316,6 +369,25 @@ const SearchPage: React.FC = () => {
     }
   };
 
+  const toggleProductWishlist = async (product: any) => {
+    const productId = product.id;
+    
+    if (isInWishlist(productId)) {
+      await removeFromWishlist(productId);
+    } else {
+      await addToWishlist({
+        productId: productId,
+        name: product.name,
+        price: product.price,
+        image: product.image,
+        brand: product.brand,
+        category: product.category,
+        sellerId: product.sellerId,
+        sellerName: product.sellerName
+      });
+    }
+  };
+
   const filteredSellers = sellers.filter(seller => {
     const matchesSearch = searchQuery === '' || 
       seller.businessName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -328,15 +400,65 @@ const SearchPage: React.FC = () => {
     return matchesSearch && matchesCategory;
   });
 
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = searchQuery === '' || 
+      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.category.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesCategory = selectedCategory === 'All' || 
+      product.category === selectedCategory;
+    
+    return matchesSearch && matchesCategory;
+  });
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="main-content pt-24 pb-24">
         <div className="max-w-7xl mx-auto px-4 py-6">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">Explore Nearby Stores</h1>
-            <p className="text-gray-600 text-lg">Discover local stores and products near you</p>
-            {userLocation && (
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+              {searchType === 'products' ? 'Search Products' : 'Explore Nearby Stores'}
+            </h1>
+            <p className="text-gray-600 text-lg">
+              {searchType === 'products' 
+                ? 'Find the best products from local sellers' 
+                : 'Discover local stores and products near you'}
+            </p>
+            
+            {/* Toggle between Products and Shops */}
+            <div className="mt-6 inline-flex bg-white rounded-lg shadow-md p-1 border border-gray-200">
+              <button
+                onClick={() => setSearchType('products')}
+                className={`px-6 py-2 rounded-md font-medium transition-all ${
+                  searchType === 'products'
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <div className="flex items-center space-x-2">
+                  <Package className="w-4 h-4" />
+                  <span>Products</span>
+                </div>
+              </button>
+              <button
+                onClick={() => setSearchType('shops')}
+                className={`px-6 py-2 rounded-md font-medium transition-all ${
+                  searchType === 'shops'
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <div className="flex items-center space-x-2">
+                  <Store className="w-4 h-4" />
+                  <span>Shops</span>
+                </div>
+              </button>
+            </div>
+
+            {userLocation && searchType === 'shops' && (
               <div className="mt-3 inline-flex items-center space-x-2 bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium">
                 <Navigation className="w-4 h-4" />
                 <span>Sorted by distance (nearest first)</span>
@@ -344,8 +466,9 @@ const SearchPage: React.FC = () => {
             )}
           </div>
 
-          {/* Location Bar */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+          {/* Location Bar - Only show for shops */}
+          {searchType === 'shops' && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
@@ -389,6 +512,7 @@ const SearchPage: React.FC = () => {
               </form>
             </div>
           </div>
+          )}
 
           {/* Search Bar */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
@@ -439,27 +563,121 @@ const SearchPage: React.FC = () => {
           <div className="mb-6">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-gray-900">
-                {filteredSellers.length} Results Found
+                {searchType === 'products' 
+                  ? `${filteredProducts.length} Product${filteredProducts.length !== 1 ? 's' : ''} Found`
+                  : `${filteredSellers.length} Shop${filteredSellers.length !== 1 ? 's' : ''} Found`
+                }
               </h2>
-              <div className="flex items-center space-x-2 text-sm text-gray-600">
-                <TrendingUp className="w-4 h-4" />
-                <span>Sort by: Distance</span>
-              </div>
+              {searchType === 'shops' && (
+                <div className="flex items-center space-x-2 text-sm text-gray-600">
+                  <TrendingUp className="w-4 h-4" />
+                  <span>Sort by: Distance</span>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Stores Grid */}
-          {loadingSellers ? (
-            <div className="flex justify-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            </div>
-          ) : filteredSellers.length === 0 ? (
-            <div className="text-center py-12">
-              <Store className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No stores found</h3>
-              <p className="text-gray-600">Try adjusting your search or location filters.</p>
-            </div>
+          {/* Products/Shops Grid */}
+          {searchType === 'products' ? (
+            // Products View
+            loadingProducts ? (
+              <div className="flex justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+              </div>
+            ) : filteredProducts.length === 0 ? (
+              <div className="text-center py-12">
+                <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No products found</h3>
+                <p className="text-gray-600">Try adjusting your search or category filters.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {filteredProducts.map((product) => (
+                  <div key={product.id} className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 flex flex-col">
+                    {/* Product Image */}
+                    <div className="relative aspect-square overflow-hidden bg-gray-100">
+                      <img 
+                        src={product.image || 'https://via.placeholder.com/300'} 
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = 'https://via.placeholder.com/300';
+                        }}
+                      />
+                      {/* Wishlist Button */}
+                      <button
+                        onClick={() => toggleProductWishlist(product)}
+                        className="absolute top-2 right-2 bg-white/90 hover:bg-white p-2 rounded-full shadow-md transition-all"
+                        aria-label={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                      >
+                        <Heart 
+                          className={`w-5 h-5 ${
+                            isInWishlist(product.id) 
+                              ? 'fill-pink-500 text-pink-500' 
+                              : 'text-gray-600'
+                          }`} 
+                        />
+                      </button>
+                      {/* Discount Badge */}
+                      {product.originalPrice && product.originalPrice > product.price && (
+                        <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-md text-xs font-bold">
+                          {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Product Info */}
+                    <div className="p-3 flex-1 flex flex-col">
+                      <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 mb-1">
+                        {product.name}
+                      </h3>
+                      <p className="text-xs text-gray-500 mb-2">{product.brand}</p>
+                      
+                      {/* Price */}
+                      <div className="flex items-center space-x-2 mb-2">
+                        <span className="text-lg font-bold text-gray-900">₹{product.price}</span>
+                        {product.originalPrice && product.originalPrice > product.price && (
+                          <span className="text-xs text-gray-400 line-through">₹{product.originalPrice}</span>
+                        )}
+                      </div>
+
+                      {/* Rating */}
+                      {product.rating > 0 && (
+                        <div className="flex items-center space-x-1 mb-3">
+                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                          <span className="text-xs text-gray-600">{product.rating.toFixed(1)}</span>
+                          {product.reviews > 0 && (
+                            <span className="text-xs text-gray-400">({product.reviews})</span>
+                          )}
+                        </div>
+                      )}
+
+                      {/* View Details Button */}
+                      <Link
+                        to={`/product/${product.id}`}
+                        className="mt-auto w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-2 rounded-lg text-sm font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-200 flex items-center justify-center"
+                      >
+                        <Eye className="w-4 h-4 mr-2" />
+                        View Details
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
           ) : (
+            // Shops View
+            loadingSellers ? (
+              <div className="flex justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+              </div>
+            ) : filteredSellers.length === 0 ? (
+              <div className="text-center py-12">
+                <Store className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No stores found</h3>
+                <p className="text-gray-600">Try adjusting your search or location filters.</p>
+              </div>
+            ) : (
             <div className="grid grid-cols-2 gap-3 md:gap-4">
               {filteredSellers.map((seller) => (
                 <div key={seller.id}>
@@ -548,6 +766,7 @@ const SearchPage: React.FC = () => {
                 </div>
               ))}
             </div>
+            )
           )}
         </div>
       </div>
