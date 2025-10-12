@@ -496,14 +496,12 @@ const HomePage: React.FC = () => {
           <div className="max-w-7xl mx-auto px-4 py-3">
             <div className="flex items-center space-x-6 overflow-x-auto scrollbar-hide pb-1">
               {[
-                { name: 'Home', icon: '🏠', color: 'bg-blue-100' },
                 { name: 'Men', icon: '👨', color: 'bg-blue-100' },
                 { name: 'Women', icon: '👩', color: 'bg-pink-100' },
                 { name: 'Kids', icon: '👶', color: 'bg-yellow-100' },
                 { name: 'Electronics', icon: '📱', color: 'bg-gray-100' },
                 { name: 'Beauty', icon: '💄', color: 'bg-purple-100' },
-                { name: 'Sports', icon: '⚽', color: 'bg-green-100' },
-                { name: 'Home', icon: '🏡', color: 'bg-orange-100' }
+                { name: 'Sports', icon: '⚽', color: 'bg-green-100' }
               ].map((category, index) => (
                 <button
                   key={index}
@@ -722,11 +720,103 @@ const HomePage: React.FC = () => {
           </div>
         </section>
 
-        {/* Suggestions for You - Mobile Optimized */}
-        <section className="py-4 md:py-6 bg-gray-50">
+        {/* Continue Browsing These Products */}
+        <section className="py-4 bg-white">
           <div className="px-4">
-            <div className="flex items-center justify-between mb-4 md:mb-6">
-              <h2 className="text-xl md:text-2xl font-bold text-gray-900">Suggestions for You</h2>
+            <div className="flex items-center justify-center mb-4">
+              <h2 className="text-xl font-bold text-gray-900 text-center">
+                Continue Browsing These Products
+              </h2>
+            </div>
+            <div className="relative">
+              <div className="flex space-x-3 overflow-x-auto scrollbar-hide pb-2">
+                {allProducts.map((product, index) => {
+                  const originalPrice = product.originalPrice || product.price * 1.3;
+                  const discount = Math.round(((originalPrice - product.price) / originalPrice) * 100);
+                  
+                  return (
+                    <div 
+                      key={product.id || index}
+                      className="flex-shrink-0 w-32 cursor-pointer"
+                      onClick={() => handleProductClick(product.id)}
+                    >
+                      <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-gray-100">
+                        {/* Product Image */}
+                        <div className="relative aspect-square overflow-hidden bg-gray-100">
+                          <img 
+                            src={product.image || `https://images.unsplash.com/photo-${1500000000000 + index * 1000000}?w=300&h=300&fit=crop`} 
+                            alt={product.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.src = `https://images.unsplash.com/photo-${1500000000000 + index * 1000000}?w=300&h=300&fit=crop`;
+                            }}
+                          />
+                          {/* Discount Badge */}
+                          {discount > 0 && (
+                            <div className="absolute top-1 left-1 bg-red-500 text-white px-1 py-0.5 rounded text-xs font-bold">
+                              {discount}%
+                            </div>
+                          )}
+                          {/* Wishlist Button */}
+                          <button 
+                            className="absolute top-1 right-1 bg-white/90 hover:bg-white p-1 rounded-full shadow-sm transition-all"
+                            aria-label="Add to wishlist"
+                          >
+                            <Heart className="w-3 h-3 text-gray-600" />
+                          </button>
+                        </div>
+
+                        {/* Product Info */}
+                        <div className="p-2">
+                          <h3 className="text-xs font-semibold text-gray-900 line-clamp-1 mb-1">
+                            {product.name}
+                          </h3>
+                          <p className="text-xs text-gray-500 mb-1">{product.brand}</p>
+                          
+                          {/* Price */}
+                          <div className="flex items-center space-x-1">
+                            <span className="text-sm font-bold text-gray-900">₹{product.price}</span>
+                            {product.originalPrice && product.originalPrice > product.price && (
+                              <span className="text-xs text-gray-400 line-through">₹{product.originalPrice}</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              
+              {/* Scroll Indicators */}
+              <div className="absolute left-0 top-1/2 transform -translate-y-1/2 -ml-2">
+                <button 
+                  className="bg-white/90 hover:bg-white shadow-md rounded-full p-2 transition-all"
+                  aria-label="Scroll left"
+                >
+                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+              </div>
+              <div className="absolute right-0 top-1/2 transform -translate-y-1/2 -mr-2">
+                <button 
+                  className="bg-white/90 hover:bg-white shadow-md rounded-full p-2 transition-all"
+                  aria-label="Scroll right"
+                >
+                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Suggestions for You - Mobile Optimized */}
+        <section className="py-3 md:py-4 bg-gray-50">
+          <div className="px-4">
+            <div className="flex items-center justify-between mb-3 md:mb-4">
+              <h2 className="text-lg md:text-xl font-bold text-gray-900">Suggestions for You</h2>
               <button 
                 onClick={() => navigate('/browse')}
                 className="text-blue-600 text-sm font-medium hover:text-blue-700 transition-colors"
@@ -734,57 +824,95 @@ const HomePage: React.FC = () => {
                 View All →
               </button>
                   </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {suggestedProducts.length > 0 ? (
-                suggestedProducts.map((product, index) => {
+            <div className="relative">
+              <div className="flex space-x-3 overflow-x-auto scrollbar-hide pb-2">
+              {allProducts.length > 0 ? (
+                allProducts.map((product, index) => {
                   const originalPrice = product.originalPrice || product.price * 1.5;
                   const discount = Math.round(((originalPrice - product.price) / originalPrice) * 100);
                   
                   return (
                     <div 
-                      key={product.id || index} 
-                      className="bg-white rounded-lg p-3 hover:shadow-lg transition-shadow touch-manipulation cursor-pointer" 
+                      key={product.id || index}
+                      className="flex-shrink-0 w-32 cursor-pointer"
                       onClick={() => handleProductClick(product.id)}
                     >
-                      <div className="relative mb-3">
-                        <img 
-                          src={product.image || `https://images.unsplash.com/photo-${1500000000000 + index * 1000000}?w=200&h=200&fit=crop`} 
-                          alt={product.name}
-                          className="w-full h-32 md:h-40 object-cover rounded"
-                          onError={(e) => {
-                            e.currentTarget.src = `https://images.unsplash.com/photo-${1500000000000 + index * 1000000}?w=200&h=200&fit=crop`;
-                          }}
-                        />
-                        {discount > 0 && (
-                          <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
-                            {discount}% OFF
-                          </div>
-                        )}
-                        <div className="absolute top-2 right-2 bg-white rounded-full p-1">
-                          <Heart className="w-4 h-4 text-gray-400" />
+                      <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-gray-100">
+                        {/* Product Image */}
+                        <div className="relative aspect-square overflow-hidden bg-gray-100">
+                          <img 
+                            src={product.image || `https://images.unsplash.com/photo-${1500000000000 + index * 1000000}?w=300&h=300&fit=crop`} 
+                            alt={product.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.src = `https://images.unsplash.com/photo-${1500000000000 + index * 1000000}?w=300&h=300&fit=crop`;
+                            }}
+                          />
+                          {/* Discount Badge */}
+                          {discount > 0 && (
+                            <div className="absolute top-1 left-1 bg-red-500 text-white px-1 py-0.5 rounded text-xs font-bold">
+                              {discount}%
+                            </div>
+                          )}
+                          {/* Wishlist Button */}
+                          <button 
+                            className="absolute top-1 right-1 bg-white/90 hover:bg-white p-1 rounded-full shadow-sm transition-all"
+                            aria-label="Add to wishlist"
+                          >
+                            <Heart className="w-3 h-3 text-gray-600" />
+                          </button>
                         </div>
-                      </div>
-                      <h3 className="font-semibold text-gray-900 text-sm mb-1 line-clamp-2">{product.name}</h3>
-                      {product.sellerName && (
-                        <p className="text-xs text-blue-600 font-medium mb-1">by {product.sellerName}</p>
-                      )}
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm font-bold text-gray-900">₹{product.price?.toLocaleString() || '0'}</span>
-                        {originalPrice > product.price && (
-                          <span className="text-xs text-gray-500 line-through">₹{originalPrice.toLocaleString()}</span>
-                        )}
+
+                        {/* Product Info */}
+                        <div className="p-2">
+                          <h3 className="text-xs font-semibold text-gray-900 line-clamp-1 mb-1">
+                            {product.name}
+                          </h3>
+                          <p className="text-xs text-gray-500 mb-1">{product.brand}</p>
+                          
+                          {/* Price */}
+                          <div className="flex items-center space-x-1">
+                            <span className="text-sm font-bold text-gray-900">₹{product.price}</span>
+                            {product.originalPrice && product.originalPrice > product.price && (
+                              <span className="text-xs text-gray-400 line-through">₹{product.originalPrice}</span>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   );
                 })
               ) : (
-                // Fallback when no suggestions available
-                <div className="col-span-full text-center py-8">
-                  <p className="text-gray-500 text-sm">No suggestions available</p>
+                // Fallback when no products available
+                <div className="flex-shrink-0 w-full text-center py-8">
+                  <p className="text-gray-500 text-sm">No products available</p>
                 </div>
               )}
+              </div>
+              
+              {/* Scroll Indicators */}
+              <div className="absolute left-0 top-1/2 transform -translate-y-1/2 -ml-2">
+                <button 
+                  className="bg-white/90 hover:bg-white shadow-md rounded-full p-2 transition-all"
+                  aria-label="Scroll left"
+                >
+                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+              </div>
+              <div className="absolute right-0 top-1/2 transform -translate-y-1/2 -mr-2">
+                <button 
+                  className="bg-white/90 hover:bg-white shadow-md rounded-full p-2 transition-all"
+                  aria-label="Scroll right"
+                >
+                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
         </section>
 
         {/* Dynamic Admin-Managed Sections */}
@@ -830,8 +958,8 @@ const HomePage: React.FC = () => {
               <section key={section.id} className={section.type === 'trending' ? 'py-6 md:py-8 bg-gradient-to-r from-orange-500 to-red-500' : 'py-16 bg-gradient-to-br from-gray-50 to-white'}>
                 <div className={section.type === 'trending' ? 'px-4' : 'max-w-7xl mx-auto px-4'}>
                   {section.type === 'trending' ? (
-                    <div className="flex items-center justify-between mb-4 md:mb-6">
-                      <h2 className="text-xl md:text-2xl font-bold text-white">{section.title}</h2>
+                    <div className="flex items-center justify-between mb-3 md:mb-4">
+                      <h2 className="text-lg md:text-xl font-bold text-white">{section.title}</h2>
                       <div className="bg-white bg-opacity-20 px-3 py-1 rounded-full">
                         <span className="text-white text-sm font-medium">HOT</span>
                       </div>
@@ -841,18 +969,18 @@ const HomePage: React.FC = () => {
                       <div className={`inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br ${getSectionGradient(section.type)} rounded-full mb-4`}>
                         {getSectionIcon(section.type)}
                       </div>
-                      <h2 className="text-4xl font-bold text-gray-900 mb-4">{section.title}</h2>
+                      <h2 className="text-2xl font-bold text-gray-900 mb-4">{section.title}</h2>
                       {section.subtitle && (
-                        <p className="text-gray-600 text-lg max-w-2xl mx-auto">{section.subtitle}</p>
+                        <p className="text-gray-600 text-base max-w-2xl mx-auto">{section.subtitle}</p>
                       )}
                     </div>
                   )}
                   
-                  <div className={section.type === 'trending' ? 'grid grid-cols-1 md:grid-cols-2 gap-4' : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6'}>
+                  <div className={section.type === 'trending' ? 'grid grid-cols-2 gap-3' : 'grid grid-cols-2 gap-3'}>
                       {sectionProducts.map((product) => (
                         <div 
                           key={product.id} 
-                          className={`${section.type === 'trending' ? 'bg-white rounded-lg p-4 hover:shadow-lg transition-shadow touch-manipulation' : 'bg-white rounded-xl md:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-100'} cursor-pointer`}
+                          className={`${section.type === 'trending' ? 'bg-white rounded-lg p-3 hover:shadow-lg transition-shadow touch-manipulation' : 'bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden group border border-gray-100'} cursor-pointer`}
                           onClick={() => handleProductClick(product.id)}
                         >
                           {section.type === 'trending' ? (
@@ -862,7 +990,7 @@ const HomePage: React.FC = () => {
                                 <img 
                                   src={product.image} 
                                   alt={product.name}
-                                  className="w-full h-32 md:h-40 object-cover rounded"
+                                  className="w-full h-28 object-cover rounded"
                                 />
                                 <div className="absolute top-2 left-2 bg-orange-500 text-white px-2 py-1 rounded text-xs font-bold">
                                   Trending
@@ -895,26 +1023,26 @@ const HomePage: React.FC = () => {
                               </button>
                             </>
                           ) : (
-                            <div className="p-3 md:p-5">
-                            <div className="relative mb-3 md:mb-4 group/image">
+                            <div className="p-3">
+                            <div className="relative mb-3 group/image">
                               <img
                                 src={product.image}
                                 alt={product.name}
-                                className="w-full h-40 md:h-48 object-cover rounded-lg md:rounded-xl transition-transform duration-300 group-hover:scale-105"
+                                className="w-full h-32 object-cover rounded-lg transition-transform duration-300 group-hover:scale-105"
                               />
                               
                               {/* Action Buttons */}
-                              <div className="absolute top-2 right-2 md:top-3 md:right-3 flex flex-col space-y-1 md:space-y-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                              <div className="absolute top-2 right-2 flex flex-col space-y-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     toggleWishlist(product);
                                   }}
-                                  className="p-1.5 md:p-2 bg-white rounded-full shadow-lg hover:shadow-xl transition-all"
+                                  className="p-1.5 bg-white rounded-full shadow-lg hover:shadow-xl transition-all"
                                   title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
                                   aria-label={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
                                 >
-                                  <Heart className={`w-3 h-3 md:w-4 md:h-4 ${
+                                  <Heart className={`w-3 h-3 ${
                                     isInWishlist(product.id) ? 'text-red-500 fill-current' : 'text-gray-600'
                                   }`} />
                                 </button>
@@ -923,18 +1051,18 @@ const HomePage: React.FC = () => {
                                     e.stopPropagation();
                                     quickViewProduct(product);
                                   }}
-                                  className="p-1.5 md:p-2 bg-white rounded-full shadow-lg hover:shadow-xl transition-all"
+                                  className="p-1.5 bg-white rounded-full shadow-lg hover:shadow-xl transition-all"
                                   title="Quick view"
                                   aria-label="Quick view product"
                                 >
-                                  <Eye className="w-3 h-3 md:w-4 md:h-4 text-gray-600" />
+                                  <Eye className="w-3 h-3 text-gray-600" />
                                 </button>
                               </div>
 
                               {/* Badges */}
-                              <div className="absolute top-2 left-2 md:top-3 md:left-3 flex flex-col space-y-1 md:space-y-2">
+                              <div className="absolute top-2 left-2 flex flex-col space-y-1">
                                 {product.featured && (
-                                  <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-2 py-1 md:px-3 md:py-1 rounded-full text-xs font-bold shadow-lg">
+                                  <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg">
                                     ⭐ Featured
                                   </span>
                                 )}
@@ -1027,7 +1155,7 @@ const HomePage: React.FC = () => {
         {/* Random Products - Mobile Optimized */}
         <section className="py-6 md:py-8 bg-white">
           <div className="px-4">
-            <div className="flex items-center justify-between mb-4 md:mb-6">
+            <div className="flex items-center justify-between mb-3 md:mb-4">
               <h2 className="text-xl md:text-2xl font-bold text-gray-900">Random Products</h2>
               <button 
                 onClick={() => navigate('/browse')}
@@ -1087,7 +1215,7 @@ const HomePage: React.FC = () => {
         {/* Recently Viewed - Mobile Optimized */}
         <section className="py-6 md:py-8 bg-white">
           <div className="px-4">
-            <div className="flex items-center justify-between mb-4 md:mb-6">
+            <div className="flex items-center justify-between mb-3 md:mb-4">
               <h2 className="text-xl md:text-2xl font-bold text-gray-900">Recently Viewed</h2>
               <button 
                 onClick={() => navigate('/browse')}

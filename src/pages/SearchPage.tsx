@@ -468,7 +468,7 @@ const SearchPage: React.FC = () => {
 
           {/* Location Bar - Only show for shops */}
           {searchType === 'shops' && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
@@ -569,10 +569,10 @@ const SearchPage: React.FC = () => {
                 }
               </h2>
               {searchType === 'shops' && (
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <TrendingUp className="w-4 h-4" />
-                  <span>Sort by: Distance</span>
-                </div>
+              <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <TrendingUp className="w-4 h-4" />
+                <span>Sort by: Distance</span>
+              </div>
               )}
             </div>
           </div>
@@ -668,16 +668,16 @@ const SearchPage: React.FC = () => {
           ) : (
             // Shops View
             loadingSellers ? (
-              <div className="flex justify-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-              </div>
-            ) : filteredSellers.length === 0 ? (
-              <div className="text-center py-12">
-                <Store className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No stores found</h3>
-                <p className="text-gray-600">Try adjusting your search or location filters.</p>
-              </div>
-            ) : (
+            <div className="flex justify-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
+          ) : filteredSellers.length === 0 ? (
+            <div className="text-center py-12">
+              <Store className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No stores found</h3>
+              <p className="text-gray-600">Try adjusting your search or location filters.</p>
+            </div>
+          ) : (
             <div className="grid grid-cols-2 gap-3 md:gap-4">
               {filteredSellers.map((seller) => (
                 <div key={seller.id}>
