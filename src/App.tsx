@@ -70,6 +70,7 @@ function App() {
               <Route path="/" element={<AppLayout />}>
                 <Route index element={<HomePage />} />
                 <Route path="browse" element={<SearchPage />} />
+                <Route path="search" element={<SearchPage />} />
                 <Route path="cart" element={<CartPage />} />
                 <Route path="wishlist" element={<WishlistPage />} />
                 <Route path="categories" element={<CategoriesPage />} />

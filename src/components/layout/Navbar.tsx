@@ -37,7 +37,7 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
   // Fetch product suggestions from Firebase
   useEffect(() => {
     const fetchSuggestions = async () => {
-      if (searchQuery.trim().length < 2) {
+      if (searchQuery.trim().length < 1) {
         setSuggestions([]);
         setShowSuggestions(false);
         return;
@@ -60,19 +60,30 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
           }
         });
 
-        // Filter products based on search query
+        // Filter products based on search query with more flexible matching
         const filtered = allProducts.filter(product => {
-          const searchLower = searchQuery.toLowerCase();
+          const searchLower = searchQuery.toLowerCase().trim();
+          const name = product.name?.toLowerCase() || '';
+          const brand = product.brand?.toLowerCase() || '';
+          const category = product.category?.toLowerCase() || '';
+          const description = product.description?.toLowerCase() || '';
+          
+          // Check for exact matches first, then partial matches
           return (
-            product.name.toLowerCase().includes(searchLower) ||
-            product.brand?.toLowerCase().includes(searchLower) ||
-            product.category?.toLowerCase().includes(searchLower) ||
-            product.description?.toLowerCase().includes(searchLower)
+            name.includes(searchLower) ||
+            brand.includes(searchLower) ||
+            category.includes(searchLower) ||
+            description.includes(searchLower) ||
+            // Also check if search term appears at the beginning of words
+            name.split(' ').some((word: string) => word.startsWith(searchLower)) ||
+            brand.split(' ').some((word: string) => word.startsWith(searchLower)) ||
+            category.split(' ').some((word: string) => word.startsWith(searchLower))
           );
         }).slice(0, 8); // Limit to 8 suggestions
 
+        console.log(`Search for "${searchQuery}": Found ${filtered.length} results out of ${allProducts.length} total products`);
         setSuggestions(filtered);
-        setShowSuggestions(filtered.length > 0);
+        setShowSuggestions(true); // Always show dropdown, even for no results
       } catch (error) {
         console.error('Error fetching suggestions:', error);
         setSuggestions([]);
@@ -263,7 +274,7 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
                       onChange={handleSearchInputChange}
                       onKeyPress={handleKeyPress}
                       onFocus={() => {
-                        if (suggestions.length > 0) {
+                        if (searchQuery.trim().length >= 1) {
                           setShowSuggestions(true);
                         }
                       }}
@@ -286,7 +297,7 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
                         <div className="p-4 text-center text-orange-600">
                           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-500 mx-auto"></div>
                         </div>
-                      ) : (
+                      ) : suggestions.length > 0 ? (
                         <>
                           {suggestions.map((product) => (
                             <button
@@ -328,6 +339,28 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
                             <span>🪔 View all Diwali results for "{searchQuery}" 🪔</span>
                           </button>
                         </>
+                      ) : (
+                        <div className="p-6 text-center">
+                          <div className="text-4xl mb-3">🔍</div>
+                          <h3 className="text-lg font-semibold text-gray-800 mb-2">No products found</h3>
+                          <p className="text-sm text-gray-600 mb-3">
+                            We couldn't find any products matching "{searchQuery}"
+                          </p>
+                          <div className="text-xs text-gray-500 mb-4">
+                            Try searching for:
+                            <br />• Product names (e.g., "shirt", "shoes")
+                            <br />• Brands (e.g., "nike", "adidas") 
+                            <br />• Categories (e.g., "clothing", "accessories")
+                          </div>
+                          <button
+                            onClick={() => {
+                              handleSearch(new Event('submit') as any);
+                            }}
+                            className="px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 transition-colors text-sm font-medium"
+                          >
+                            Search anyway
+                          </button>
+                        </div>
                       )}
                     </div>
                   )}

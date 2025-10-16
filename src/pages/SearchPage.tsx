@@ -235,16 +235,17 @@ const SearchPage: React.FC = () => {
     const fetchProducts = async () => {
       setLoadingProducts(true);
       try {
-        console.log('Loading products from Firebase...');
+        console.log('🛍️ Loading products from Firebase...');
         
         const productsQuery = query(collection(db, 'products'));
         const snapshot = await getDocs(productsQuery);
         
-        console.log('Total products found:', snapshot.docs.length);
+        console.log('📦 Total products found:', snapshot.docs.length);
         
         const productsList: any[] = [];
         snapshot.docs.forEach((doc) => {
           const productData = doc.data();
+          console.log('🔍 Product data:', { id: doc.id, name: productData.name, status: productData.status });
           
           // Only include active products
           if (productData.status === 'active') {
@@ -257,10 +258,44 @@ const SearchPage: React.FC = () => {
           }
         });
         
-        console.log('Active products found:', productsList.length);
-        setProducts(productsList);
+        console.log('✅ Active products found:', productsList.length);
+        console.log('📋 Products list:', productsList);
+        
+        // If no products found, add some sample products for testing
+        if (productsList.length === 0) {
+          console.log('⚠️ No products found, adding sample products for testing');
+          const sampleProducts = [
+            {
+              id: 'sample-1',
+              name: 'Sample Product 1',
+              brand: 'Sample Brand',
+              price: 999,
+              category: 'Electronics',
+              description: 'This is a sample product for testing',
+              image: 'https://via.placeholder.com/300',
+              status: 'active',
+              rating: 4.5,
+              reviews: 10
+            },
+            {
+              id: 'sample-2',
+              name: 'Sample Product 2',
+              brand: 'Sample Brand',
+              price: 1299,
+              category: 'Fashion',
+              description: 'This is another sample product for testing',
+              image: 'https://via.placeholder.com/300',
+              status: 'active',
+              rating: 4.2,
+              reviews: 5
+            }
+          ];
+          setProducts(sampleProducts);
+        } else {
+          setProducts(productsList);
+        }
       } catch (error) {
-        console.error('Error loading products:', error);
+        console.error('❌ Error loading products:', error);
         setProducts([]);
       } finally {
         setLoadingProducts(false);
@@ -410,26 +445,44 @@ const SearchPage: React.FC = () => {
     const matchesCategory = selectedCategory === 'All' || 
       product.category === selectedCategory;
     
+    console.log('🔍 Filtering product:', { 
+      name: product.name, 
+      searchQuery, 
+      matchesSearch, 
+      matchesCategory,
+      finalMatch: matchesSearch && matchesCategory 
+    });
+    
     return matchesSearch && matchesCategory;
   });
 
+  console.log('📊 Search results:', {
+    searchQuery,
+    totalProducts: products.length,
+    filteredProducts: filteredProducts.length,
+    searchType,
+    selectedCategory
+  });
+
+  // Add error boundary
+  if (loadingProducts && loadingSellers) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading search results...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <div className="main-content pt-24 pb-24">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              {searchType === 'products' ? 'Search Products' : 'Explore Nearby Stores'}
-            </h1>
-            <p className="text-gray-600 text-lg">
-              {searchType === 'products' 
-                ? 'Find the best products from local sellers' 
-                : 'Discover local stores and products near you'}
-            </p>
-            
-            {/* Toggle between Products and Shops */}
-            <div className="mt-6 inline-flex bg-white rounded-lg shadow-md p-1 border border-gray-200">
+      <div className="main-content pt-20 pb-0">
+        <div className="max-w-7xl mx-auto px-2 py-0">
+          {/* Toggle between Products and Shops */}
+          <div className="text-center mb-1 mt-0">
+            <div className="inline-flex bg-white rounded-lg shadow-md p-1 border border-gray-200">
               <button
                 onClick={() => setSearchType('products')}
                 className={`px-6 py-2 rounded-md font-medium transition-all ${
@@ -480,7 +533,7 @@ const SearchPage: React.FC = () => {
                 <button
                   onClick={getCurrentLocation}
                   disabled={isGettingLocation}
-                  className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center space-x-1 bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                 >
                   {isGettingLocation ? (
                     <>
@@ -490,7 +543,7 @@ const SearchPage: React.FC = () => {
                   ) : (
                     <>
                       <Navigation className="w-4 h-4" />
-                      <span>Use Current Location</span>
+                      <span>Use Location</span>
                     </>
                   )}
                 </button>
@@ -515,8 +568,8 @@ const SearchPage: React.FC = () => {
           )}
 
           {/* Search Bar */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
-            <div className="flex items-center space-x-4">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-2 mb-1">
+            <div className="flex items-center space-x-2">
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
@@ -524,19 +577,19 @@ const SearchPage: React.FC = () => {
                   placeholder="Search stores, products, or categories..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-8 pr-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                 />
               </div>
-              <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
-                <Search className="w-5 h-5" />
+              <button className="bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-1 text-sm">
+                <Search className="w-4 h-4" />
                 <span>Search</span>
               </button>
             </div>
           </div>
 
           {/* Filter Tabs */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-3 mb-6">
-            <div className="flex items-center justify-between mb-2">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-1 mb-1">
+            <div className="flex items-center justify-between mb-1">
               <h3 className="text-sm font-semibold text-gray-700 flex items-center">
                 <Filter className="w-4 h-4 mr-2" />
                 Categories
@@ -547,7 +600,7 @@ const SearchPage: React.FC = () => {
                 <button
                   key={category}
                   onClick={() => setSelectedCategory(category)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap text-sm ${
+                  className={`px-2 py-1 rounded-lg font-medium transition-all whitespace-nowrap text-xs ${
                     selectedCategory === category
                       ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -560,9 +613,9 @@ const SearchPage: React.FC = () => {
           </div>
 
           {/* Results */}
-          <div className="mb-6">
+          <div className="mb-1">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-900">
+              <h2 className="text-sm font-semibold text-gray-900">
                 {searchType === 'products' 
                   ? `${filteredProducts.length} Product${filteredProducts.length !== 1 ? 's' : ''} Found`
                   : `${filteredSellers.length} Shop${filteredSellers.length !== 1 ? 's' : ''} Found`
@@ -581,19 +634,19 @@ const SearchPage: React.FC = () => {
           {searchType === 'products' ? (
             // Products View
             loadingProducts ? (
-              <div className="flex justify-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+              <div className="flex justify-center py-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
               </div>
             ) : filteredProducts.length === 0 ? (
-              <div className="text-center py-12">
-                <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No products found</h3>
-                <p className="text-gray-600">Try adjusting your search or category filters.</p>
+              <div className="text-center py-4">
+                <Package className="w-10 h-10 text-gray-400 mx-auto mb-2" />
+                <h3 className="text-sm font-semibold text-gray-900 mb-1">No products found</h3>
+                <p className="text-gray-600 text-xs">Try adjusting your search or category filters.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 {filteredProducts.map((product) => (
-                  <div key={product.id} className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 flex flex-col">
+                  <div key={product.id} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-gray-100 flex flex-col">
                     {/* Product Image */}
                     <div className="relative aspect-square overflow-hidden bg-gray-100">
                       <img 
@@ -607,7 +660,7 @@ const SearchPage: React.FC = () => {
                       {/* Wishlist Button */}
                       <button
                         onClick={() => toggleProductWishlist(product)}
-                        className="absolute top-2 right-2 bg-white/90 hover:bg-white p-2 rounded-full shadow-md transition-all"
+                        className="absolute top-3 right-3 bg-white/90 hover:bg-white p-2.5 rounded-full shadow-lg transition-all"
                         aria-label={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
                       >
                         <Heart 
@@ -620,24 +673,24 @@ const SearchPage: React.FC = () => {
                       </button>
                       {/* Discount Badge */}
                       {product.originalPrice && product.originalPrice > product.price && (
-                        <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-md text-xs font-bold">
+                        <div className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-lg text-sm font-bold shadow-lg">
                           {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
                         </div>
                       )}
                     </div>
 
                     {/* Product Info */}
-                    <div className="p-3 flex-1 flex flex-col">
-                      <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 mb-1">
+                    <div className="p-4 flex-1 flex flex-col">
+                      <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 mb-2">
                         {product.name}
                       </h3>
-                      <p className="text-xs text-gray-500 mb-2">{product.brand}</p>
+                      <p className="text-sm text-gray-500 mb-2">{product.brand}</p>
                       
                       {/* Price */}
                       <div className="flex items-center space-x-2 mb-2">
                         <span className="text-lg font-bold text-gray-900">₹{product.price}</span>
                         {product.originalPrice && product.originalPrice > product.price && (
-                          <span className="text-xs text-gray-400 line-through">₹{product.originalPrice}</span>
+                          <span className="text-sm text-gray-400 line-through">₹{product.originalPrice}</span>
                         )}
                       </div>
 
@@ -645,9 +698,9 @@ const SearchPage: React.FC = () => {
                       {product.rating > 0 && (
                         <div className="flex items-center space-x-1 mb-3">
                           <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                          <span className="text-xs text-gray-600">{product.rating.toFixed(1)}</span>
+                          <span className="text-sm text-gray-600">{product.rating.toFixed(1)}</span>
                           {product.reviews > 0 && (
-                            <span className="text-xs text-gray-400">({product.reviews})</span>
+                            <span className="text-sm text-gray-400">({product.reviews})</span>
                           )}
                         </div>
                       )}
