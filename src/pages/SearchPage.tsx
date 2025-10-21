@@ -734,51 +734,59 @@ const SearchPage: React.FC = () => {
                   {/* ULTIMATE Modern Card */}
                   <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 h-full flex flex-col">
                     
-                    {/* Store Identity */}
-                    <div className="p-3 border-b border-gray-100">
-                      <div className="flex items-center space-x-2 mb-2">
-                        {seller.profileImage ? (
+                    {/* Large Profile Picture Header - Takes Half the Card */}
+                    <div className="relative h-32 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center">
+                      <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-xl border-4 border-white overflow-hidden">
+                        {(seller.profileImage || seller.businessImage) ? (
                           <img 
-                            src={seller.profileImage} 
+                            src={seller.profileImage || seller.businessImage} 
                             alt={seller.businessName}
-                            className="w-12 h-12 rounded-lg object-cover shadow-md flex-shrink-0 border-2 border-blue-200"
+                            className="w-full h-full object-cover rounded-full"
                             onError={(e) => {
-                              // Fallback to gradient icon if image fails to load
+                              // Fallback to initial if image fails to load
                               e.currentTarget.style.display = 'none';
                               const parent = e.currentTarget.parentElement;
                               if (parent) {
-                                const fallback = document.createElement('div');
-                                fallback.className = 'w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-md flex-shrink-0';
-                                fallback.innerHTML = `<span class="text-xl font-bold text-white">${seller.businessName.charAt(0).toUpperCase()}</span>`;
-                                parent.insertBefore(fallback, e.currentTarget);
+                                const fallback = document.createElement('span');
+                                fallback.className = 'text-3xl font-bold text-gray-700';
+                                fallback.textContent = seller.businessName.charAt(0).toUpperCase();
+                                parent.appendChild(fallback);
                               }
                             }}
                           />
                         ) : (
-                          <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-md flex-shrink-0">
-                            <span className="text-xl font-bold text-white">{seller.businessName.charAt(0).toUpperCase()}</span>
-                          </div>
+                          <span className="text-3xl font-bold text-gray-700">
+                            {seller.businessName.charAt(0).toUpperCase()}
+                          </span>
                         )}
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-sm font-bold text-gray-900 line-clamp-1 mb-1">{seller.businessName}</h3>
-                          {seller.distance && (
-                            <span className="text-xs text-gray-500 flex items-center">
-                              <Navigation className="w-3 h-3 mr-1" />
-                              {(seller.distance || 0).toFixed(1)} km away
-                            </span>
-                          )}
-                        </div>
                       </div>
-                      <div className="flex items-center">
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-gradient-to-r from-blue-50 to-purple-50 text-blue-700 border border-blue-200">
-                          <Store className="w-3 h-3 mr-1" />
-                          {seller.businessType}
-                        </span>
+                      
+                      {/* Distance Badge */}
+                      {seller.distance && (
+                        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-medium text-gray-700">
+                          {(seller.distance || 0).toFixed(1)} km away
+                        </div>
+                      )}
+                      
+                      {/* Status Badge */}
+                      <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-medium text-green-700">
+                        Active
                       </div>
                     </div>
+                    
+                    {/* Store Info */}
+                    <div className="p-3 flex-1 flex flex-col justify-between">
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-900 line-clamp-1 mb-2">{seller.businessName}</h3>
+                        <div className="flex items-center mb-3">
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700">
+                            <Store className="w-3 h-3 mr-1" />
+                            {seller.businessType}
+                          </span>
+                        </div>
+                      </div>
 
-                    {/* Store Details */}
-                    <div className="p-4 space-y-3 flex-1">
+                      {/* Store Details */}
                       <div className="space-y-2">
                         <div className="flex items-start space-x-2">
                           <MapPin className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
