@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { SEOEnhancements, AISearchOptimization } from '../utils/seoEnhancements';
 
 interface SEOProps {
   title?: string;
@@ -6,8 +7,14 @@ interface SEOProps {
   keywords?: string;
   image?: string;
   url?: string;
-  type?: 'website' | 'article' | 'product';
+  type?: 'website' | 'article' | 'product' | 'store';
   noIndex?: boolean;
+  product?: any;
+  store?: any;
+  breadcrumbs?: Array<{name: string, url: string}>;
+  faqs?: Array<{question: string, answer: string}>;
+  reviews?: any[];
+  structuredData?: any;
 }
 
 export const useSEO = ({
@@ -17,25 +24,39 @@ export const useSEO = ({
   image,
   url,
   type = 'website',
-  noIndex = false
+  noIndex = false,
+  product,
+  store,
+  breadcrumbs,
+  faqs,
+  reviews,
+  structuredData
 }: SEOProps) => {
   useEffect(() => {
+    // Generate enhanced meta description
+    const metaDescription = description ? 
+      SEOEnhancements.generateMetaDescription(description) : 
+      'ShowMyFIT - Local marketplace connecting you with amazing local stores';
+
+    // Generate semantic keywords
+    const semanticKeywords = keywords ? 
+      AISearchOptimization.generateSemanticKeywords(keywords) : [];
+
     // Update document title
     if (title) {
       document.title = `${title} | ShowMyFIT`;
     }
 
     // Update meta description
-    if (description) {
-      updateMetaTag('name', 'description', description);
-      updateMetaTag('property', 'og:description', description);
-      updateMetaTag('property', 'twitter:description', description);
-    }
+    updateMetaTag('name', 'description', metaDescription);
+    updateMetaTag('property', 'og:description', metaDescription);
+    updateMetaTag('property', 'twitter:description', metaDescription);
 
-    // Update meta keywords
-    if (keywords) {
-      updateMetaTag('name', 'keywords', keywords);
-    }
+    // Update meta keywords with semantic keywords
+    const enhancedKeywords = keywords ? 
+      `${keywords}, ${semanticKeywords.join(', ')}` : 
+      'local marketplace, online shopping, local stores, community shopping';
+    updateMetaTag('name', 'keywords', enhancedKeywords);
 
     // Update Open Graph tags
     if (title) {
@@ -64,10 +85,22 @@ export const useSEO = ({
       updateMetaTag('name', 'robots', 'index, follow');
     }
 
-    // Add structured data for the current page
-    addStructuredData(title, description, url, type);
+    // Add enhanced structured data for the current page
+    addEnhancedStructuredData(title, metaDescription, url, type, product, store, breadcrumbs, faqs, reviews, structuredData);
 
-  }, [title, description, keywords, image, url, type, noIndex]);
+    // Track page view for analytics
+    if (typeof gtag !== 'undefined') {
+      gtag('config', 'G-XXXXXXXXXX', {
+        page_title: title,
+        page_location: url,
+        custom_map: {
+          'custom_parameter_1': 'marketplace_type',
+          'custom_parameter_2': type
+        }
+      });
+    }
+
+  }, [title, description, keywords, image, url, type, noIndex, product, store, breadcrumbs, faqs, reviews, structuredData]);
 };
 
 const updateMetaTag = (attribute: string, name: string, content: string) => {
@@ -101,24 +134,71 @@ const updateMetaTag = (attribute: string, name: string, content: string) => {
   }
 };
 
-const addStructuredData = (title?: string, description?: string, url?: string, type?: string) => {
+const addEnhancedStructuredData = (
+  title?: string, 
+  description?: string, 
+  url?: string, 
+  type?: string,
+  product?: any,
+  store?: any,
+  breadcrumbs?: Array<{name: string, url: string}>,
+  faqs?: Array<{question: string, answer: string}>,
+  reviews?: any[],
+  customStructuredData?: any
+) => {
   // Remove existing structured data
-  const existingScript = document.querySelector('script[data-seo-structured-data]');
-  if (existingScript) {
-    existingScript.remove();
-  }
+  const existingScripts = document.querySelectorAll('script[data-seo-structured-data]');
+  existingScripts.forEach(script => script.remove());
 
-  // Create new structured data based on page type
-  let structuredData: any = {
+  const structuredDataArray = [];
+
+  // Base webpage data
+  structuredDataArray.push({
     "@context": "https://schema.org",
     "@type": "WebPage",
     "name": title,
     "description": description,
-    "url": url
-  };
+    "url": url,
+    "publisher": {
+      "@type": "Organization",
+      "name": "ShowMyFIT",
+      "url": "https://showmyfit.com"
+    }
+  });
 
-  if (type === 'product') {
-    structuredData = {
+  // Product structured data
+  if (product) {
+    structuredDataArray.push(SEOEnhancements.generateProductSchema(product));
+  }
+
+  // Store structured data
+  if (store) {
+    structuredDataArray.push(SEOEnhancements.generateStoreSchema(store));
+  }
+
+  // Breadcrumb structured data
+  if (breadcrumbs && breadcrumbs.length > 0) {
+    structuredDataArray.push(SEOEnhancements.generateBreadcrumbSchema(breadcrumbs));
+  }
+
+  // FAQ structured data
+  if (faqs && faqs.length > 0) {
+    structuredDataArray.push(SEOEnhancements.generateFAQSchema(faqs));
+  }
+
+  // Review structured data
+  if (reviews && reviews.length > 0) {
+    structuredDataArray.push(SEOEnhancements.generateReviewSchema(reviews));
+  }
+
+  // Custom structured data
+  if (customStructuredData) {
+    structuredDataArray.push(customStructuredData);
+  }
+
+  // Legacy support for basic structured data
+  if (type === 'product' && !product) {
+    structuredDataArray.push({
       "@context": "https://schema.org",
       "@type": "Product",
       "name": title,
@@ -133,9 +213,9 @@ const addStructuredData = (title?: string, description?: string, url?: string, t
         "availability": "https://schema.org/InStock",
         "priceCurrency": "INR"
       }
-    };
+    });
   } else if (type === 'article') {
-    structuredData = {
+    structuredDataArray.push({
       "@context": "https://schema.org",
       "@type": "Article",
       "headline": title,
@@ -146,14 +226,17 @@ const addStructuredData = (title?: string, description?: string, url?: string, t
         "name": "ShowMyFIT",
         "url": "https://showmyfit.com"
       }
-    };
+    });
   }
 
-  const script = document.createElement('script');
-  script.type = 'application/ld+json';
-  script.setAttribute('data-seo-structured-data', 'true');
-  script.textContent = JSON.stringify(structuredData);
-  document.head.appendChild(script);
+  // Add all structured data scripts
+  structuredDataArray.forEach((data, index) => {
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.setAttribute('data-seo-structured-data', 'true');
+    script.textContent = JSON.stringify(data);
+    document.head.appendChild(script);
+  });
 };
 
 // SEO configurations for different pages
