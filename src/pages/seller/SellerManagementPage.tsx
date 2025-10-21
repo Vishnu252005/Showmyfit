@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import Navbar from '../../components/layout/Navbar';
 import Button from '../../components/ui/Button';
+import ImageUpload from '../../components/common/ImageUpload';
 import { useAuth } from '../../contexts/AuthContext';
 import { 
   collection, query, getDocs, doc, updateDoc, addDoc, writeBatch, where 
@@ -1177,13 +1178,18 @@ const SellerManagementPageMobile: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Image URL</label>
-                    <input
-                      type="url"
-                      value={editFormData.image || ''}
-                      onChange={(e) => setEditFormData({...editFormData, image: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="https://example.com/image.jpg"
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Product Image</label>
+                    <ImageUpload
+                      onImageUpload={(url) => {
+                        console.log('🖼️ SellerManagementPage: Image uploaded, setting editFormData.image to:', url);
+                        setEditFormData({...editFormData, image: url});
+                      }}
+                      onImageRemove={() => {
+                        console.log('🖼️ SellerManagementPage: Image removed, clearing editFormData.image');
+                        setEditFormData({...editFormData, image: ''});
+                      }}
+                      currentImage={editFormData.image}
+                      className="w-full"
                     />
                   </div>
                 </div>

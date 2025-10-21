@@ -488,6 +488,24 @@ const SellerProductsPage: React.FC = () => {
                                     {size}
                                   </button>
                                 ))}
+                                {/* Show custom sizes if available */}
+                                {product.categorySpecificData.sizeOther && (
+                                  <>
+                                    {product.categorySpecificData.sizeOther.split(',').map((customSize: string) => (
+                                      <button
+                                        key={customSize.trim()}
+                                        onClick={() => updateSelectedOption(product.id, 'size', customSize.trim())}
+                                        className={`px-2 py-1 text-xs rounded border ${
+                                          getSelectedOption(product.id, 'size') === customSize.trim()
+                                            ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                            : 'border-gray-300 hover:border-gray-400'
+                                        }`}
+                                      >
+                                        {customSize.trim()}
+                                      </button>
+                                    ))}
+                                  </>
+                                )}
                               </div>
                             </div>
                           )}

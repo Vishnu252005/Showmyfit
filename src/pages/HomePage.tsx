@@ -1114,17 +1114,6 @@ const HomePage: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Action Button */}
-                      <button 
-                        className="w-full bg-green-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors flex items-center justify-center"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          viewSellerProducts(seller);
-                        }}
-                      >
-                        <Eye className="w-4 h-4 mr-1.5" />
-                        View Store
-                      </button>
                     </div>
                   </div>
                 ))}
@@ -1199,17 +1188,6 @@ const HomePage: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Action Button */}
-                      <button 
-                        className="w-full bg-blue-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center justify-center"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          viewSellerProducts(seller);
-                        }}
-                      >
-                        <Eye className="w-4 h-4 mr-1.5" />
-                        View Store
-                      </button>
                     </div>
                   </div>
                 ))}

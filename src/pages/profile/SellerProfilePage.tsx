@@ -111,7 +111,8 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
     switch (category) {
       case 'women':
         return {
-          sizes: { type: 'multi-select', options: ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'], label: 'Available Sizes' },
+          sizes: { type: 'multi-select', options: ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', 'Other'], label: 'Available Sizes' },
+          sizeOther: { type: 'text', label: 'Custom Sizes', placeholder: 'Enter custom sizes separated by commas (e.g., Free Size, One Size, etc.)' },
           colors: { type: 'multi-text', label: 'Available Colors', placeholder: 'Enter colors separated by commas' },
           material: { type: 'text', label: 'Material' },
           occasion: { type: 'select', options: ['Casual', 'Formal', 'Party', 'Wedding', 'Office'], label: 'Occasion' },
@@ -121,7 +122,8 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
         };
       case 'men':
         return {
-          sizes: { type: 'multi-select', options: ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'], label: 'Available Sizes' },
+          sizes: { type: 'multi-select', options: ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', 'Other'], label: 'Available Sizes' },
+          sizeOther: { type: 'text', label: 'Custom Sizes', placeholder: 'Enter custom sizes separated by commas (e.g., Free Size, One Size, etc.)' },
           colors: { type: 'multi-text', label: 'Available Colors', placeholder: 'Enter colors separated by commas' },
           material: { type: 'text', label: 'Material' },
           occasion: { type: 'select', options: ['Casual', 'Formal', 'Business', 'Party', 'Sports'], label: 'Occasion' },
@@ -131,7 +133,8 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
         };
       case 'footwear':
         return {
-          sizes: { type: 'multi-select', options: ['5', '6', '7', '8', '9', '10', '11', '12'], label: 'Available Sizes' },
+          sizes: { type: 'multi-select', options: ['5', '6', '7', '8', '9', '10', '11', '12', 'Other'], label: 'Available Sizes' },
+          sizeOther: { type: 'text', label: 'Custom Sizes', placeholder: 'Enter custom sizes separated by commas (e.g., Free Size, One Size, etc.)' },
           colors: { type: 'multi-text', label: 'Available Colors', placeholder: 'Enter colors separated by commas' },
           material: { type: 'text', label: 'Upper Material' },
           soleMaterial: { type: 'text', label: 'Sole Material' },
@@ -1110,397 +1113,6 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
                     </button>
                   </div>
                   <div className="space-y-4">
-                {/* Test Data Buttons */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-700">Quick Fill Examples</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <Button
-                      onClick={() => {
-                        // Women's Fashion
-                        const testData = {
-                          name: 'Elegant Summer Dress',
-                          description: 'Beautiful floral summer dress perfect for parties and casual outings. Made with premium cotton blend for comfort and style.',
-                          price: 2499,
-                          originalPrice: 3499,
-                          category: 'women',
-                          brand: 'StyleHub',
-                          image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=500',
-                          images: [
-                            'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=500',
-                            'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=500',
-                            'https://images.unsplash.com/photo-1566479179817-c0d9ed07c9e5?w=500'
-                          ],
-                          stock: 15,
-                          rating: 4.7,
-                          reviews: 234,
-                          tags: ['dress', 'summer', 'floral', 'elegant', 'party'],
-                          featured: true,
-                          status: 'active' as 'active' | 'inactive' | 'draft',
-                          createdAt: new Date(),
-                          updatedAt: new Date()
-                        };
-                        setFormData(testData);
-                        setCategorySpecificData({
-                          sizes: ['S', 'M', 'L', 'XL'],
-                          colors: 'Navy Blue, Floral Print, White',
-                          material: 'Premium Cotton Blend',
-                          occasion: 'Party',
-                          season: 'Summer',
-                          careInstructions: 'Machine wash cold, hang dry',
-                          fit: 'Regular Fit'
-                        });
-                      }}
-                      variant="secondary"
-                      size="sm"
-                      className="w-full"
-                    >
-                      👗 Women's Dress
-                    </Button>
-
-                    <Button
-                      onClick={() => {
-                        // Footwear
-                        const testData = {
-                          name: 'Premium Leather Sneakers',
-                          description: 'High-quality leather sneakers with modern design and superior comfort. Perfect for daily wear and casual outings.',
-                          price: 4599,
-                          originalPrice: 5999,
-                          category: 'footwear',
-                          brand: 'UrbanSteps',
-                          image: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=500',
-                          images: [
-                            'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=500',
-                            'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=500',
-                            'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=500'
-                          ],
-                          stock: 8,
-                          rating: 4.6,
-                          reviews: 156,
-                          tags: ['sneakers', 'leather', 'casual', 'comfortable', 'premium'],
-                          featured: false,
-                          status: 'active' as 'active' | 'inactive' | 'draft',
-                          createdAt: new Date(),
-                          updatedAt: new Date()
-                        };
-                        setFormData(testData);
-                        setCategorySpecificData({
-                          sizes: ['7', '8', '9', '10', '11'],
-                          colors: 'Black, White, Brown, Navy',
-                          material: 'Genuine Leather',
-                          soleMaterial: 'Rubber',
-                          heelHeight: 'Flat',
-                          closure: 'Lace-up',
-                          width: 'Medium'
-                        });
-                      }}
-                      variant="secondary"
-                      size="sm"
-                      className="w-full"
-                    >
-                      👟 Sneakers
-                    </Button>
-
-                    <Button
-                      onClick={() => {
-                        // Jewellery
-                        const testData = {
-                          name: 'Diamond Engagement Ring',
-                          description: 'Exquisite diamond engagement ring with brilliant cut center stone. Handcrafted with attention to detail and timeless elegance.',
-                          price: 89999,
-                          originalPrice: 119999,
-                          category: 'jewellery',
-                          brand: 'LuxuryGems',
-                          image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=500',
-                          images: [
-                            'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=500',
-                            'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=500',
-                            'https://images.unsplash.com/photo-1506630448388-4e683c17fa5e?w=500'
-                          ],
-                          stock: 3,
-                          rating: 4.9,
-                          reviews: 89,
-                          tags: ['diamond', 'engagement', 'ring', 'luxury', 'gold'],
-                          featured: true,
-                          status: 'active' as 'active' | 'inactive' | 'draft',
-                          createdAt: new Date(),
-                          updatedAt: new Date()
-                        };
-                        setFormData(testData);
-                        setCategorySpecificData({
-                          material: 'Diamond',
-                          secondaryMaterial: '18K Gold',
-                          type: 'Ring',
-                          occasion: 'Wedding',
-                          gender: 'Women',
-                          gemstone: '1.5 Carat Diamond',
-                          weight: '3.2g'
-                        });
-                      }}
-                      variant="secondary"
-                      size="sm"
-                      className="w-full"
-                    >
-                      💍 Diamond Ring
-                    </Button>
-
-                    <Button
-                      onClick={() => {
-                        // Watches
-                        const testData = {
-                          name: 'Luxury Smartwatch',
-                          description: 'Premium smartwatch with health monitoring, GPS, and 7-day battery life. Perfect for fitness enthusiasts and professionals.',
-                          price: 25999,
-                          originalPrice: 32999,
-                          category: 'watches',
-                          brand: 'TechTime',
-                          image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500',
-                          images: [
-                            'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500',
-                            'https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?w=500',
-                            'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=500'
-                          ],
-                          stock: 12,
-                          rating: 4.8,
-                          reviews: 445,
-                          tags: ['smartwatch', 'fitness', 'gps', 'health', 'premium'],
-                          featured: true,
-                          status: 'active' as 'active' | 'inactive' | 'draft',
-                          createdAt: new Date(),
-                          updatedAt: new Date()
-                        };
-                        setFormData(testData);
-                        setCategorySpecificData({
-                          brand: 'TechTime',
-                          type: 'Smartwatch',
-                          material: 'Stainless Steel',
-                          caseMaterial: 'Titanium',
-                          waterResistance: '50m',
-                          movement: 'Digital',
-                          features: 'Heart Rate Monitor, GPS, Sleep Tracking, Water Resistant'
-                        });
-                      }}
-                      variant="secondary"
-                      size="sm"
-                      className="w-full"
-                    >
-                      ⌚ Smartwatch
-                    </Button>
-
-                    <Button
-                      onClick={() => {
-                        // Beauty
-                        const testData = {
-                          name: 'Anti-Aging Serum Set',
-                          description: 'Complete anti-aging skincare set with vitamin C serum, retinol cream, and hyaluronic acid moisturizer. Dermatologist tested.',
-                          price: 3499,
-                          originalPrice: 4999,
-                          category: 'beauty',
-                          brand: 'GlowSkin',
-                          image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=500',
-                          images: [
-                            'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=500',
-                            'https://images.unsplash.com/photo-1570194065650-d99fb4bedf0a?w=500',
-                            'https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=500'
-                          ],
-                          stock: 20,
-                          rating: 4.5,
-                          reviews: 678,
-                          tags: ['skincare', 'anti-aging', 'vitamin-c', 'serum', 'beauty'],
-                          featured: false,
-                          status: 'active' as 'active' | 'inactive' | 'draft',
-                          createdAt: new Date(),
-                          updatedAt: new Date()
-                        };
-                        setFormData(testData);
-                        setCategorySpecificData({
-                          skinType: ['Dry', 'Combination', 'Normal'],
-                          finish: 'Natural',
-                          coverage: 'Light',
-                          shades: 'Universal, Light, Medium',
-                          volume: '30ml each',
-                          ingredients: 'Vitamin C, Hyaluronic Acid, Retinol, Peptides',
-                          spf: 'SPF 30'
-                        });
-                      }}
-                      variant="secondary"
-                      size="sm"
-                      className="w-full"
-                    >
-                      💄 Beauty Set
-                    </Button>
-
-                    <Button
-                      onClick={() => {
-                        // Home & Lifestyle
-                        const testData = {
-                          name: 'Modern Coffee Table',
-                          description: 'Contemporary wooden coffee table with glass top and metal legs. Perfect for living rooms and modern home decor.',
-                          price: 12999,
-                          originalPrice: 15999,
-                          category: 'home-lifestyle',
-                          brand: 'HomeDecor',
-                          image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=500',
-                          images: [
-                            'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=500',
-                            'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=500',
-                            'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=500'
-                          ],
-                          stock: 5,
-                          rating: 4.4,
-                          reviews: 123,
-                          tags: ['furniture', 'coffee-table', 'wooden', 'modern', 'living-room'],
-                          featured: false,
-                          status: 'active' as 'active' | 'inactive' | 'draft',
-                          createdAt: new Date(),
-                          updatedAt: new Date()
-                        };
-                        setFormData(testData);
-                        setCategorySpecificData({
-                          room: 'Living Room',
-                          material: 'Solid Oak Wood',
-                          secondaryMaterial: 'Tempered Glass Top, Metal Legs',
-                          dimensions: '120cm x 60cm x 45cm',
-                          colors: 'Natural Wood, Black, White',
-                          assembly: 'Assembly Required',
-                          warranty: '2 years'
-                        });
-                      }}
-                      variant="secondary"
-                      size="sm"
-                      className="w-full"
-                    >
-                      🏠 Coffee Table
-                    </Button>
-
-                    <Button
-                      onClick={() => {
-                        // Sportswear
-                        const testData = {
-                          name: 'Performance Running Set',
-                          description: 'Complete running outfit with moisture-wicking fabric, breathable design, and ergonomic fit. Perfect for marathons and training.',
-                          price: 3999,
-                          originalPrice: 4999,
-                          category: 'sportswear',
-                          brand: 'FitGear',
-                          image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500',
-                          images: [
-                            'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500',
-                            'https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=500',
-                            'https://images.unsplash.com/photo-1593079831268-3381b0db4a77?w=500'
-                          ],
-                          stock: 18,
-                          rating: 4.6,
-                          reviews: 234,
-                          tags: ['running', 'sportswear', 'performance', 'moisture-wicking', 'athletic'],
-                          featured: true,
-                          status: 'active' as 'active' | 'inactive' | 'draft',
-                          createdAt: new Date(),
-                          updatedAt: new Date()
-                        };
-                        setFormData(testData);
-                        setCategorySpecificData({
-                          activity: ['Running', 'Gym', 'Training'],
-                          sizes: ['S', 'M', 'L', 'XL', 'XXL'],
-                          colors: 'Black, Navy, Red, White',
-                          gender: 'Unisex',
-                          season: 'All Season',
-                          fabric: 'Polyester with Spandex',
-                          features: 'Moisture-wicking, UV Protection, Quick Dry, Breathable'
-                        });
-                      }}
-                      variant="secondary"
-                      size="sm"
-                      className="w-full"
-                    >
-                      ⚽ Sportswear
-                    </Button>
-
-                    <Button
-                      onClick={() => {
-                        // Kids
-                        const testData = {
-                          name: 'Educational Toy Set',
-                          description: 'Safe and educational toy set for toddlers. Includes building blocks, puzzles, and learning cards. BPA-free and non-toxic materials.',
-                          price: 1999,
-                          originalPrice: 2499,
-                          category: 'kids',
-                          brand: 'LearnPlay',
-                          image: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=500',
-                          images: [
-                            'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=500',
-                            'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500',
-                            'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=500'
-                          ],
-                          stock: 25,
-                          rating: 4.7,
-                          reviews: 189,
-                          tags: ['toys', 'educational', 'kids', 'safe', 'learning'],
-                          featured: false,
-                          status: 'active' as 'active' | 'inactive' | 'draft',
-                          createdAt: new Date(),
-                          updatedAt: new Date()
-                        };
-                        setFormData(testData);
-                        setCategorySpecificData({
-                          ageGroup: '3-5 years',
-                          sizes: ['One Size'],
-                          colors: 'Multi-color, Bright, Pastel',
-                          gender: 'Unisex',
-                          occasion: 'Play',
-                          safetyFeatures: 'BPA-free, Non-toxic, Lead-free, Phthalate-free'
-                        });
-                      }}
-                      variant="secondary"
-                      size="sm"
-                      className="w-full"
-                    >
-                      👶 Kids Toys
-                    </Button>
-
-                    <Button
-                      onClick={() => {
-                        // Accessories
-                        const testData = {
-                          name: 'Premium Leather Handbag',
-                          description: 'Elegant leather handbag with multiple compartments and adjustable strap. Perfect for work, travel, and everyday use.',
-                          price: 5999,
-                          originalPrice: 7999,
-                          category: 'accessories',
-                          brand: 'StyleCraft',
-                          image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500',
-                          images: [
-                            'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500',
-                            'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500',
-                            'https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=500'
-                          ],
-                          stock: 10,
-                          rating: 4.5,
-                          reviews: 156,
-                          tags: ['handbag', 'leather', 'premium', 'fashion', 'accessory'],
-                          featured: true,
-                          status: 'active' as 'active' | 'inactive' | 'draft',
-                          createdAt: new Date(),
-                          updatedAt: new Date()
-                        };
-                        setFormData(testData);
-                        setCategorySpecificData({
-                          type: 'Handbag',
-                          material: 'Genuine Leather',
-                          colors: 'Black, Brown, Tan, Navy',
-                          gender: 'Women',
-                          closure: 'Magnetic Snap',
-                          capacity: '25cm x 18cm x 8cm'
-                        });
-                      }}
-                      variant="secondary"
-                      size="sm"
-                      className="w-full"
-                    >
-                      👜 Handbag
-                    </Button>
-                  </div>
-                </div>
-                
                 {/* Cancel Button - Full Width on Mobile */}
                 <Button
                   onClick={() => {
@@ -1681,12 +1293,6 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
                         className="w-full"
                       />
                       <p className="text-xs text-gray-500 mt-1">Upload the primary product image (max 10MB)</p>
-                      {formData.image && (
-                        <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded">
-                          <p className="text-xs text-green-700">Current image URL:</p>
-                          <p className="text-xs text-green-600 break-all">{formData.image}</p>
-                        </div>
-                      )}
                     </div>
 
                     <div>
@@ -1856,6 +1462,17 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
                                   })}
                                 </div>
                                 <p className="text-xs text-gray-500">Click to select multiple options</p>
+                                {/* Show custom sizes input when "Other" is selected */}
+                                {key === 'sizes' && (categorySpecificData[key] || []).includes('Other') && (
+                                  <input
+                                    id={`category-${key}Other`}
+                                    type="text"
+                                    value={categorySpecificData['sizeOther'] || ''}
+                                    onChange={(e) => setCategorySpecificData({...categorySpecificData, sizeOther: e.target.value})}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent mt-2"
+                                    placeholder="Enter custom sizes separated by commas (e.g., Free Size, One Size, etc.)"
+                                  />
+                                )}
                               </div>
                             ) : field.type === 'multi-text' ? (
                               <div>

@@ -47,15 +47,10 @@ const BecomeSellerPage: React.FC = () => {
     // Business Details
     yearsInBusiness: '',
     numberOfEmployees: '',
-    annualRevenue: '',
     website: '',
     
     // Documents
     gstNumber: '',
-    panNumber: '',
-    aadhaarNumber: '',
-    bankAccountNumber: '',
-    ifscCode: '',
     
     // Categories
     categories: [] as string[],
@@ -177,15 +172,11 @@ const BecomeSellerPage: React.FC = () => {
         // Business Details
         yearsInBusiness: formData.yearsInBusiness,
         numberOfEmployees: formData.numberOfEmployees,
-        annualRevenue: formData.annualRevenue,
         website: formData.website,
         
         // Documents
         documents: {
-          gst: formData.gstNumber,
-          pan: formData.panNumber,
-          bankAccount: formData.bankAccountNumber,
-          ifsc: formData.ifscCode
+          gst: formData.gstNumber
         },
         
         // Categories
@@ -518,46 +509,6 @@ const BecomeSellerPage: React.FC = () => {
                 </div>
               )}
 
-              {/* Test Fill Button */}
-              <div className="mb-6 flex justify-end">
-                <Button
-                  type="button"
-                  onClick={() => {
-                    setFormData({
-                      // Business Information
-                      businessName: 'Smith Electronics Store',
-                      businessType: 'Electronics & Gadgets',
-                      businessDescription: 'Leading electronics retailer specializing in smartphones, laptops, and accessories with 5+ years of experience.',
-                      businessAddress: '123 Business Street, Electronics Market, Mumbai, Maharashtra 400001',
-                      businessPhone: '+91 9876543210',
-                      businessEmail: 'business@smithstore.com',
-                      
-                      // Business Details
-                      yearsInBusiness: '5-10',
-                      numberOfEmployees: '6-20',
-                      annualRevenue: '1Cr-5Cr',
-                      website: 'https://smithstore.com',
-                      
-                      // Documents
-                      gstNumber: '27ABCDE1234F1Z5',
-                      panNumber: 'ABCDE1234F',
-                      bankAccountNumber: '1234567890123456',
-                      ifscCode: 'SBIN0001234',
-                      
-                      // Categories
-                      categories: ['Electronics', 'Mobile & Accessories', 'Men\'s Clothing', 'Women\'s Clothing', 'Shoes & Footwear', 'Accessories', 'Beauty Products', 'Sports & Fitness'],
-                      
-                      // Terms
-                      agreeToTerms: true
-                    });
-                  }}
-                  variant="secondary"
-                  size="sm"
-                >
-                  🧪 Test Fill Form
-                </Button>
-              </div>
-
               <form onSubmit={handleSubmit} className="space-y-8">
 
                 {/* Business Information */}
@@ -696,23 +647,6 @@ const BecomeSellerPage: React.FC = () => {
                         <option value="200+">200+ employees</option>
                       </select>
                     </div>
-                    <div>
-                      <label htmlFor="annualRevenue" className="block text-sm font-medium text-gray-700 mb-2">Annual Revenue</label>
-                      <select
-                        id="annualRevenue"
-                        name="annualRevenue"
-                        value={formData.annualRevenue}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="">Select revenue</option>
-                        <option value="0-10L">₹0-10 Lakhs</option>
-                        <option value="10L-1Cr">₹10 Lakhs - 1 Crore</option>
-                        <option value="1Cr-5Cr">₹1-5 Crores</option>
-                        <option value="5Cr-10Cr">₹5-10 Crores</option>
-                        <option value="10Cr+">₹10+ Crores</option>
-                      </select>
-                    </div>
                   </div>
                 </div>
 
@@ -747,7 +681,7 @@ const BecomeSellerPage: React.FC = () => {
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        GST Number <span className="text-red-500">*</span>
+                        GSTIN Number <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -759,58 +693,6 @@ const BecomeSellerPage: React.FC = () => {
                         placeholder="22ABCDE1234F1Z5"
                       />
                       <p className="text-xs text-gray-500 mt-1">Required for tax compliance</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        PAN Number <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        name="panNumber"
-                        value={formData.panNumber}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="ABCDE1234F"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">Required for identity verification</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Aadhaar Number <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        name="aadhaarNumber"
-                        value={formData.aadhaarNumber || ''}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="1234 5678 9012"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">Required for KYC verification</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Bank Account Number</label>
-                      <input
-                        type="text"
-                        name="bankAccountNumber"
-                        value={formData.bankAccountNumber}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="1234567890"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">IFSC Code</label>
-                      <input
-                        type="text"
-                        name="ifscCode"
-                        value={formData.ifscCode}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="SBIN0001234"
-                      />
                     </div>
                   </div>
                 </div>

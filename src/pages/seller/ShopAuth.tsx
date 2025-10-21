@@ -20,11 +20,6 @@ const ShopAuth: React.FC = () => {
   const { addShop, setCurrentShop, state } = useApp();
   const navigate = useNavigate();
 
-  // Test credentials
-  const TEST_CREDENTIALS = {
-    email: 'test@gmail.com',
-    password: 'test123'
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,32 +27,6 @@ const ShopAuth: React.FC = () => {
     
     try {
       if (isLogin) {
-        // Check for test credentials first
-        if (formData.email === TEST_CREDENTIALS.email && formData.password === TEST_CREDENTIALS.password) {
-          if (userType === 'admin') {
-            navigate('/admin');
-          } else {
-            // For shop login, find the first approved shop or create a test shop
-            let testShop = state.shops.find(s => s.name.toLowerCase() === 'test shop');
-            if (!testShop) {
-              // Create a test shop for demo
-              addShop({
-                name: 'Test Shop',
-                contact: '+1234567890',
-                address: '123 Test Street, Demo City',
-                latitude: 37.7749,
-                longitude: -122.4194,
-                approved: true
-              });
-              testShop = state.shops.find(s => s.name.toLowerCase() === 'test shop');
-            }
-            if (testShop) {
-              setCurrentShop(testShop);
-              navigate('/shop/dashboard');
-            }
-          }
-          return;
-        }
 
         // Regular shop login logic
         if (userType === 'shop') {
@@ -159,30 +128,6 @@ const ShopAuth: React.FC = () => {
           )}
 
           {/* Test Credentials Info */}
-          {isLogin && (
-            <div className="mb-6 p-4 bg-warm-50 rounded-xl border border-warm-200">
-              <p className="text-sm text-warm-700 mb-3 font-medium">Test Credentials:</p>
-              <p className="text-xs text-warm-600 mb-3">
-                Email: <code className="bg-warm-200 px-1 rounded">test@gmail.com</code><br/>
-                Password: <code className="bg-warm-200 px-1 rounded">test123</code>
-              </p>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setFormData(prev => ({
-                    ...prev,
-                    email: TEST_CREDENTIALS.email,
-                    password: TEST_CREDENTIALS.password
-                  }));
-                }}
-                className="w-full"
-              >
-                Fill Test Credentials
-              </Button>
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {isLogin ? (

@@ -588,6 +588,27 @@ const ProductDetailPage: React.FC = () => {
                         {size}
                       </button>
                     ))}
+                    {/* Show custom sizes if available */}
+                    {product.categorySpecificData.sizeOther && (
+                      <div className="w-full mt-2">
+                        <p className="text-sm text-gray-600 mb-1">Custom Sizes:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {product.categorySpecificData.sizeOther.split(',').map((customSize: string) => (
+                            <button
+                              key={customSize.trim()}
+                              onClick={() => setSelectedSize(customSize.trim())}
+                              className={`px-4 py-2 rounded-lg border-2 transition-colors ${
+                                selectedSize === customSize.trim()
+                                  ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                  : 'border-gray-200 hover:border-gray-300'
+                              }`}
+                            >
+                              {customSize.trim()}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <button
                     onClick={() => setShowSizeGuide(true)}
