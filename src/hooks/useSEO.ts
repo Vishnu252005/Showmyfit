@@ -249,8 +249,8 @@ export const SEOConfigs = {
   },
   browse: {
     title: 'Browse Products',
-    description: 'Browse and discover products from local stores in your area. Find great deals on fashion, electronics, home goods, and more.',
-    keywords: 'browse products, local products, online shopping, deals, discounts',
+    description: 'Browse and discover products from nearby stores in your area. Find great deals on fashion, electronics, home goods, and more.',
+    keywords: 'browse products, nearby products, online shopping, deals, discounts',
     type: 'website' as const
   },
   categories: {
@@ -261,22 +261,22 @@ export const SEOConfigs = {
   },
   cart: {
     title: 'Shopping Cart',
-    description: 'Review your selected items and proceed to checkout. Secure payment and fast delivery from local stores.',
-    keywords: 'shopping cart, checkout, local delivery, secure payment',
+    description: 'Review your selected items and proceed to checkout. Secure payment and fast delivery from nearby stores.',
+    keywords: 'shopping cart, checkout, nearby delivery, secure payment',
     type: 'website' as const,
     noIndex: true
   },
   wishlist: {
     title: 'Wishlist',
-    description: 'Your saved items and favorite products from local stores. Never lose track of products you love.',
-    keywords: 'wishlist, saved items, favorites, local products',
+    description: 'Your saved items and favorite products from nearby stores. Never lose track of products you love.',
+    keywords: 'wishlist, saved items, favorites, nearby products',
     type: 'website' as const,
     noIndex: true
   },
   about: {
     title: 'About ShowMyFIT',
-    description: 'Learn about ShowMyFIT\'s mission to connect customers with local businesses. Supporting communities through technology.',
-    keywords: 'about ShowMyFIT, local business support, community marketplace, company information',
+    description: 'Learn about ShowMyFIT\'s mission to connect customers with nearby businesses. Supporting communities through technology.',
+    keywords: 'about ShowMyFIT, nearby business support, community marketplace, company information',
     type: 'website' as const
   },
   privacy: {
@@ -300,8 +300,8 @@ export const SEOConfigs = {
   },
   sellerAuth: {
     title: 'Become a Seller',
-    description: 'Join ShowMyFIT as a seller and start selling your products to local customers. Easy setup and great commission rates.',
-    keywords: 'become a seller, seller registration, local business, marketplace seller',
+    description: 'Join ShowMyFIT as a seller and start selling your products to nearby customers. Easy setup and great commission rates.',
+    keywords: 'become a seller, seller registration, nearby business, marketplace seller',
     type: 'website' as const
   }
 };

@@ -238,7 +238,7 @@ export const AISearchOptimization = {
   // Generate semantic keywords
   generateSemanticKeywords: (primaryKeyword: string) => {
     const keywordMap: { [key: string]: string[] } = {
-      'nearby store': ['community shopping', 'neighborhood stores', 'local business', 'store finder', 'nearby shopping'],
+      'nearby store': ['community shopping', 'neighborhood stores', 'nearby business', 'store finder', 'nearby shopping'],
       'online shopping': ['e-commerce', 'digital marketplace', 'online retail', 'web shopping', 'digital commerce'],
       'fashion': ['clothing', 'apparel', 'style', 'fashion trends', 'dress', 'outfit'],
       'electronics': ['gadgets', 'tech', 'digital devices', 'electronic goods', 'technology'],
@@ -265,9 +265,9 @@ export const AISearchOptimization = {
   generateFeaturedSnippetContent: (topic: string) => {
     const snippetTemplates = {
       'what is': `${topic} is a nearby store platform that connects customers with nearby stores, offering a convenient way to shop from nearby businesses online.`,
-      'how to': `To use ${topic}, simply browse local stores, select products, and place orders for pickup or delivery from nearby businesses.`,
-      'best': `The best ${topic} options include verified local stores with high ratings, competitive prices, and reliable delivery services.`,
-      'where to': `You can find ${topic} at ShowMyFIT, which features local stores in your area with online ordering and delivery options.`
+      'how to': `To use ${topic}, simply browse nearby stores, select products, and place orders for pickup or delivery from nearby businesses.`,
+      'best': `The best ${topic} options include verified nearby stores with high ratings, competitive prices, and reliable delivery services.`,
+      'where to': `You can find ${topic} at ShowMyFIT, which features nearby stores in your area with online ordering and delivery options.`
     };
     
     const template = Object.keys(snippetTemplates).find(key => topic.toLowerCase().includes(key));

@@ -19,7 +19,7 @@ const Footer: React.FC = () => {
         <div className="text-center">
           <h3 className="text-2xl font-serif font-bold text-white mb-3 tracking-wide drop-shadow-lg">🪔 SHOWMYFIT 🪔</h3>
           <p className="text-white/90 text-sm mb-6 max-w-md mx-auto leading-relaxed drop-shadow-md">
-            ✨ Celebrate Diwali with amazing deals from local stores! ✨<br/>
+            ✨ Celebrate Diwali with amazing deals from nearby stores! ✨<br/>
             Find your perfect festive fit, crafted with care.
           </p>
           <div className="flex justify-center space-x-8 text-sm text-white/80 mb-6">

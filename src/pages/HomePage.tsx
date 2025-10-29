@@ -1048,7 +1048,7 @@ const HomePage: React.FC = () => {
                     <p className="text-xs text-white/80">On orders above ₹999</p>
                   </div>
                   <div className="bg-white/20 backdrop-blur-sm px-4 py-3 md:px-6 md:py-4 rounded-xl border border-white/30">
-                    <p className="text-xs md:text-sm font-bold text-white">LOCAL STORES</p>
+                    <p className="text-xs md:text-sm font-bold text-white">NEARBY STORES</p>
                     <p className="text-xs text-white/80">Support your neighborhood</p>
                   </div>
                 </div>
@@ -1414,7 +1414,7 @@ const HomePage: React.FC = () => {
           </section>
         )}
 
-        {/* Featured Local Stores - Real Sellers */}
+        {/* Featured Nearby Stores - Real Sellers */}
         <section className="py-12 bg-gradient-to-br from-blue-50 to-indigo-100">
           <div className="max-w-7xl mx-auto px-4">
             <div className="text-center mb-12">
@@ -1423,7 +1423,7 @@ const HomePage: React.FC = () => {
                   <div className="text-white text-xl">🏠</div>
                 </div>
                 <h2 className="text-3xl font-bold text-gray-900">
-                  {showNearbyStores ? 'All Local Stores' : 'Featured Local Stores'}
+                  {showNearbyStores ? 'All Nearby Stores' : 'Featured Nearby Stores'}
                 </h2>
                 </div>
               <p className="text-gray-600 text-lg">Discover amazing stores and their products</p>
@@ -1442,33 +1442,38 @@ const HomePage: React.FC = () => {
             ) : (
               <div className="grid grid-cols-2 gap-3 md:gap-4">
                 {(showNearbyStores ? sellers.filter(seller => !nearbyStores.some(nearby => nearby.id === seller.id)) : sellers).map((seller) => (
-                  <div key={seller.id} className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200 overflow-hidden cursor-pointer" onClick={() => viewSellerProducts(seller)}>
-                    {/* Store Header */}
-                    <div className="bg-gradient-to-br from-blue-500 to-purple-600 p-3">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <div className="w-12 h-12 rounded-lg bg-white flex items-center justify-center flex-shrink-0">
-                          <span className="text-xl font-bold text-blue-600">{seller.businessName.charAt(0).toUpperCase()}</span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-sm font-bold text-white line-clamp-1">{seller.businessName}</h3>
-                          <p className="text-xs text-white/90">{seller.businessType}</p>
-                        </div>
+                  <div key={seller.id} className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 h-full flex flex-col" onClick={() => viewSellerProducts(seller)}>
+                    {/* Large Profile Picture Header - match Explore style */}
+                    <div className="relative h-24 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-start px-3">
+                      <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-xl border-4 border-white overflow-hidden">
+                        <span className="text-lg font-bold text-gray-700">{seller.businessName.charAt(0).toUpperCase()}</span>
                       </div>
+                      <div className="ml-3 text-white">
+                        <h3 className="text-sm font-bold line-clamp-1">{seller.businessName}</h3>
+                        <p className="text-xs opacity-90 line-clamp-1">{seller.businessType}</p>
+                      </div>
+                      {/* Status Badge */}
+                      <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-medium text-green-700">Active</div>
                     </div>
 
                     {/* Store Info */}
-                    <div className="p-3">
-                      <div className="space-y-1.5 mb-3">
+                    <div className="p-3 flex-1 flex flex-col justify-between">
+                      <div className="space-y-2">
                         <div className="flex items-start space-x-2">
-                          <MapPin className="w-3.5 h-3.5 text-blue-600 mt-0.5 flex-shrink-0" />
+                          <MapPin className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
                           <p className="text-xs text-gray-600 line-clamp-2">{seller.address}</p>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <Phone className="w-3.5 h-3.5 text-green-600 flex-shrink-0" />
-                          <p className="text-xs text-gray-600">{seller.phone}</p>
+                          <Phone className="w-4 h-4 text-green-600 flex-shrink-0" />
+                          <a href={`tel:${seller.phone}`} onClick={(e)=>e.stopPropagation()} className="text-xs text-gray-600 hover:text-blue-600 transition-colors">{seller.phone}</a>
                         </div>
                       </div>
 
+                      <div className="mt-3">
+                        <button className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-2 rounded-lg text-xs font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-200 flex items-center justify-center shadow-md hover:shadow-lg">
+                          View Store
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
