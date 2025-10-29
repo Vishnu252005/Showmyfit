@@ -12,7 +12,7 @@ export const generateSitemap = async () => {
       lastModified: currentDate,
       changeFrequency: 'daily',
       priority: 1.0,
-      title: 'ShowMyFIT - Local Marketplace'
+      title: 'ShowMyFIT - Nearby Store'
     },
     {
       path: '/browse',

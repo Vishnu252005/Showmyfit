@@ -1083,24 +1083,24 @@ const SellerManagementPageMobile: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Price *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Selling Price (₹) *</label>
                     <input
                       type="number"
                       value={editFormData.price || ''}
                       onChange={(e) => setEditFormData({...editFormData, price: parseFloat(e.target.value) || 0})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="0.00"
+                      placeholder="Enter selling price"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Original Price</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Original Price (MRP)</label>
                     <input
                       type="number"
                       value={editFormData.originalPrice || ''}
                       onChange={(e) => setEditFormData({...editFormData, originalPrice: parseFloat(e.target.value) || 0})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="0.00"
+                      placeholder="Enter MRP (optional)"
                     />
                   </div>
 
@@ -1128,14 +1128,41 @@ const SellerManagementPageMobile: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Stock Quantity *</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2.5">
+                      Stock Quantity <span className="text-red-500">*</span>
+                    </label>
                     <input
                       type="number"
+                      min="1"
+                      step="1"
                       value={editFormData.stock || ''}
-                      onChange={(e) => setEditFormData({...editFormData, stock: parseInt(e.target.value) || 0})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="0"
+                      onChange={(e) => {
+                        const inputValue = e.target.value;
+                        // Allow empty input while typing
+                        if (inputValue === '') {
+                          setEditFormData({...editFormData, stock: 0});
+                          return;
+                        }
+                        const value = parseInt(inputValue);
+                        // Only update if it's a valid number, allow typing freely
+                        if (!isNaN(value)) {
+                          setEditFormData({...editFormData, stock: value < 1 ? 1 : value});
+                        }
+                      }}
+                      onBlur={(e) => {
+                        // Validate on blur - ensure minimum is 1
+                        const value = parseInt(e.target.value) || 0;
+                        if (value < 1) {
+                          setEditFormData({...editFormData, stock: 1});
+                        }
+                      }}
+                      placeholder="Enter stock quantity (minimum 1)"
+                      className="w-full px-3 py-2.5 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400 shadow-sm"
+                      required
                     />
+                    <p className="text-xs text-gray-500 mt-1.5">
+                      Minimum stock quantity is 1
+                    </p>
                   </div>
 
                   <div>

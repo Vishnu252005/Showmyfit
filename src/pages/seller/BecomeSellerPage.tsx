@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, Store, CheckCircle, Star, Users, TrendingUp, Shield, 
@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import Navbar from '../../components/layout/Navbar';
 import Button from '../../components/ui/Button';
+import GoogleMapLocation from '../../components/common/GoogleMapLocation';
 import { useAuth } from '../../contexts/AuthContext';
 import { submitSellerApplication, getSellerApplicationStatus } from '../../firebase/auth';
 
@@ -33,8 +34,18 @@ const BecomeSellerPage: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [errors, setErrors] = useState<string[]>([]);
+  const [showErrorDropdown, setShowErrorDropdown] = useState(false);
   const [applicationStatus, setApplicationStatus] = useState<'not_applied' | 'pending' | 'approved' | 'rejected'>('not_applied');
   const [checkingStatus, setCheckingStatus] = useState(true);
+  
+  // Dropdown states
+  const [businessTypeDropdownOpen, setBusinessTypeDropdownOpen] = useState(false);
+  const [yearsDropdownOpen, setYearsDropdownOpen] = useState(false);
+  
+  // Refs for dropdowns
+  const businessTypeDropdownRef = useRef<HTMLDivElement>(null);
+  const yearsDropdownRef = useRef<HTMLDivElement>(null);
   const [formData, setFormData] = useState({
     // Business Information
     businessName: '',
@@ -46,8 +57,10 @@ const BecomeSellerPage: React.FC = () => {
     
     // Business Details
     yearsInBusiness: '',
-    numberOfEmployees: '',
     website: '',
+    
+    // Location
+    location: null as { lat: number; lng: number; address?: string } | null,
     
     // Documents
     gstNumber: '',
@@ -85,17 +98,44 @@ const BecomeSellerPage: React.FC = () => {
     }
   }, [currentUser, loading]);
 
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (businessTypeDropdownRef.current && !businessTypeDropdownRef.current.contains(event.target as Node)) {
+        setBusinessTypeDropdownOpen(false);
+      }
+      if (yearsDropdownRef.current && !yearsDropdownRef.current.contains(event.target as Node)) {
+        setYearsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   const businessTypes = [
-    'Fashion & Apparel',
+    'Fashion & Apparel 👕',
+    'Footwear 👟',
+    'Jewelry & Accessories 💍',
+    'Bags & Luggage 🎒',
+    'Kids & Baby Products 🧸',
     'Electronics & Gadgets',
-    'Home & Kitchen',
-    'Beauty & Personal Care',
-    'Sports & Fitness',
+    'Mobile & Accessories 📱',
+    'Computers & Laptops 💻',
+    'Home Appliances ⚡',
+    'Optical & Eyewear 👓',
+    'Fitness Centers / Gyms 🏋',
     'Books & Stationery',
+    'Toys & Educational Stores 🧩',
+    'Music & Art Supplies 🎶',
+    'Furniture and decor',
+    'Pet Supplies',
+    'Arts and handicraft',
+    'Beauty and personal care',
     'Automotive',
-    'Health & Wellness',
-    'Food & Beverages',
-    'Other'
+    'Sports'
   ];
 
   const categories = [
@@ -130,23 +170,54 @@ const BecomeSellerPage: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setErrors([]);
+    setShowErrorDropdown(false);
 
     try {
       console.log('🚀 Starting seller application process...');
       
+      // Collect all validation errors
+      const validationErrors: string[] = [];
+      
       // Check if user is authenticated
       if (!currentUser) {
-        console.log('❌ User not authenticated');
-        setError('Please login to continue with seller application');
-        setLoading(false);
-        return;
+        validationErrors.push('Please login to continue with seller application');
+      }
+
+      // Validate required fields
+      if (!formData.businessName?.trim()) {
+        validationErrors.push('Business Name is required');
+      }
+
+      if (!formData.businessType) {
+        validationErrors.push('Business Type is required');
+      }
+
+      if (!formData.businessAddress?.trim()) {
+        validationErrors.push('Business Address is required');
+      }
+
+      if (!formData.gstNumber?.trim()) {
+        validationErrors.push('GSTIN Number is required');
+      }
+
+      // Validate location
+      if (!formData.location) {
+        validationErrors.push('Please set your business location on the map');
       }
 
       // Validate terms agreement
       if (!formData.agreeToTerms) {
-        console.log('❌ Terms agreement validation failed');
-        setError('Please agree to the terms and conditions');
+        validationErrors.push('Please agree to the terms and conditions');
+      }
+
+      // If there are validation errors, show them
+      if (validationErrors.length > 0) {
+        setErrors(validationErrors);
+        setShowErrorDropdown(true);
         setLoading(false);
+        // Scroll to top to show errors
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
 
@@ -171,8 +242,10 @@ const BecomeSellerPage: React.FC = () => {
         
         // Business Details
         yearsInBusiness: formData.yearsInBusiness,
-        numberOfEmployees: formData.numberOfEmployees,
         website: formData.website,
+        
+        // Location
+        location: formData.location,
         
         // Documents
         documents: {
@@ -217,7 +290,13 @@ const BecomeSellerPage: React.FC = () => {
         code: error.code,
         stack: error.stack
       });
-      setError(`Application failed: ${error.message}`);
+      const errorMessage = error.message || 'Failed to submit application. Please try again.';
+      setError(errorMessage);
+      setErrors([errorMessage]);
+      setShowErrorDropdown(true);
+      setLoading(false);
+      // Scroll to top to show errors
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setLoading(false);
     }
@@ -393,7 +472,446 @@ const BecomeSellerPage: React.FC = () => {
       <Navbar userRole="user" />
       
       <div className="main-content pt-24">
-        {/* Hero Section */}
+        {/* Registration Form - Moved to Top */}
+        <section className="py-16 bg-gray-50">
+          <div className="max-w-4xl mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Get Started Today</h2>
+              <p className="text-gray-600 text-lg">Fill out the form below to start your seller journey</p>
+            </div>
+
+            <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
+              {/* Error Dropdown - Prominent and Visible */}
+              {(showErrorDropdown && errors.length > 0) && (
+                <div className="mx-0 bg-red-500 text-white shadow-2xl animate-slide-down sticky top-0 z-50 border-b-4 border-red-600">
+                  <div className="px-8 py-5">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start flex-1">
+                        <AlertCircle className="w-6 h-6 mr-4 mt-0.5 flex-shrink-0 text-white" />
+                        <div className="flex-1">
+                          <h3 className="font-bold text-lg mb-2 flex items-center">
+                            <XCircle className="w-5 h-5 mr-2" />
+                            Please Fix The Following Errors
+                          </h3>
+                          <ul className="space-y-2 list-disc list-inside">
+                            {errors.map((err, index) => (
+                              <li key={index} className="text-sm font-medium">{err}</li>
+                            ))}
+                          </ul>
+                  </div>
+                  </div>
+                      <button
+                        onClick={() => {
+                          setShowErrorDropdown(false);
+                          setErrors([]);
+                        }}
+                        className="ml-4 p-2 hover:bg-red-600 rounded-lg transition-colors flex-shrink-0"
+                        aria-label="Close errors"
+                        title="Close errors"
+                      >
+                        <XCircle className="w-6 h-6" />
+                      </button>
+                  </div>
+                </div>
+              </div>
+              )}
+
+              {/* Legacy error display (fallback) */}
+              {error && !showErrorDropdown && (
+                <div className="mx-8 mt-8 bg-red-50 border-l-4 border-red-500 text-red-700 px-6 py-4 rounded-lg mb-6 flex items-start">
+                  <AlertCircle className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0" />
+                      <div>
+                    <p className="font-semibold">Error</p>
+                    <p className="text-sm">{error}</p>
+                      </div>
+                </div>
+              )}
+
+              {/* User Info Display */}
+              {currentUser && (
+                <div className="mx-8 mt-8 mb-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-200 shadow-sm">
+                  <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center">
+                    <Users className="w-5 h-5 mr-2 text-blue-600" />
+                    Application for: {currentUser.displayName || userData?.name || 'User'}
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <p className="text-gray-700 flex items-center">
+                      <Mail className="w-4 h-4 mr-2 text-gray-500" />
+                      {currentUser.email}
+                    </p>
+                    {userData?.phone && (
+                      <p className="text-gray-700 flex items-center">
+                        <Phone className="w-4 h-4 mr-2 text-gray-500" />
+                        {userData.phone}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} className="px-8 pb-8 space-y-10">
+
+                {/* Business Information */}
+                <div className="pt-8 border-t border-gray-100 first:border-t-0 first:pt-0">
+                  <div className="flex items-center mb-6 pb-4 border-b-2 border-gray-100">
+                    <div className="p-3 bg-purple-100 rounded-xl mr-4">
+                      <Building className="w-6 h-6 text-purple-600" />
+                    </div>
+                <div>
+                      <h3 className="text-2xl font-bold text-gray-900">Business Information</h3>
+                      <p className="text-sm text-gray-500 mt-1">Tell us about your business</p>
+                    </div>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2.5">Business Name <span className="text-red-500">*</span></label>
+                      <input
+                        type="text"
+                        name="businessName"
+                        value={formData.businessName}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full px-4 py-3.5 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400 shadow-sm hover:shadow-md"
+                        placeholder="Enter your business name"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="businessType" className="block text-sm font-semibold text-gray-700 mb-3">Business Type *</label>
+                      <div className="relative" ref={businessTypeDropdownRef}>
+                        <button
+                          type="button"
+                          onClick={() => setBusinessTypeDropdownOpen(!businessTypeDropdownOpen)}
+                          className={`w-full px-4 py-3.5 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-left flex items-center justify-between transition-all ${
+                            businessTypeDropdownOpen
+                              ? 'border-blue-500 ring-2 ring-blue-500'
+                              : 'border-gray-300 hover:border-gray-400'
+                          } ${formData.businessType ? 'text-gray-900 font-medium' : 'text-gray-500'}`}
+                        >
+                          <span>{formData.businessType || 'Choose your business type...'}</span>
+                          <svg
+                            className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${
+                              businessTypeDropdownOpen ? 'rotate-180' : ''
+                            }`}
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                        {businessTypeDropdownOpen && (
+                          <div className="absolute z-50 w-full mt-2 bg-white border-2 border-gray-200 rounded-lg shadow-xl max-h-80 overflow-y-auto">
+                        {businessTypes.map(type => (
+                              <button
+                                key={type}
+                                type="button"
+                                onClick={() => {
+                                  setFormData({...formData, businessType: type});
+                                  setBusinessTypeDropdownOpen(false);
+                                }}
+                                className={`w-full px-4 py-3 text-left hover:bg-blue-50 focus:bg-blue-50 focus:outline-none transition-colors duration-150 border-b border-gray-100 last:border-b-0 ${
+                                  formData.businessType === type ? 'bg-blue-50 font-semibold text-blue-700' : 'text-gray-900'
+                                }`}
+                              >
+                                {type}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-semibold text-gray-700 mb-2.5">Business Description</label>
+                      <textarea
+                        name="businessDescription"
+                        value={formData.businessDescription}
+                        onChange={handleInputChange}
+                        rows={4}
+                        className="w-full px-4 py-3.5 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400 shadow-sm hover:shadow-md resize-none"
+                        placeholder="Describe your business and what you sell (optional)"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2.5">Business Address <span className="text-red-500">*</span></label>
+                      <textarea
+                        name="businessAddress"
+                        value={formData.businessAddress}
+                        onChange={handleInputChange}
+                        required
+                        rows={3}
+                        className="w-full px-4 py-3.5 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400 shadow-sm hover:shadow-md resize-none"
+                        placeholder="Enter your business address"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2.5">Business Phone</label>
+                      <input
+                        type="tel"
+                        name="businessPhone"
+                        value={formData.businessPhone}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3.5 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400 shadow-sm hover:shadow-md"
+                        placeholder="+91 98765 43210"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2.5">Business Email</label>
+                      <input
+                        type="email"
+                        name="businessEmail"
+                        value={formData.businessEmail}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3.5 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400 shadow-sm hover:shadow-md"
+                        placeholder="business@example.com"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2.5">Website</label>
+                      <input
+                        type="url"
+                        name="website"
+                        value={formData.website}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3.5 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400 shadow-sm hover:shadow-md"
+                        placeholder="https://yourwebsite.com"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Business Location */}
+                <div className="pt-8 border-t border-gray-100">
+                  <div className="flex items-center mb-6 pb-4 border-b-2 border-gray-100">
+                    <div className="p-3 bg-blue-100 rounded-xl mr-4">
+                      <MapPin className="w-6 h-6 text-blue-600" />
+                    </div>
+                <div>
+                      <h3 className="text-2xl font-bold text-gray-900">Business Location</h3>
+                      <p className="text-sm text-gray-500 mt-1">Set your store location on the map</p>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-3">
+                        Store Location <span className="text-red-500">*</span>
+                      </label>
+                      <p className="text-sm text-gray-600 mb-4">
+                        Click on the map or use the location button to set your business location. This helps customers find your store.
+                      </p>
+                      {formData.location && (
+                        <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                          <p className="text-sm text-green-800 font-medium flex items-center">
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            Location set: {formData.location.lat.toFixed(6)}, {formData.location.lng.toFixed(6)}
+                          </p>
+                          {formData.location.address && (
+                            <p className="text-xs text-green-700 mt-1">{formData.location.address}</p>
+                          )}
+                        </div>
+                      )}
+                      <div className="border-2 border-gray-300 rounded-xl overflow-hidden shadow-sm">
+                        <GoogleMapLocation
+                          location={formData.location}
+                          onLocationChange={(location) => setFormData({...formData, location})}
+                          isEditing={true}
+                          height="400px"
+                        />
+                      </div>
+                      {!formData.location && (
+                        <p className="text-sm text-gray-500 mt-3 flex items-center">
+                          <AlertCircle className="w-4 h-4 mr-2 text-amber-500" />
+                          Please set your business location on the map
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Business Details */}
+                <div className="pt-8 border-t border-gray-100">
+                  <div className="flex items-center mb-6 pb-4 border-b-2 border-gray-100">
+                    <div className="p-3 bg-green-100 rounded-xl mr-4">
+                      <DollarSign className="w-6 h-6 text-green-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold text-gray-900">Business Details</h3>
+                      <p className="text-sm text-gray-500 mt-1">Additional information about your business</p>
+                    </div>
+                  </div>
+                  <div className="grid md:grid-cols-1 gap-6">
+                    <div>
+                      <label htmlFor="yearsInBusiness" className="block text-sm font-semibold text-gray-700 mb-3">Years in Business</label>
+                      <div className="relative" ref={yearsDropdownRef}>
+                        <button
+                          type="button"
+                          onClick={() => setYearsDropdownOpen(!yearsDropdownOpen)}
+                          className={`w-full px-4 py-3.5 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-left flex items-center justify-between transition-all ${
+                            yearsDropdownOpen
+                              ? 'border-blue-500 ring-2 ring-blue-500'
+                              : 'border-gray-300 hover:border-gray-400'
+                          } ${formData.yearsInBusiness ? 'text-gray-900 font-medium' : 'text-gray-500'}`}
+                        >
+                          <span>{formData.yearsInBusiness || 'Select years...'}</span>
+                          <svg
+                            className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${
+                              yearsDropdownOpen ? 'rotate-180' : ''
+                            }`}
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                        {yearsDropdownOpen && (
+                          <div className="absolute z-50 w-full mt-2 bg-white border-2 border-gray-200 rounded-lg shadow-xl max-h-80 overflow-y-auto">
+                            {['0-1', '1-3', '3-5', '5-10', '10+'].map((years) => (
+                              <button
+                                key={years}
+                                type="button"
+                                onClick={() => {
+                                  setFormData({...formData, yearsInBusiness: years});
+                                  setYearsDropdownOpen(false);
+                                }}
+                                className={`w-full px-4 py-3 text-left hover:bg-blue-50 focus:bg-blue-50 focus:outline-none transition-colors duration-150 border-b border-gray-100 last:border-b-0 ${
+                                  formData.yearsInBusiness === years ? 'bg-blue-50 font-semibold text-blue-700' : 'text-gray-900'
+                                }`}
+                              >
+                                {years} {years === '10+' ? '' : 'years'}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Categories */}
+                <div className="pt-8 border-t border-gray-100">
+                  <div className="flex items-center mb-6 pb-4 border-b-2 border-gray-100">
+                    <div className="p-3 bg-yellow-100 rounded-xl mr-4">
+                      <Star className="w-6 h-6 text-yellow-600" />
+                    </div>
+                <div>
+                      <h3 className="text-2xl font-bold text-gray-900">Product Categories</h3>
+                      <p className="text-sm text-gray-500 mt-1">Select the categories you want to sell in (you can select multiple)</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {categories.map(category => (
+                      <label key={category} className="flex items-center p-3 rounded-lg border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer transition-all duration-200">
+                        <input
+                          type="checkbox"
+                          checked={formData.categories.includes(category)}
+                          onChange={() => handleCategoryChange(category)}
+                          className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                        />
+                        <span className="ml-3 text-sm font-medium text-gray-700">{category}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Legal Documents */}
+                <div className="pt-8 border-t border-gray-100">
+                  <div className="flex items-center mb-6 pb-4 border-b-2 border-gray-100">
+                    <div className="p-3 bg-red-100 rounded-xl mr-4">
+                      <FileText className="w-6 h-6 text-red-600" />
+                    </div>
+                <div>
+                      <h3 className="text-2xl font-bold text-gray-900">Legal Documents</h3>
+                      <p className="text-sm text-gray-500 mt-1">Required documentation for verification</p>
+                    </div>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2.5">
+                        GSTIN Number <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="gstNumber"
+                        value={formData.gstNumber}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full px-4 py-3.5 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400 shadow-sm hover:shadow-md"
+                        placeholder="22ABCDE1234F1Z5"
+                      />
+                      <p className="text-xs text-gray-500 mt-2 flex items-center">
+                        <Shield className="w-3 h-3 mr-1" />
+                        Required for tax compliance
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Terms and Conditions */}
+                <div className="pt-8 border-t border-gray-100">
+                  <h3 className="text-xl font-bold text-gray-900 mb-6">Terms and Conditions</h3>
+                  <div className="space-y-4 bg-gray-50 p-6 rounded-xl border border-gray-200">
+                    <label className="flex items-start cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        name="agreeToTerms"
+                        checked={formData.agreeToTerms}
+                        onChange={handleInputChange}
+                        required
+                        className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 mt-0.5 group-hover:border-blue-400 transition-colors"
+                      />
+                      <span className="ml-3 text-sm text-gray-700 group-hover:text-gray-900">
+                        I agree to the <Link to="/terms" className="text-blue-600 hover:text-blue-700 hover:underline font-semibold">Terms and Conditions</Link> and <Link to="/privacy" className="text-blue-600 hover:text-blue-700 hover:underline font-semibold">Privacy Policy</Link> <span className="text-red-500">*</span>
+                      </span>
+                    </label>
+                    <label className="flex items-start cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        name="agreeToMarketing"
+                        checked={formData.agreeToMarketing}
+                        onChange={handleInputChange}
+                        className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 mt-0.5 group-hover:border-blue-400 transition-colors"
+                      />
+                      <span className="ml-3 text-sm text-gray-700 group-hover:text-gray-900">
+                        I would like to receive marketing communications and updates about new features
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Submit Button */}
+                <div className="text-center pt-6">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white py-4 px-16 rounded-xl font-bold text-lg hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 transition-all duration-300 shadow-xl hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 disabled:hover:scale-100 relative overflow-hidden"
+                  >
+                    <span className="relative z-10 flex items-center justify-center">
+                    {loading ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-3"></div>
+                        Submitting Application...
+                        </>
+                    ) : (
+                        <>
+                          <CheckCircle className="w-5 h-5 mr-2" />
+                          Submit Application
+                        </>
+                    )}
+                    </span>
+                  </button>
+                  <p className="text-sm text-gray-500 mt-5 flex items-center justify-center">
+                    <Clock className="w-4 h-4 mr-2" />
+                    We'll review your application and get back to you within 24-48 hours
+                  </p>
+                </div>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        {/* Hero Section - "Start Selling on Showmyfit" - Moved Below Form */}
         <section className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-16">
           <div className="max-w-7xl mx-auto px-4">
             <div className="flex flex-col lg:flex-row items-center justify-between">
@@ -481,275 +999,6 @@ const BecomeSellerPage: React.FC = () => {
                 <div className="text-4xl font-bold text-orange-600 mb-2">Reliable</div>
                 <div className="text-gray-600">Platform uptime</div>
               </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Registration Form */}
-        <section className="py-16 bg-gray-50">
-          <div className="max-w-4xl mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Get Started Today</h2>
-              <p className="text-gray-600 text-lg">Fill out the form below to start your seller journey</p>
-            </div>
-
-            <div className="bg-white rounded-2xl shadow-xl p-8">
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
-                  {error}
-                </div>
-              )}
-
-              {/* User Info Display */}
-              {currentUser && (
-                <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <h3 className="text-lg font-semibold text-blue-900 mb-2">Application for: {currentUser.displayName || userData?.name || 'User'}</h3>
-                  <p className="text-blue-700">Email: {currentUser.email}</p>
-                  {userData?.phone && <p className="text-blue-700">Phone: {userData.phone}</p>}
-                </div>
-              )}
-
-              <form onSubmit={handleSubmit} className="space-y-8">
-
-                {/* Business Information */}
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-                    <Building className="w-6 h-6 mr-2 text-purple-600" />
-                    Business Information
-                  </h3>
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Business Name *</label>
-                      <input
-                        type="text"
-                        name="businessName"
-                        value={formData.businessName}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Enter your business name"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="businessType" className="block text-sm font-medium text-gray-700 mb-2">Business Type *</label>
-                      <select
-                        id="businessType"
-                        name="businessType"
-                        value={formData.businessType}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="">Select business type</option>
-                        {businessTypes.map(type => (
-                          <option key={type} value={type}>{type}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Business Description *</label>
-                      <textarea
-                        name="businessDescription"
-                        value={formData.businessDescription}
-                        onChange={handleInputChange}
-                        required
-                        rows={4}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Describe your business and what you sell"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Business Address *</label>
-                      <textarea
-                        name="businessAddress"
-                        value={formData.businessAddress}
-                        onChange={handleInputChange}
-                        required
-                        rows={3}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Enter your business address"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Business Phone</label>
-                      <input
-                        type="tel"
-                        name="businessPhone"
-                        value={formData.businessPhone}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="+91 98765 43210"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Business Email</label>
-                      <input
-                        type="email"
-                        name="businessEmail"
-                        value={formData.businessEmail}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="business@example.com"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Website</label>
-                      <input
-                        type="url"
-                        name="website"
-                        value={formData.website}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="https://yourwebsite.com"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Business Details */}
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-                    <DollarSign className="w-6 h-6 mr-2 text-green-600" />
-                    Business Details
-                  </h3>
-                  <div className="grid md:grid-cols-3 gap-6">
-                    <div>
-                      <label htmlFor="yearsInBusiness" className="block text-sm font-medium text-gray-700 mb-2">Years in Business</label>
-                      <select
-                        id="yearsInBusiness"
-                        name="yearsInBusiness"
-                        value={formData.yearsInBusiness}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="">Select years</option>
-                        <option value="0-1">0-1 years</option>
-                        <option value="1-3">1-3 years</option>
-                        <option value="3-5">3-5 years</option>
-                        <option value="5-10">5-10 years</option>
-                        <option value="10+">10+ years</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label htmlFor="numberOfEmployees" className="block text-sm font-medium text-gray-700 mb-2">Number of Employees</label>
-                      <select
-                        id="numberOfEmployees"
-                        name="numberOfEmployees"
-                        value={formData.numberOfEmployees}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="">Select employees</option>
-                        <option value="1-5">1-5 employees</option>
-                        <option value="6-20">6-20 employees</option>
-                        <option value="21-50">21-50 employees</option>
-                        <option value="51-200">51-200 employees</option>
-                        <option value="200+">200+ employees</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Categories */}
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-                    <Star className="w-6 h-6 mr-2 text-yellow-600" />
-                    Product Categories
-                  </h3>
-                  <p className="text-gray-600 mb-4">Select the categories you want to sell in (you can select multiple)</p>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {categories.map(category => (
-                      <label key={category} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={formData.categories.includes(category)}
-                          onChange={() => handleCategoryChange(category)}
-                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">{category}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Legal Documents */}
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-                    <FileText className="w-6 h-6 mr-2 text-red-600" />
-                    Legal Documents <span className="text-red-500 ml-2">* Required</span>
-                  </h3>
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        GSTIN Number <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        name="gstNumber"
-                        value={formData.gstNumber}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="22ABCDE1234F1Z5"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">Required for tax compliance</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Terms and Conditions */}
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-6">Terms and Conditions</h3>
-                  <div className="space-y-4">
-                    <label className="flex items-start">
-                      <input
-                        type="checkbox"
-                        name="agreeToTerms"
-                        checked={formData.agreeToTerms}
-                        onChange={handleInputChange}
-                        required
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1"
-                      />
-                      <span className="ml-3 text-sm text-gray-700">
-                        I agree to the <Link to="/terms" className="text-blue-600 hover:underline">Terms and Conditions</Link> and <Link to="/privacy" className="text-blue-600 hover:underline">Privacy Policy</Link> *
-                      </span>
-                    </label>
-                    <label className="flex items-start">
-                      <input
-                        type="checkbox"
-                        name="agreeToMarketing"
-                        checked={formData.agreeToMarketing}
-                        onChange={handleInputChange}
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1"
-                      />
-                      <span className="ml-3 text-sm text-gray-700">
-                        I would like to receive marketing communications and updates about new features
-                      </span>
-                    </label>
-                  </div>
-                </div>
-
-                {/* Submit Button */}
-                <div className="text-center">
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-12 rounded-lg font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {loading ? (
-                      <div className="flex items-center justify-center">
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                        Submitting Application...
-                      </div>
-                    ) : (
-                      'Submit Application'
-                    )}
-                  </button>
-                  <p className="text-sm text-gray-500 mt-4">
-                    We'll review your application and get back to you within 24-48 hours
-                  </p>
-                </div>
-              </form>
             </div>
           </div>
         </section>

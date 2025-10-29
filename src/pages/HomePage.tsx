@@ -13,6 +13,13 @@ import { db } from '../firebase/config';
 import { getCurrentLocationWithDetails, sortStoresByDistance, parseAddressToCoordinates } from '../utils/distance';
 import { useWishlist } from '../contexts/WishlistContext';
 import { useSEO, SEOConfigs } from '../hooks/useSEO';
+import { preloadImage } from '../utils/imageOptimization';
+import circleFashionImage from '../assets/images/banner/men/circle_fashion.jpg';
+import shoeImage from '../assets/images/shoe.jpg';
+import kidsImage from '../assets/images/kids.jpg';
+import accessoriesImage from '../assets/images/accessories .jpg';
+import sportsImage from '../assets/images/sports.jpg';
+import electronicsImage from '../assets/images/electronic .jpg';
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -21,6 +28,17 @@ const HomePage: React.FC = () => {
   
   // SEO Configuration
   useSEO(SEOConfigs.home);
+
+  // Preload critical images for better performance
+  useEffect(() => {
+    // Preload banner and category images
+    preloadImage(circleFashionImage);
+    preloadImage(shoeImage);
+    preloadImage(kidsImage);
+    preloadImage(accessoriesImage);
+    preloadImage(sportsImage);
+    preloadImage(electronicsImage);
+  }, []);
   const [currentLocation, setCurrentLocation] = useState<string>('');
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [locationError, setLocationError] = useState<string>('');
@@ -42,6 +60,55 @@ const HomePage: React.FC = () => {
     fashion: { discountPercentage: 30 },
     home: { discountPercentage: 40 }
   });
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+
+  // Category name formatting function
+  const formatCategoryName = (category: string): string => {
+    const categoryNames: Record<string, string> = {
+      'women': 'Women',
+      'men': 'Men',
+      'kids': 'Kids',
+      'watches': 'Watches',
+      'accessories': 'Accessories',
+      'jewellery': 'Jewellery',
+      'sportswear': 'Sports',
+      'footwear': 'Footwear',
+      'beauty': 'Beauty',
+      'lingerie': 'Lingerie',
+      'home-lifestyle': 'Home',
+      'home': 'Home',
+      'electronics': 'Electronics',
+      'gifting-guide': 'Gifting Guide'
+    };
+    return categoryNames[category.toLowerCase()] || category.charAt(0).toUpperCase() + category.slice(1);
+  };
+
+  // Filter products by selected category
+  const getFilteredProducts = () => {
+    if (selectedCategory === 'All') {
+      return allProducts.filter(product => product.status === 'active');
+    }
+    return allProducts.filter(product => {
+      if (product.status !== 'active') return false;
+      
+      // Special case: 'Fashion' shows both Men and Women products
+      if (selectedCategory === 'Fashion') {
+        const productCategoryFormatted = formatCategoryName(product.category || '');
+        return productCategoryFormatted === 'Men' || 
+               productCategoryFormatted === 'Women' ||
+               product.category?.toLowerCase() === 'men' ||
+               product.category?.toLowerCase() === 'women';
+      }
+      
+      // Regular category matching
+      const productCategoryFormatted = formatCategoryName(product.category || '');
+      return productCategoryFormatted === selectedCategory ||
+             product.category?.toLowerCase() === selectedCategory.toLowerCase() ||
+             productCategoryFormatted.toLowerCase() === selectedCategory.toLowerCase();
+    });
+  };
+
+  const filteredProducts = getFilteredProducts();
 
   useEffect(() => {
     setIsLoaded(true);
@@ -454,21 +521,68 @@ const HomePage: React.FC = () => {
     <div className={`min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 transition-all duration-1000 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
       {/* Main Content */}
       <div className="main-content pt-10 md:pt-12">
+        {/* Plain Text Category Bar - Above Circular Categories */}
+        <section className="bg-white border-b border-gray-200 sticky top-0 z-20 shadow-sm">
+          <div className="max-w-7xl mx-auto px-3 md:px-4 py-3">
+            <div className="flex items-center space-x-4 md:space-x-6 overflow-x-auto scrollbar-hide">
+              {['All', 'Men', 'Women', 'Kids', 'Watches'].map((category) => (
+                <button
+                  key={category}
+                  onClick={() => {
+                    setSelectedCategory(category);
+                    // Smooth scroll to products section when category is selected
+                    if (category !== 'All') {
+                      setTimeout(() => {
+                        const element = document.getElementById('category-products-section');
+                        if (element) {
+                          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                      }, 100);
+                    }
+                  }}
+                  className={`relative flex-shrink-0 pb-2.5 px-3 md:px-4 font-semibold transition-all duration-300 whitespace-nowrap border-b-2 ${
+                    selectedCategory === category
+                      ? 'text-red-600 border-red-600 scale-105' 
+                      : 'text-gray-700 hover:text-red-500 border-transparent hover:border-red-300'
+                  }`}
+                >
+                  {category}
+                  {selectedCategory === category && (
+                    <span className="absolute -bottom-0.5 left-0 right-0 h-0.5 bg-red-600 rounded-full animate-pulse"></span>
+                  )}
+                </button>
+              ))}
+              {/* Grid icon on the right */}
+              <button
+                onClick={() => navigate('/categories')}
+                className="ml-auto flex-shrink-0 p-2 rounded-full text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200"
+                title="View all categories"
+                aria-label="View all categories"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </section>
+
         {/* Mobile Category Bar Only */}
         <section className="bg-white border-b border-gray-200 md:hidden">
           <div className="max-w-7xl mx-auto px-3 py-2">
             <div className="flex items-center space-x-6 overflow-x-auto scrollbar-hide pb-1">
               {[
-                { name: 'Men', image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop', color: 'bg-blue-100' },
-                { name: 'Women', image: 'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=100&h=100&fit=crop', color: 'bg-pink-100' },
-                { name: 'Kids', image: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=100&h=100&fit=crop&crop=face', color: 'bg-yellow-100' },
-                { name: 'Electronics', image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=100&h=100&fit=crop', color: 'bg-gray-100' },
+                { name: 'Fashion', image: circleFashionImage, color: 'bg-blue-100' },
+                { name: 'Kids', image: kidsImage, color: 'bg-yellow-100' },
+                { name: 'Footwear', image: shoeImage, color: 'bg-amber-100' },
+                { name: 'Accessories', image: accessoriesImage, color: 'bg-pink-100' },
+                { name: 'Electronics', image: electronicsImage, color: 'bg-gray-100' },
                 { name: 'Beauty', image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=100&h=100&fit=crop', color: 'bg-purple-100' },
-                { name: 'Sports', image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=100&h=100&fit=crop', color: 'bg-green-100' }
+                { name: 'Sports', image: sportsImage, color: 'bg-green-100' }
               ].map((category, index) => (
                 <button
                   key={index}
-                  onClick={() => navigate('/browse')}
+                  onClick={() => navigate(`/browse?category=${encodeURIComponent(category.name)}`)}
                   className="flex flex-col items-center space-y-1 flex-shrink-0 group"
                 >
                   <div className={`w-20 h-20 rounded-full ${category.color} flex items-center justify-center group-hover:scale-110 transition-transform duration-200 overflow-hidden shadow-lg border-4 border-white`}>
@@ -493,16 +607,17 @@ const HomePage: React.FC = () => {
           <div className="max-w-7xl mx-auto px-4 py-2">
             <div className="flex items-center space-x-10 overflow-x-auto scrollbar-hide pb-1">
               {[
-                { name: 'Men', image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop', color: 'bg-blue-100' },
-                { name: 'Women', image: 'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=120&h=120&fit=crop', color: 'bg-pink-100' },
-                { name: 'Kids', image: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=120&h=120&fit=crop&crop=face', color: 'bg-yellow-100' },
-                { name: 'Electronics', image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=120&h=120&fit=crop', color: 'bg-gray-100' },
+                { name: 'Fashion', image: circleFashionImage, color: 'bg-blue-100' },
+                { name: 'Kids', image: kidsImage, color: 'bg-yellow-100' },
+                { name: 'Footwear', image: shoeImage, color: 'bg-amber-100' },
+                { name: 'Accessories', image: accessoriesImage, color: 'bg-pink-100' },
+                { name: 'Electronics', image: electronicsImage, color: 'bg-gray-100' },
                 { name: 'Beauty', image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=120&h=120&fit=crop', color: 'bg-purple-100' },
-                { name: 'Sports', image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=120&h=120&fit=crop', color: 'bg-green-100' }
+                { name: 'Sports', image: sportsImage, color: 'bg-green-100' }
               ].map((category, index) => (
                 <button
                   key={index}
-                  onClick={() => navigate('/browse')}
+                  onClick={() => navigate(`/browse?category=${encodeURIComponent(category.name)}`)}
                   className="flex flex-col items-center space-y-1 flex-shrink-0 group"
                 >
                   <div className={`w-24 h-24 rounded-full ${category.color} flex items-center justify-center group-hover:scale-110 transition-transform duration-200 overflow-hidden shadow-xl border-4 border-white`}>
@@ -524,6 +639,172 @@ const HomePage: React.FC = () => {
 
         {/* Sliding Banner Carousel - Above Today's Hot Deals */}
         <SlidingBanner />
+
+        {/* Category Products Section - Shows when category is selected */}
+        {selectedCategory !== 'All' && (
+          <div id="category-products-section" className="animate-fadeIn">
+            {/* Banner for Category */}
+            <section className="relative bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 py-10 md:py-16 my-6 overflow-hidden">
+              {/* Animated background elements */}
+              <div className="absolute inset-0 opacity-20">
+                <div className="absolute top-0 left-0 w-72 h-72 bg-white rounded-full blur-3xl animate-pulse"></div>
+                <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse delay-1000"></div>
+              </div>
+              <div className="relative max-w-7xl mx-auto px-4 text-center">
+                <div className="inline-block mb-3">
+                  <span className="bg-white/20 backdrop-blur-sm text-white px-4 py-1 rounded-full text-sm font-medium">
+                    🛍️ {filteredProducts.length} Products Available
+                  </span>
+                </div>
+                <h2 className="text-3xl md:text-5xl font-bold text-white mb-3 drop-shadow-lg">
+                  Explore {selectedCategory} Collection
+                </h2>
+                <p className="text-blue-50 text-base md:text-lg max-w-2xl mx-auto">
+                  Discover amazing {selectedCategory.toLowerCase()} products handpicked just for you
+                </p>
+                <div className="mt-6 flex justify-center">
+                  <div className="flex space-x-2">
+                    <div className="w-2 h-2 bg-white/50 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-white/50 rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                    <div className="w-2 h-2 bg-white/50 rounded-full animate-bounce [animation-delay:0.4s]"></div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Filtered Products Grid */}
+            <section className="max-w-7xl mx-auto px-4 py-8">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">
+                    {selectedCategory} Products
+                  </h2>
+                  <p className="text-gray-600 text-sm md:text-base">
+                    Showing {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'}
+                  </p>
+                </div>
+              </div>
+
+              {filteredProducts.length === 0 ? (
+                <div className="text-center py-16 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl">
+                  <div className="inline-block p-4 bg-white rounded-full mb-4 shadow-lg">
+                    <Package className="w-12 h-12 text-gray-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No products found</h3>
+                  <p className="text-gray-600 mb-6">No products available in {selectedCategory} category yet.</p>
+                  <button
+                    onClick={() => setSelectedCategory('All')}
+                    className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                  >
+                    View All Products
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                  {filteredProducts.slice(0, 20).map((product: any, index: number) => {
+                    const discount = product.originalPrice && product.originalPrice > product.price
+                      ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+                      : 0;
+                    const seller = sellers.find(s => s.id === product.sellerId);
+
+                    return (
+                      <div
+                        key={product.id}
+                        className={`group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer border border-gray-200 hover:border-blue-400 transform hover:-translate-y-1 animate-fadeIn`}
+                        onClick={() => navigate(`/product/${product.id}`)}
+                      >
+                        {/* Product Image */}
+                        <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
+                          <img
+                            src={product.image}
+                            alt={product.name}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            onError={(e) => {
+                              e.currentTarget.src = 'https://via.placeholder.com/300x300';
+                            }}
+                          />
+                          {/* Discount Badge */}
+                          {discount > 0 && (
+                            <div className="absolute top-3 left-3 bg-gradient-to-r from-red-500 to-orange-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg transform group-hover:scale-110 transition-transform">
+                              🎉 {discount}% OFF
+                            </div>
+                          )}
+                          {/* Category Badge */}
+                          <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-white px-2.5 py-1 rounded-lg text-xs font-medium">
+                            {formatCategoryName(product.category)}
+                          </div>
+                          {/* Wishlist Button */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (isInWishlist(product.id)) {
+                                removeFromWishlist(product.id);
+                              } else {
+                                addToWishlist({
+                                  productId: product.id,
+                                  name: product.name,
+                                  price: product.price,
+                                  originalPrice: product.originalPrice,
+                                  image: product.image,
+                                  brand: product.brand,
+                                  category: product.category,
+                                  sellerId: product.sellerId,
+                                  sellerName: seller?.businessName
+                                });
+                              }
+                            }}
+                            className="absolute bottom-3 right-3 w-10 h-10 bg-white/95 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 group-hover:scale-110"
+                            title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                            aria-label={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                          >
+                            <Heart
+                              className={`w-5 h-5 transition-all ${
+                                isInWishlist(product.id) ? 'text-red-500 fill-current animate-pulse' : 'text-gray-600 group-hover:text-red-500'
+                              }`}
+                            />
+                          </button>
+                          {/* Hover overlay */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        </div>
+
+                        {/* Product Info */}
+                        <div className="p-4">
+                          <h3 className="font-bold text-gray-900 text-sm line-clamp-2 mb-1.5 min-h-[2.5rem] group-hover:text-blue-600 transition-colors">
+                            {product.name}
+                          </h3>
+                          <p className="text-xs text-gray-500 mb-3 font-medium">{product.brand}</p>
+
+                          {/* Price */}
+                          <div className="flex items-baseline space-x-2 mb-3">
+                            <span className="text-xl font-bold text-gray-900">
+                              ₹{product.price?.toLocaleString() || 0}
+                            </span>
+                            {product.originalPrice && product.originalPrice > product.price && (
+                              <span className="text-sm text-gray-400 line-through">
+                                ₹{product.originalPrice.toLocaleString()}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* View Details Button */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/product/${product.id}`);
+                            }}
+                            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2.5 rounded-lg text-sm font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+                          >
+                            View Details
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          </div>
+        )}
 
         {/* Featured Deals Section - Below Categories */}
         <section className="bg-gradient-to-r from-orange-50 to-yellow-50 py-4 md:py-6">

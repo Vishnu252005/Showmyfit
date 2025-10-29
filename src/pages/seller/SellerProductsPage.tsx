@@ -2,9 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { 
   Star, Heart, ShoppingCart, Search, Package,
-  MapPin, Phone, Minus, Plus, Check
+  MapPin, Phone, Minus, Plus, Check, ArrowLeft
 } from 'lucide-react';
-import Navbar from '../../components/layout/Navbar';
 import { useCart } from '../../contexts/CartContext';
 import { useWishlist } from '../../contexts/WishlistContext';
 import { collection, query, getDocs, where, doc, getDoc } from 'firebase/firestore';
@@ -215,8 +214,7 @@ const SellerProductsPage: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <Navbar userRole="user" />
-        <div className="pt-24">
+        <div className="pt-6">
           {/* Skeleton Header */}
           <div className="bg-white shadow-sm border-b">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -268,8 +266,7 @@ const SellerProductsPage: React.FC = () => {
   if (!seller) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navbar userRole="user" />
-        <div className="pt-24 flex items-center justify-center min-h-screen">
+        <div className="pt-6 flex items-center justify-center min-h-screen">
           <div className="text-center">
             <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-gray-900 mb-2">Seller not found</h2>
@@ -288,61 +285,42 @@ const SellerProductsPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <Navbar userRole="user" />
-      
-      <div className="pt-24">
-        {/* Enhanced Header */}
-        <div className="bg-white shadow-lg border-b relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-50 to-purple-50 opacity-50"></div>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-            <div className="py-8">
-              {/* Enhanced Seller Info */}
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-                <div className="flex items-center space-x-6 mb-6 lg:mb-0">
+      {/* Top Back Bar */}
+      <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <button onClick={() => navigate(-1)} className="flex items-center space-x-2 text-gray-700 hover:text-gray-900 transition-colors" title="Go back" aria-label="Go back">
+            <ArrowLeft className="w-5 h-5" />
+            <span className="font-medium">Back</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="pt-2">
+        {/* Big Visual Header */}
+        <div className="relative">
+          <div className="relative rounded-b-3xl shadow overflow-visible">
+            <div className="aspect-[16/7] sm:aspect-[21/6] bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
+            {/* Overlay content */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent"></div>
+            <div className="absolute inset-0 flex items-end">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pb-10">
+                <div className="flex items-center space-x-4">
                   <div className="relative">
-                    {seller.profileImage ? (
-                      <img 
-                        src={seller.profileImage} 
-                        alt={seller.businessName}
-                        className="w-20 h-20 rounded-2xl object-cover shadow-lg border-4 border-white"
-                        onError={(e) => {
-                          // Fallback to gradient icon if image fails to load
-                          e.currentTarget.style.display = 'none';
-                          const parent = e.currentTarget.parentElement;
-                          if (parent) {
-                            const fallback = document.createElement('div');
-                            fallback.className = 'w-20 h-20 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center text-white text-3xl font-bold shadow-lg';
-                            fallback.innerHTML = `<span>${seller.businessName.charAt(0).toUpperCase()}</span>`;
-                            parent.insertBefore(fallback, e.currentTarget);
-                          }
-                        }}
-                      />
-                    ) : (
-                      <div className="w-20 h-20 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center text-white text-3xl font-bold shadow-lg">
-                        {seller.businessName.charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                    <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                      <Check className="w-3 h-3 text-white" />
+                    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl border-4 border-white overflow-hidden shadow-xl bg-white">
+                      {seller.profileImage ? (
+                        <img src={seller.profileImage} alt={seller.businessName} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 text-white text-4xl font-bold">
+                          {seller.businessName.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+                    <div className="absolute -bottom-1 -right-1 w-7 h-7 bg-green-500 rounded-full flex items-center justify-center shadow">
+                      <Check className="w-4 h-4 text-white" />
                     </div>
                   </div>
-                  <div>
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">{seller.businessName}</h1>
-                    <p className="text-gray-600 mb-3">Owner: {seller.name}</p>
-                    <div className="flex flex-wrap items-center gap-4 text-sm">
-                      <div className="flex items-center bg-blue-50 px-3 py-1 rounded-full">
-                        <Package className="w-4 h-4 text-blue-500 mr-1" />
-                        <span className="font-medium">{products.length} products</span>
-                      </div>
-                      <div className="flex items-center bg-green-50 px-3 py-1 rounded-full">
-                        <MapPin className="w-4 h-4 text-green-500 mr-1" />
-                        <span className="font-medium">{seller.address}</span>
-                      </div>
-                      <div className="flex items-center bg-purple-50 px-3 py-1 rounded-full">
-                        <Phone className="w-4 h-4 text-purple-500 mr-1" />
-                        <span className="font-medium">{seller.phone}</span>
-                      </div>
-                    </div>
+                  <div className="text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.4)]">
+                    <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">{seller.businessName}</h1>
                   </div>
                 </div>
               </div>
@@ -350,11 +328,37 @@ const SellerProductsPage: React.FC = () => {
           </div>
         </div>
 
+        {/* Info chips and actions below header */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-3">
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            {seller.businessType && (
+              <span className="bg-white border border-gray-200 px-3 py-1 rounded-full text-gray-700">{seller.businessType}</span>
+            )}
+            <span className="bg-white border border-gray-200 px-3 py-1 rounded-full text-gray-700">{products.length} products</span>
+            <span className="bg-white border border-gray-200 px-3 py-1 rounded-full inline-flex items-center text-gray-700"><MapPin className="w-4 h-4 mr-1" /> {seller.address}</span>
+            <span className="bg-white border border-gray-200 px-3 py-1 rounded-full inline-flex items-center text-gray-700"><Phone className="w-4 h-4 mr-1" /> {seller.phone}</span>
+            {seller.phone && (
+              <a href={`tel:${seller.phone}`} className="ml-auto inline-flex items-center gap-2 bg-blue-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-blue-700">
+                <Phone className="w-4 h-4" /> Call
+              </a>
+            )}
+            {seller.address && (
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(seller.address)}`}
+                target="_blank" rel="noreferrer"
+                className="inline-flex items-center gap-2 bg-gray-900 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-black"
+              >
+                <MapPin className="w-4 h-4" /> Directions
+              </a>
+            )}
+          </div>
+        </div>
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Simple Search */}
             <div className="lg:w-64 flex-shrink-0">
-              <div className="bg-white rounded-xl shadow-sm p-4 sticky top-24">
+              <div className="bg-white/80 backdrop-blur rounded-xl shadow p-4 sticky top-24 border border-gray-100">
                 <h3 className="text-lg font-bold text-gray-900 mb-4">Search</h3>
                 
                 {/* Search */}
@@ -412,14 +416,14 @@ const SellerProductsPage: React.FC = () => {
               ) : (
                 <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                   {filteredProducts.map((product) => (
-                    <div key={product.id} className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-gray-200">
+                    <div key={product.id} className="bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100">
                       <div className="p-4">
-                        <div className="relative mb-3">
+                        <div className="relative mb-3 group">
                           <Link to={`/product/${product.id}`}>
                             <img
                               src={product.image}
                               alt={product.name}
-                              className="w-full h-48 object-cover rounded-lg"
+                              className="w-full h-48 object-cover rounded-xl group-hover:scale-[1.02] transition-transform"
                             />
                           </Link>
                           
@@ -445,10 +449,12 @@ const SellerProductsPage: React.FC = () => {
 
                         <div className="space-y-2">
                           <Link to={`/product/${product.id}`} className="block">
-                            <h3 className="font-semibold text-gray-900 line-clamp-2 hover:text-blue-600 transition-colors">
+                            <div className="text-base font-bold text-gray-900 uppercase tracking-wide line-clamp-1">
+                              {product.brand}
+                            </div>
+                            <div className="text-sm text-gray-700 line-clamp-2">
                               {product.name}
-                            </h3>
-                            <p className="text-sm text-gray-600">{product.brand}</p>
+                            </div>
                           </Link>
                           
                           {/* Rating */}

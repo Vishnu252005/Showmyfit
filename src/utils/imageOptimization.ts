@@ -13,8 +13,37 @@ export const optimizeImageUrl = (url: string, width?: number, height?: number, q
     params.append('fit', 'crop');
     params.append('q', quality.toString());
     params.append('auto', 'format');
+    params.append('fm', 'webp'); // Force WebP for better compression
     
     return `${baseUrl}?${params.toString()}`;
+  }
+  
+  // For Firebase Storage images, add optimization parameters
+  if (url.includes('firebasestorage.googleapis.com') || url.includes('firebasestorage.app')) {
+    const params = new URLSearchParams();
+    
+    if (width) params.append('w', width.toString());
+    if (height) params.append('h', height.toString());
+    params.append('q', quality.toString());
+    
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}${params.toString()}`;
+  }
+  
+  // For data URLs (placeholder images), return as is
+  if (url.startsWith('data:')) {
+    return url;
+  }
+  
+  // For local images (imported assets), add query params for optimization
+  if (url.startsWith('/') || !url.startsWith('http')) {
+    const params = new URLSearchParams();
+    if (width) params.append('w', width.toString());
+    if (height) params.append('h', height.toString());
+    params.append('q', quality.toString());
+    
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}${params.toString()}`;
   }
   
   // For other images, return as is
@@ -41,7 +70,7 @@ export const generateOGImage = (title: string, subtitle?: string): string => {
   // For now, return a placeholder
   const params = new URLSearchParams({
     title: title.substring(0, 50),
-    subtitle: subtitle ? subtitle.substring(0, 100) : 'ShowMyFIT Local Marketplace',
+    subtitle: subtitle ? subtitle.substring(0, 100) : 'ShowMyFIT Nearby Store',
     width: '1200',
     height: '630',
     theme: 'light'
@@ -106,12 +135,50 @@ export const supportsWebP = (): Promise<boolean> => {
 export const getOptimizedImageUrl = async (url: string, width?: number, height?: number): Promise<string> => {
   if (!url) return '';
   
+  // Skip optimization for data URLs
+  if (url.startsWith('data:')) {
+    return url;
+  }
+  
   const isWebPSupported = await supportsWebP();
   let optimizedUrl = optimizeImageUrl(url, width, height);
   
-  if (isWebPSupported && !optimizedUrl.includes('format=webp')) {
+  // Add WebP format if supported and not already present
+  if (isWebPSupported && !optimizedUrl.includes('format=webp') && !optimizedUrl.includes('fm=webp')) {
     optimizedUrl += (optimizedUrl.includes('?') ? '&' : '?') + 'auto=webp';
   }
   
   return optimizedUrl;
+};
+
+// Generate responsive image srcset for better performance
+export const generateResponsiveImageUrl = (url: string, baseWidth: number = 400): string => {
+  if (!url || url.startsWith('data:')) return url;
+  
+  // Generate multiple sizes for responsive loading
+  const sizes = [baseWidth, baseWidth * 2, baseWidth * 3];
+  const urls = sizes.map(size => optimizeImageUrl(url, size, undefined, 85));
+  
+  return urls.join(', ');
+};
+
+// Preload critical images for better LCP (Largest Contentful Paint)
+export const preloadImage = (url: string): void => {
+  const link = document.createElement('link');
+  link.rel = 'preload';
+  link.as = 'image';
+  link.href = url;
+  document.head.appendChild(link);
+};
+
+// Get image dimensions for aspect ratio placeholder
+export const getImageDimensions = (url: string): Promise<{ width: number; height: number }> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      resolve({ width: img.naturalWidth, height: img.naturalHeight });
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
 };

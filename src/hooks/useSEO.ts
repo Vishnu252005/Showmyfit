@@ -36,7 +36,7 @@ export const useSEO = ({
     // Generate enhanced meta description
     const metaDescription = description ? 
       SEOEnhancements.generateMetaDescription(description) : 
-      'ShowMyFIT - Local marketplace connecting you with amazing local stores';
+      'ShowMyFIT - Nearby store platform connecting you with amazing nearby stores';
 
     // Generate semantic keywords
     const semanticKeywords = keywords ? 
@@ -55,7 +55,7 @@ export const useSEO = ({
     // Update meta keywords with semantic keywords
     const enhancedKeywords = keywords ? 
       `${keywords}, ${semanticKeywords.join(', ')}` : 
-      'local marketplace, online shopping, local stores, community shopping';
+      'nearby store, online shopping, nearby stores, community shopping';
     updateMetaTag('name', 'keywords', enhancedKeywords);
 
     // Update Open Graph tags
@@ -242,9 +242,9 @@ const addEnhancedStructuredData = (
 // SEO configurations for different pages
 export const SEOConfigs = {
   home: {
-    title: 'ShowMyFIT - Local Marketplace',
-    description: 'Discover and shop from amazing local stores in your area. ShowMyFIT connects you with local businesses offering fashion, electronics, home goods, and more.',
-    keywords: 'local marketplace, online shopping, local stores, community shopping, fashion, electronics, home goods',
+    title: 'ShowMyFIT - Nearby Store',
+    description: 'Discover and shop from amazing nearby stores in your area. ShowMyFIT connects you with nearby businesses offering fashion, electronics, home goods, and more.',
+    keywords: 'nearby store, online shopping, nearby stores, community shopping, fashion, electronics, home goods',
     type: 'website' as const
   },
   browse: {

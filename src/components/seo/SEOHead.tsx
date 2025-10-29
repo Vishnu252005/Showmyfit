@@ -35,7 +35,7 @@ const SEOHead: React.FC<SEOHeadProps> = ({
   // Generate enhanced meta description
   const metaDescription = description ? 
     SEOEnhancements.generateMetaDescription(description) : 
-    'ShowMyFIT - Local marketplace connecting you with amazing local stores';
+    'ShowMyFIT - Nearby store platform connecting you with amazing nearby stores';
 
   // Generate semantic keywords
   const semanticKeywords = keywords ? 
@@ -97,10 +97,10 @@ const SEOHead: React.FC<SEOHeadProps> = ({
   return (
     <>
       {/* Primary Meta Tags */}
-      <title>{title ? `${title} | ShowMyFIT` : 'ShowMyFIT - Local Marketplace'}</title>
-      <meta name="title" content={title ? `${title} | ShowMyFIT` : 'ShowMyFIT - Local Marketplace'} />
+      <title>{title ? `${title} | ShowMyFIT` : 'ShowMyFIT - Nearby Store'}</title>
+      <meta name="title" content={title ? `${title} | ShowMyFIT` : 'ShowMyFIT - Nearby Store'} />
       <meta name="description" content={metaDescription} />
-      <meta name="keywords" content={keywords ? `${keywords}, ${semanticKeywords.join(', ')}` : 'local marketplace, online shopping, local stores'} />
+      <meta name="keywords" content={keywords ? `${keywords}, ${semanticKeywords.join(', ')}` : 'nearby store, online shopping, nearby stores'} />
       <meta name="author" content="ShowMyFIT" />
       <meta name="robots" content={noIndex ? 'noindex, nofollow' : 'index, follow'} />
       <meta name="language" content="English" />
@@ -109,7 +109,7 @@ const SEOHead: React.FC<SEOHeadProps> = ({
       {/* Open Graph / Facebook */}
       <meta property="og:type" content={type} />
       <meta property="og:url" content={url || 'https://showmyfit.com/'} />
-      <meta property="og:title" content={title ? `${title} | ShowMyFIT` : 'ShowMyFIT - Local Marketplace'} />
+      <meta property="og:title" content={title ? `${title} | ShowMyFIT` : 'ShowMyFIT - Nearby Store'} />
       <meta property="og:description" content={metaDescription} />
       <meta property="og:image" content={image || 'https://showmyfit.com/og-image.jpg'} />
       <meta property="og:image:width" content="1200" />
@@ -120,7 +120,7 @@ const SEOHead: React.FC<SEOHeadProps> = ({
       {/* Twitter */}
       <meta property="twitter:card" content="summary_large_image" />
       <meta property="twitter:url" content={url || 'https://showmyfit.com/'} />
-      <meta property="twitter:title" content={title ? `${title} | ShowMyFIT` : 'ShowMyFIT - Local Marketplace'} />
+      <meta property="twitter:title" content={title ? `${title} | ShowMyFIT` : 'ShowMyFIT - Nearby Store'} />
       <meta property="twitter:description" content={metaDescription} />
       <meta property="twitter:image" content={image || 'https://showmyfit.com/twitter-image.jpg'} />
       <meta property="twitter:creator" content="@showmyfit" />

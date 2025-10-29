@@ -100,10 +100,17 @@ const BottomNavigation = () => {
 };
 
 const AppLayout: React.FC = () => {
+  const location = useLocation();
+
+  // Hide the top navbar on specific routes (e.g., product detail and seller store pages)
+  const isProductDetailPage = location.pathname.startsWith('/product/');
+  const isSellerStorePage = location.pathname.startsWith('/seller/');
+  const hideTopNavbar = isProductDetailPage || isSellerStorePage;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-cream via-white to-primary-50 font-sans">
-      <Navbar userRole="user" />
-      <div className="main-content pt-24 pb-4">
+      {!hideTopNavbar && <Navbar userRole="user" />}
+      <div className={`main-content ${!hideTopNavbar ? 'pt-24' : 'pt-2'} pb-4`}>
         <Outlet />
       </div>
       <BottomNavigation />

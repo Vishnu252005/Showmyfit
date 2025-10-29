@@ -52,7 +52,7 @@ const ProductManagementPage: React.FC = () => {
     brand: '',
     image: '',
     images: [],
-    stock: 0,
+    stock: 1,
     rating: 0,
     reviews: 0,
     tags: [],
@@ -558,7 +558,7 @@ const ProductManagementPage: React.FC = () => {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Price (₹) *
+                        Selling Price (₹) *
                       </label>
                       <input
                         type="number"
@@ -569,16 +569,16 @@ const ProductManagementPage: React.FC = () => {
                           const value = e.target.value === '' ? 0 : Math.max(0, parseFloat(e.target.value));
                           setFormData({...formData, price: value});
                         }}
-                        placeholder="Enter price"
+                        placeholder="Enter selling price"
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                         required
                       />
-                      <p className="text-xs text-gray-500 mt-1">Enter price in rupees (0 or more)</p>
+                      <p className="text-xs text-gray-500 mt-1">Enter selling price in rupees</p>
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Original Price (₹)
+                        Original Price (MRP) (₹)
                       </label>
                       <input
                         type="number"
@@ -589,10 +589,10 @@ const ProductManagementPage: React.FC = () => {
                           const value = e.target.value === '' ? 0 : Math.max(0, parseFloat(e.target.value));
                           setFormData({...formData, originalPrice: value});
                         }}
-                        placeholder="Enter original price (optional)"
+                        placeholder="Enter original price / MRP (optional)"
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                       />
-                      <p className="text-xs text-gray-500 mt-1">Enter original price for discount calculation (optional)</p>
+                      <p className="text-xs text-gray-500 mt-1">Enter MRP for discount calculation (optional)</p>
                     </div>
 
                     <div>
@@ -654,23 +654,42 @@ const ProductManagementPage: React.FC = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Stock Quantity *
+                      <label className="block text-sm font-semibold text-gray-700 mb-2.5">
+                        Stock Quantity <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="number"
-                        min="0"
+                        min="1"
                         step="1"
-                        value={formData.stock === 0 ? '' : formData.stock}
+                        value={formData.stock || ''}
                         onChange={(e) => {
-                          const value = e.target.value === '' ? 0 : Math.max(0, parseInt(e.target.value));
-                          setFormData({...formData, stock: value});
+                          const inputValue = e.target.value;
+                          // Allow empty input while typing
+                          if (inputValue === '') {
+                            setFormData({...formData, stock: 0});
+                            return;
+                          }
+                          const value = parseInt(inputValue);
+                          // Only update if it's a valid number, allow typing freely
+                          if (!isNaN(value)) {
+                            setFormData({...formData, stock: value < 1 ? 1 : value});
+                          }
                         }}
-                        placeholder="Enter stock quantity"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        onBlur={(e) => {
+                          // Validate on blur - ensure minimum is 1
+                          const value = parseInt(e.target.value) || 0;
+                          if (value < 1) {
+                            setFormData({...formData, stock: 1});
+                          }
+                        }}
+                        placeholder="Enter stock quantity (minimum 1)"
+                        className="w-full px-4 py-3.5 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200 hover:border-gray-400 shadow-sm hover:shadow-md"
                         required
                       />
-                      <p className="text-xs text-gray-500 mt-1">Enter 0 or a positive number</p>
+                      <p className="text-xs text-gray-500 mt-2 flex items-center">
+                        <span className="mr-1">⚠️</span>
+                        Minimum stock quantity is 1. Products cannot have 0 stock.
+                      </p>
                     </div>
 
                     <div>

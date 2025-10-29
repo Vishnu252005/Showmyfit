@@ -11,6 +11,12 @@ import { collection, query, getDocs, where, orderBy } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { useCart } from '../contexts/CartContext';
 import { useSEO, SEOConfigs } from '../hooks/useSEO';
+import circleFashionImage from '../assets/images/banner/men/circle_fashion.jpg';
+import kidsImage from '../assets/images/kids.jpg';
+import shoeImage from '../assets/images/shoe.jpg';
+import accessoriesImage from '../assets/images/accessories .jpg';
+import sportsImage from '../assets/images/sports.jpg';
+import electronicsImage from '../assets/images/electronic .jpg';
 
 interface Product {
   id: string;
@@ -62,15 +68,45 @@ const CategoriesPage: React.FC = () => {
   useSEO(SEOConfigs.categories);
   const [searchTerm, setSearchTerm] = useState('');
   const { addToCart, getCartItemCount, updateQuantity } = useCart();
-  const categories = [
-    { name: 'Women', image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=300&h=300&fit=crop' },
-    { name: 'Kids', image: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=300&h=300&fit=crop' },
-    { name: 'Men', image: 'https://images.unsplash.com/photo-1490578474895-699cd4e2cf59?w=300&h=300&fit=crop&crop=face' },
-    { name: 'Watches', image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=300&fit=crop' },
-    { name: 'Accessories', image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&h=300&fit=crop' },
-    { name: 'Jewellery', image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=300&h=300&fit=crop' },
-    { name: 'Sports', image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=300&fit=crop' }
-  ];
+  const [availableCategories, setAvailableCategories] = useState<Array<{ name: string; originalName?: string; image: string }>>([]);
+
+  // Category images mapping
+  const categoryImageMap: Record<string, string> = {
+    'men': circleFashionImage,
+    'women': circleFashionImage,
+    'fashion': circleFashionImage,
+    'kids': kidsImage,
+    'watches': accessoriesImage,
+    'accessories': accessoriesImage,
+    'jewellery': accessoriesImage,
+    'sportswear': sportsImage,
+    'sports': sportsImage,
+    'footwear': shoeImage,
+    'beauty': 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=300&h=300&fit=crop',
+    'lingerie': 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=300&h=300&fit=crop',
+    'home-lifestyle': 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=300&h=300&fit=crop',
+    'gifting-guide': 'https://images.unsplash.com/photo-1512389142860-9c449e58a543?w=300&h=300&fit=crop',
+    'electronics': electronicsImage
+  };
+
+  // Category name formatting
+  const formatCategoryName = (category: string): string => {
+    const categoryNames: Record<string, string> = {
+      'women': 'Women',
+      'men': 'Men',
+      'kids': 'Kids',
+      'watches': 'Watches',
+      'accessories': 'Accessories',
+      'jewellery': 'Jewellery',
+      'sportswear': 'Sports',
+      'footwear': 'Footwear',
+      'beauty': 'Beauty',
+      'lingerie': 'Lingerie',
+      'home-lifestyle': 'Home & Lifestyle',
+      'gifting-guide': 'Gifting Guide'
+    };
+    return categoryNames[category.toLowerCase()] || category.charAt(0).toUpperCase() + category.slice(1);
+  };
 
   // Fetch products and sellers
   useEffect(() => {
@@ -109,6 +145,29 @@ const CategoriesPage: React.FC = () => {
 
         setProducts(productsData);
         setSellers(sellersData);
+
+        // Extract unique categories from products
+        const uniqueCategories = Array.from(
+          new Set(productsData.map(product => product.category?.toLowerCase()).filter(Boolean))
+        );
+
+        // Map categories with images and formatted names
+        const categoriesWithData = uniqueCategories.map(category => ({
+          name: formatCategoryName(category),
+          originalName: category, // Keep original for filtering
+          image: categoryImageMap[category] || 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=300&h=300&fit=crop'
+        }));
+
+        // Sort categories: Men, Women, Kids first, then alphabetically
+        categoriesWithData.sort((a, b) => {
+          const priority: Record<string, number> = { 'Men': 1, 'Women': 2, 'Kids': 3 };
+          const aPriority = priority[a.name] || 99;
+          const bPriority = priority[b.name] || 99;
+          if (aPriority !== bPriority) return aPriority - bPriority;
+          return a.name.localeCompare(b.name);
+        });
+
+        setAvailableCategories(categoriesWithData);
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -122,14 +181,25 @@ const CategoriesPage: React.FC = () => {
   // Filter products by category and search term
   const filteredProducts = selectedCategory 
     ? products.filter(product => {
-        const matchesCategory = product.category.toLowerCase().includes(selectedCategory.toLowerCase()) ||
-                                product.name.toLowerCase().includes(selectedCategory.toLowerCase());
-        const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        // Match exact category (case-insensitive) or check if category contains the selected category
+        const productCategory = product.category?.toLowerCase() || '';
+        const selectedCat = selectedCategory.toLowerCase();
+        const matchesCategory = productCategory === selectedCat || 
+                                productCategory.includes(selectedCat) ||
+                                selectedCat.includes(productCategory);
+        const matchesSearch = searchTerm === '' || 
+                             product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                              (product.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
-                             product.brand.toLowerCase().includes(searchTerm.toLowerCase());
+                             (product.brand?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
         return matchesCategory && matchesSearch;
       })
-    : products;
+    : products.filter(product => {
+        // When no category selected, filter by search term only
+        if (searchTerm === '') return true;
+        return product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+               (product.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
+               (product.brand?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
+      });
 
   // Get seller info for a product
   const getSellerInfo = (sellerId: string) => {
@@ -330,30 +400,40 @@ const CategoriesPage: React.FC = () => {
 
       {/* Categories Grid */}
       <div className="px-4 pb-20">
-        <div className="grid grid-cols-2 gap-4">
-          {categories.map((category) => (
-            <Link
-              key={category.name}
-              to={`/categories?category=${encodeURIComponent(category.name)}`}
-              className="bg-gray-100 rounded-lg p-4 hover:bg-gray-200 transition-colors duration-200"
-            >
-              <div className="flex items-center space-x-4">
-                <div className="flex-1">
-                  <h3 className="text-base font-medium text-black">
-                    {category.name}
-                  </h3>
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="text-gray-600 mt-4">Loading categories...</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-4">
+            {availableCategories.map((category) => (
+              <Link
+                key={category.name}
+                to={`/browse?category=${encodeURIComponent(category.name)}`}
+                className="bg-gray-100 rounded-lg p-4 hover:bg-gray-200 transition-colors duration-200"
+              >
+                <div className="flex items-center space-x-4">
+                  <div className="flex-1">
+                    <h3 className="text-base font-medium text-black">
+                      {category.name}
+                    </h3>
+                  </div>
+                  <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+                    <img
+                      src={category.image}
+                      alt={category.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = 'https://via.placeholder.com/300x300';
+                      }}
+                    />
+                  </div>
                 </div>
-                <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
-                  <img
-                    src={category.image}
-                    alt={category.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

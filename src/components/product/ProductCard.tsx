@@ -1,5 +1,6 @@
 import React from 'react';
 import { MapPin } from 'lucide-react';
+import OptimizedImage from '../common/OptimizedImage';
 
 interface Product {
   id: string;
@@ -35,13 +36,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
       className="bg-white rounded-3xl border border-warm-200 overflow-hidden hover:shadow-lg hover:border-warm-300 transition-all duration-300 cursor-pointer"
       onClick={onClick}
     >
-      <div className="aspect-square overflow-hidden">
-        <img
-          src={product.imageUrl}
-          alt={product.name}
-          className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-        />
-      </div>
+      <OptimizedImage
+        src={product.imageUrl}
+        alt={product.name}
+        loading="lazy"
+        className="w-full aspect-square hover:scale-105 transition-transform duration-500"
+      />
       
       <div className="p-4">
         <div className="flex items-center justify-between mb-3">

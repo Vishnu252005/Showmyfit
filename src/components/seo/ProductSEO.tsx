@@ -28,14 +28,14 @@ const ProductSEO: React.FC<ProductSEOProps> = ({ product }) => {
     product.name,
     product.category,
     product.brand || 'ShowMyFIT',
-    'local marketplace',
+    'nearby store',
     'online shopping',
     'best deals',
     ...(product.tags || [])
   ].join(', ');
 
   const description = product.description || 
-    `Shop ${product.name} from local stores on ShowMyFIT. ${discountPercentage > 0 ? `Save ${discountPercentage}% - ` : ''}Price: ₹${product.price.toLocaleString()}. ${product.rating ? `Rated ${product.rating.toFixed(1)}/5 by ${product.reviews || 0} customers.` : ''} Fast delivery from local businesses.`;
+    `Shop ${product.name} from nearby stores on ShowMyFIT. ${discountPercentage > 0 ? `Save ${discountPercentage}% - ` : ''}Price: ₹${product.price.toLocaleString()}. ${product.rating ? `Rated ${product.rating.toFixed(1)}/5 by ${product.reviews || 0} customers.` : ''} Fast delivery from nearby businesses.`;
 
   useSEO({
     title: product.name,
@@ -66,7 +66,7 @@ const ProductSEO: React.FC<ProductSEOProps> = ({ product }) => {
         "availability": product.stock && product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
         "seller": {
           "@type": "Organization",
-          "name": product.sellerName || "Local Store"
+          "name": product.sellerName || "Nearby Store"
         },
         ...(product.originalPrice && {
           "priceValidUntil": new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]

@@ -120,31 +120,13 @@ const ShopDashboard: React.FC = () => {
       ))}
 
       <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Stats Cards */}
+        {/* Stats - show only essentials */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <StatsCard
             title="Total Products"
             value={shopProducts.length}
             icon={Package}
             color="blue"
-          />
-          <StatsCard
-            title="Total Value"
-            value={`$${totalRevenue.toFixed(2)}`}
-            icon={DollarSign}
-            color="green"
-          />
-          <StatsCard
-            title="Avg Price"
-            value={`$${avgPrice.toFixed(2)}`}
-            icon={TrendingUp}
-            color="purple"
-          />
-          <StatsCard
-            title="Categories"
-            value={new Set(shopProducts.map(p => p.category)).size}
-            icon={Package}
-            color="yellow"
           />
         </div>
 

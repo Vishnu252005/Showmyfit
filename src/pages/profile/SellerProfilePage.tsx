@@ -32,6 +32,7 @@ interface Product {
   status: 'active' | 'inactive' | 'draft';
   createdAt: Date;
   updatedAt: Date;
+  categorySpecificData?: Record<string, any>;
 }
 
 interface SellerProfilePageProps {
@@ -62,9 +63,16 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
   const [showProfilePicUpload, setShowProfilePicUpload] = useState(false);
   const [categorySpecificData, setCategorySpecificData] = useState<Record<string, any>>({});
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
+  const [subcategoryDropdownOpen, setSubcategoryDropdownOpen] = useState(false);
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const statusDropdownRef = useRef<HTMLDivElement>(null);
+  const subcategoryDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Predefined color palette for quick selection
+  const predefinedColors = [
+    'Black','White','Red','Blue','Green','Yellow','Pink','Purple','Orange','Brown','Grey','Maroon','Navy','Beige','Teal','Olive','Gold','Silver'
+  ];
 
   const [formData, setFormData] = useState<Product>({
     name: '',
@@ -75,7 +83,7 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
     brand: '',
     image: '',
     images: [],
-    stock: 0,
+    stock: 1,
     rating: 0,
     reviews: 0,
     tags: [],
@@ -111,6 +119,7 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
     switch (category) {
       case 'women':
         return {
+          subcategory: { type: 'select', options: ['Tops & T-shirts', 'Dresses & Kurtas', 'Jeans & Pants', 'Sarees & Ethnic Wear', 'Jackets & Sweaters', 'Innerwear & Lingerie', 'Jewellery & Accessories'], label: 'Subcategory' },
           sizes: { type: 'multi-select', options: ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', 'Other'], label: 'Available Sizes' },
           sizeOther: { type: 'text', label: 'Custom Sizes', placeholder: 'Enter custom sizes separated by commas (e.g., Free Size, One Size, etc.)' },
           colors: { type: 'multi-text', label: 'Available Colors', placeholder: 'Enter colors separated by commas' },
@@ -122,6 +131,7 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
         };
       case 'men':
         return {
+          subcategory: { type: 'select', options: ['Shirts & T-shirts', 'Jeans & Trousers', 'Shorts & Trackpants', 'Jackets & Hoodies', 'Innerwear', 'Watches & Accessories'], label: 'Subcategory' },
           sizes: { type: 'multi-select', options: ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', 'Other'], label: 'Available Sizes' },
           sizeOther: { type: 'text', label: 'Custom Sizes', placeholder: 'Enter custom sizes separated by commas (e.g., Free Size, One Size, etc.)' },
           colors: { type: 'multi-text', label: 'Available Colors', placeholder: 'Enter colors separated by commas' },
@@ -133,6 +143,7 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
         };
       case 'footwear':
         return {
+          subcategory: { type: 'select', options: ['Men’s Footwear', 'Women’s Footwear', 'Kids Footwear', 'Sandals & Slippers', 'Sneakers & Sports Shoes', 'Formal Shoes', 'Casual Shoes'], label: 'Subcategory' },
           sizes: { type: 'multi-select', options: ['5', '6', '7', '8', '9', '10', '11', '12', 'Other'], label: 'Available Sizes' },
           sizeOther: { type: 'text', label: 'Custom Sizes', placeholder: 'Enter custom sizes separated by commas (e.g., Free Size, One Size, etc.)' },
           colors: { type: 'multi-text', label: 'Available Colors', placeholder: 'Enter colors separated by commas' },
@@ -144,6 +155,7 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
         };
       case 'jewellery':
         return {
+          subcategory: { type: 'select', options: ['Gold-plated Jewellery', 'Silver Jewellery', 'Artificial Jewellery', 'Earrings', 'Necklaces', 'Bangles', 'Rings'], label: 'Subcategory' },
           material: { type: 'select', options: ['Gold', 'Silver', 'Platinum', 'Diamond', 'Pearl', 'Gemstone'], label: 'Primary Material' },
           secondaryMaterial: { type: 'text', label: 'Secondary Material', placeholder: 'e.g., Gold plated, Sterling silver' },
           type: { type: 'select', options: ['Ring', 'Necklace', 'Earrings', 'Bracelet', 'Anklet'], label: 'Type' },
@@ -154,6 +166,7 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
         };
       case 'lingerie':
         return {
+          subcategory: { type: 'select', options: ['Bra', 'Panties', 'Lingerie Set', 'Nightwear', 'Shapewear', 'Sleepwear'], label: 'Subcategory' },
           sizes: { type: 'multi-select', options: ['XS', 'S', 'M', 'L', 'XL', 'XXL'], label: 'Available Sizes' },
           colors: { type: 'multi-text', label: 'Available Colors', placeholder: 'Enter colors separated by commas' },
           material: { type: 'text', label: 'Material' },
@@ -163,6 +176,7 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
         };
       case 'watches':
         return {
+          subcategory: { type: 'select', options: ['Analog', 'Digital', 'Smartwatch', 'Chronograph', 'Luxury', 'Casual'], label: 'Subcategory' },
           brand: { type: 'text', label: 'Brand' },
           type: { type: 'select', options: ['Analog', 'Digital', 'Smartwatch', 'Chronograph'], label: 'Type' },
           material: { type: 'select', options: ['Stainless Steel', 'Leather', 'Rubber', 'Gold', 'Silver'], label: 'Band Material' },
@@ -173,6 +187,7 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
         };
       case 'kids':
         return {
+          subcategory: { type: 'select', options: ['Baby Clothes', 'Toys', 'School Supplies', 'Footwear', 'Accessories'], label: 'Subcategory' },
           ageGroup: { type: 'select', options: ['0-2 years', '3-5 years', '6-8 years', '9-12 years', '13+ years'], label: 'Age Group' },
           sizes: { type: 'multi-select', options: ['XS', 'S', 'M', 'L', 'XL'], label: 'Available Sizes' },
           colors: { type: 'multi-text', label: 'Available Colors', placeholder: 'Enter colors separated by commas' },
@@ -182,6 +197,7 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
         };
       case 'home-lifestyle':
         return {
+          subcategory: { type: 'select', options: ['Kitchen Tools', 'Home Decor', 'Bedsheets, Curtains & Towels', 'Cleaning & Storage Items'], label: 'Subcategory' },
           room: { type: 'select', options: ['Living Room', 'Bedroom', 'Kitchen', 'Bathroom', 'Dining Room'], label: 'Room' },
           material: { type: 'text', label: 'Primary Material' },
           secondaryMaterial: { type: 'text', label: 'Secondary Material', placeholder: 'e.g., Wood frame, metal legs' },
@@ -192,7 +208,7 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
         };
       case 'accessories':
         return {
-          type: { type: 'select', options: ['Handbag', 'Wallet', 'Belt', 'Scarf', 'Hat', 'Sunglasses'], label: 'Type' },
+          subcategory: { type: 'select', options: ['Watches', 'Sunglasses', 'Belts', 'Caps & Hats', 'Wallets & Purses'], label: 'Subcategory' },
           material: { type: 'text', label: 'Primary Material' },
           colors: { type: 'multi-text', label: 'Available Colors', placeholder: 'Enter colors separated by commas' },
           gender: { type: 'select', options: ['Women', 'Men', 'Unisex'], label: 'Gender' },
@@ -201,6 +217,7 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
         };
       case 'beauty':
         return {
+          subcategory: { type: 'select', options: ['Skincare', 'Makeup', 'Haircare', 'Fragrance', 'Bath & Body', "Men's Grooming", 'Tools & Brushes'], label: 'Subcategory' },
           skinType: { type: 'multi-select', options: ['Dry', 'Oily', 'Combination', 'Sensitive', 'Normal'], label: 'Suitable Skin Types' },
           finish: { type: 'select', options: ['Matte', 'Dewy', 'Satin', 'Natural'], label: 'Finish' },
           coverage: { type: 'select', options: ['Light', 'Medium', 'Full'], label: 'Coverage' },
@@ -211,6 +228,7 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
         };
       case 'sportswear':
         return {
+          subcategory: { type: 'select', options: ['Activewear Tops', 'Bottoms', 'Tracksuits', 'Swimwear', 'Innerwear', 'Shoes', 'Accessories'], label: 'Subcategory' },
           activity: { type: 'multi-select', options: ['Running', 'Gym', 'Yoga', 'Swimming', 'Cycling', 'Tennis'], label: 'Suitable Activities' },
           sizes: { type: 'multi-select', options: ['XS', 'S', 'M', 'L', 'XL', 'XXL'], label: 'Available Sizes' },
           colors: { type: 'multi-text', label: 'Available Colors', placeholder: 'Enter colors separated by commas' },
@@ -221,6 +239,7 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
         };
       case 'gifting-guide':
         return {
+          subcategory: { type: 'select', options: ['Birthday', 'Anniversary', 'Wedding', 'Festivals', 'Corporate'], label: 'Subcategory' },
           occasion: { type: 'multi-select', options: ['Birthday', 'Anniversary', 'Wedding', 'Holiday', 'Graduation'], label: 'Suitable Occasions' },
           recipient: { type: 'select', options: ['Men', 'Women', 'Kids', 'Couples', 'Family'], label: 'Recipient' },
           priceRange: { type: 'select', options: ['Under ₹1000', '₹1000-5000', '₹5000-10000', '₹10000+'], label: 'Price Range' },
@@ -241,16 +260,19 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
       if (statusDropdownRef.current && !statusDropdownRef.current.contains(event.target as Node)) {
         setStatusDropdownOpen(false);
       }
+      if (subcategoryDropdownRef.current && !subcategoryDropdownRef.current.contains(event.target as Node)) {
+        setSubcategoryDropdownOpen(false);
+      }
     };
 
-    if (categoryDropdownOpen || statusDropdownOpen) {
+    if (categoryDropdownOpen || statusDropdownOpen || subcategoryDropdownOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [categoryDropdownOpen, statusDropdownOpen]);
+  }, [categoryDropdownOpen, statusDropdownOpen, subcategoryDropdownOpen]);
 
   // Handle click outside overlay
   useEffect(() => {
@@ -459,7 +481,7 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
       brand: '',
       image: '',
       images: [],
-      stock: 0,
+      stock: 1,
       rating: 0,
       reviews: 0,
       tags: [],
@@ -471,14 +493,33 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
     setCategorySpecificData({});
   };
 
-  const addTag = (tag: string) => {
-    if (tag.trim() && !formData.tags.includes(tag.trim())) {
-      setFormData({...formData, tags: [...formData.tags, tag.trim()]});
-    }
-  };
+  // Tags feature removed per request
 
-  const removeTag = (tag: string) => {
-    setFormData({...formData, tags: formData.tags.filter(t => t !== tag)});
+  // Edit existing product: prefill the form and open modal
+  const handleEditProduct = (product: Product) => {
+    setEditingProduct(product);
+    setFormData({
+      id: product.id,
+      name: product.name,
+      description: product.description || '',
+      price: product.price,
+      originalPrice: product.originalPrice || 0,
+      category: product.category,
+      brand: product.brand,
+      image: product.image,
+      images: product.images || [],
+      stock: product.stock,
+      rating: product.rating || 0,
+      reviews: product.reviews || 0,
+      tags: [],
+      featured: false,
+      status: product.status || 'active',
+      createdAt: product.createdAt,
+      updatedAt: new Date()
+    });
+    setCategorySpecificData(product.categorySpecificData || {});
+    setShowAddProduct(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -645,15 +686,6 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row gap-3">
-                <Link to="/seller/dashboard">
-                  <Button
-                    variant="secondary"
-                    className="flex items-center bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700"
-                  >
-                    <BarChart3 className="w-4 h-4 mr-2" />
-                    View Dashboard
-                  </Button>
-                </Link>
                 <Button
                   onClick={handleEdit}
                   variant="outline"
@@ -1069,6 +1101,14 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
                             {product.status === 'active' ? 'Deactivate' : 'Activate'}
                           </Button>
                           <Button
+                            onClick={() => handleEditProduct(product)}
+                            variant="outline"
+                            size="sm"
+                            className="flex-1"
+                          >
+                            Edit
+                          </Button>
+                          <Button
                             onClick={() => handleDeleteProduct(product.id!)}
                             variant="outline"
                             size="sm"
@@ -1160,7 +1200,7 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Price (₹) *
+                        Selling Price (₹) *
                       </label>
                       <input
                         type="number"
@@ -1172,15 +1212,15 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
                           setFormData({...formData, price: value});
                         }}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        placeholder="Enter price"
+                        placeholder="Enter selling price"
                         required
                       />
-                      <p className="text-xs text-gray-500 mt-1">Enter price in rupees (0 or more)</p>
+                      <p className="text-xs text-gray-500 mt-1">Enter selling price in rupees</p>
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Original Price (₹)
+                        Original Price (MRP) (₹)
                       </label>
                       <input
                         type="number"
@@ -1192,9 +1232,9 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
                           setFormData({...formData, originalPrice: value});
                         }}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        placeholder="Enter original price (optional)"
+                        placeholder="Enter original price / MRP (optional)"
                       />
-                      <p className="text-xs text-gray-500 mt-1">Enter original price for discount calculation (optional)</p>
+                      <p className="text-xs text-gray-500 mt-1">Enter MRP for discount calculation (optional)</p>
                     </div>
 
                     <div>
@@ -1256,23 +1296,42 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Stock Quantity *
+                      <label className="block text-sm font-semibold text-gray-700 mb-2.5">
+                        Stock Quantity <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="number"
-                        min="0"
+                        min="1"
                         step="1"
-                        value={formData.stock}
+                        value={formData.stock || ''}
                         onChange={(e) => {
-                          const value = Math.max(0, parseInt(e.target.value) || 0);
-                          setFormData({...formData, stock: value});
+                          const inputValue = e.target.value;
+                          // Allow empty input while typing
+                          if (inputValue === '') {
+                            setFormData({...formData, stock: 0});
+                            return;
+                          }
+                          const value = parseInt(inputValue);
+                          // Only update if it's a valid number, allow typing freely
+                          if (!isNaN(value)) {
+                            setFormData({...formData, stock: value < 1 ? 1 : value});
+                          }
                         }}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        placeholder="Enter quantity (0 or more)"
+                        onBlur={(e) => {
+                          // Validate on blur - ensure minimum is 1
+                          const value = parseInt(e.target.value) || 0;
+                          if (value < 1) {
+                            setFormData({...formData, stock: 1});
+                          }
+                        }}
+                        className="w-full px-4 py-3.5 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 hover:border-gray-400 shadow-sm hover:shadow-md"
+                        placeholder="Enter stock quantity (minimum 1)"
                         required
                       />
-                      <p className="text-xs text-gray-500 mt-1">Enter 0 or a positive number</p>
+                      <p className="text-xs text-gray-500 mt-2 flex items-center">
+                        <span className="mr-1">⚠️</span>
+                        Minimum stock quantity is 1. Products cannot have 0 stock.
+                      </p>
                     </div>
 
                     <div>
@@ -1422,7 +1481,41 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
                               {field.type === 'multi-select' && <span className="text-red-500 ml-1">*</span>}
                             </label>
                             
-                            {field.type === 'select' ? (
+                          {key === 'subcategory' ? (
+                            <div className="relative" ref={subcategoryDropdownRef}>
+                              <button
+                                type="button"
+                                onClick={() => setSubcategoryDropdownOpen(!subcategoryDropdownOpen)}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-left flex items-center justify-between hover:border-gray-400 transition-colors duration-200"
+                                title="Select Subcategory"
+                                aria-label="Select Subcategory"
+                              >
+                                <span className="text-gray-900">
+                                  {categorySpecificData.subcategory || 'Select Subcategory'}
+                                </span>
+                                <svg className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${subcategoryDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                              </button>
+                              {subcategoryDropdownOpen && (
+                                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                  {field.options.map((option: string) => (
+                                    <button
+                                      key={option}
+                                      type="button"
+                                      onClick={() => {
+                                        setCategorySpecificData({ ...categorySpecificData, subcategory: option });
+                                        setSubcategoryDropdownOpen(false);
+                                      }}
+                                      className="w-full px-4 py-3 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none transition-colors duration-150"
+                                    >
+                                      <span className="text-gray-900 font-medium">{option}</span>
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ) : field.type === 'select' ? (
                               <select
                                 id={`category-${key}`}
                                 value={categorySpecificData[key] || ''}
@@ -1476,12 +1569,46 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
                               </div>
                             ) : field.type === 'multi-text' ? (
                               <div>
+                                {key === 'colors' && (
+                                  <div className="mb-3">
+                                    <div className="flex flex-wrap gap-2">
+                                      {predefinedColors.map((c) => {
+                                        const current = (categorySpecificData.colors || '').split(',').map((s:string)=>s.trim()).filter(Boolean);
+                                        const isSelected = current.includes(c);
+                                        const addColor = () => {
+                                          if (!isSelected) {
+                                            const next = [...current, c].join(', ');
+                                            setCategorySpecificData({ ...categorySpecificData, colors: next });
+                                          }
+                                        };
+                                        const removeColor = () => {
+                                          const next = current.filter((v:string) => v !== c).join(', ');
+                                          setCategorySpecificData({ ...categorySpecificData, colors: next });
+                                        };
+                                        return (
+                                          <button
+                                            key={c}
+                                            type="button"
+                                            onClick={isSelected ? removeColor : addColor}
+                                            className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${isSelected ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+                                            title={c}
+                                            aria-label={`Select color ${c}`}
+                                          >
+                                            <span className={`inline-block w-3 h-3 rounded-full mr-2 align-middle bg-[${c.toLowerCase()}]`}></span>
+                                            {c}
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                    <p className="text-xs text-gray-500 mt-1">Tap to toggle predefined colors. You can also add custom colors below.</p>
+                                  </div>
+                                )}
                                 <textarea
                                   id={`category-${key}`}
                                   value={categorySpecificData[key] || ''}
                                   onChange={(e) => setCategorySpecificData({...categorySpecificData, [key]: e.target.value})}
                                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                  placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+                                  placeholder={key === 'colors' ? 'Enter additional colors separated by commas (e.g., Lavender, Mint)' : (field.placeholder || `Enter ${field.label.toLowerCase()}`)}
                                   rows={3}
                                 />
                                 <p className="text-xs text-gray-500 mt-1">Separate multiple items with commas</p>
@@ -1527,54 +1654,7 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Tags
-                    </label>
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      {formData.tags.map((tag, index) => (
-                        <span
-                          key={index}
-                          className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800"
-                        >
-                          {tag}
-                          <button
-                            type="button"
-                            onClick={() => removeTag(tag)}
-                            className="ml-2 text-green-600 hover:text-green-800"
-                            aria-label={`Remove ${tag} tag`}
-                          >
-                            <XCircle className="w-3 h-3" />
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                    <input
-                      type="text"
-                      placeholder="Add a tag and press Enter"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          addTag(e.currentTarget.value);
-                          e.currentTarget.value = '';
-                        }
-                      }}
-                    />
-                  </div>
-
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="featured"
-                      checked={formData.featured}
-                      onChange={(e) => setFormData({...formData, featured: e.target.checked})}
-                      className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-                    />
-                    <label htmlFor="featured" className="ml-2 block text-sm text-gray-900">
-                      Featured Product
-                    </label>
-                  </div>
+                  {/* Tags and Featured Product removed per request */}
 
                   <div className="flex justify-end space-x-4 pt-6 pb-8 border-t border-gray-200">
                     <Button

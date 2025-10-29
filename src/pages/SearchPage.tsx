@@ -22,13 +22,44 @@ const SearchPage: React.FC = () => {
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const [searchType, setSearchType] = useState<'products' | 'shops'>('products');
+  const [availableCategories, setAvailableCategories] = useState<string[]>(['All']);
 
-  // Get search query from URL parameters
+  // Category name formatting
+  const formatCategoryName = (category: string): string => {
+    const categoryNames: Record<string, string> = {
+      'women': 'Women',
+      'men': 'Men',
+      'kids': 'Kids',
+      'watches': 'Watches',
+      'accessories': 'Accessories',
+      'jewellery': 'Jewellery',
+      'sportswear': 'Sports',
+      'footwear': 'Footwear',
+      'beauty': 'Beauty',
+      'lingerie': 'Lingerie',
+      'home-lifestyle': 'Home',
+      'home': 'Home',
+      'electronics': 'Electronics',
+      'gifting-guide': 'Gifting Guide'
+    };
+    return categoryNames[category.toLowerCase()] || category.charAt(0).toUpperCase() + category.slice(1);
+  };
+
+  // Get search query and category from URL parameters
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     const queryParam = urlParams.get('q');
+    const categoryParam = urlParams.get('category');
+    
     if (queryParam) {
       setSearchQuery(decodeURIComponent(queryParam));
+    }
+    
+    // Auto-select category from URL parameter
+    if (categoryParam) {
+      const decodedCategory = decodeURIComponent(categoryParam);
+      setSelectedCategory(decodedCategory);
+      console.log('Category from URL:', decodedCategory);
     }
   }, [location.search]);
 
@@ -51,10 +82,6 @@ const SearchPage: React.FC = () => {
       });
     }
   };
-
-  const categories = [
-    'All', 'Fashion', 'Electronics', 'Beauty', 'Home', 'Sports', 'Books', 'Food'
-  ];
 
   // Calculate distance between two coordinates using Haversine formula
   const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
@@ -261,6 +288,24 @@ const SearchPage: React.FC = () => {
         console.log('✅ Active products found:', productsList.length);
         console.log('📋 Products list:', productsList);
         
+        // Extract unique categories from products
+        const uniqueCategories = Array.from(
+          new Set(productsList.map(product => product.category?.toLowerCase()).filter(Boolean))
+        );
+
+        // Format category names and sort: Men, Women, Kids first, then alphabetically
+        const formattedCategories = uniqueCategories.map(cat => formatCategoryName(cat));
+        formattedCategories.sort((a, b) => {
+          const priority: Record<string, number> = { 'Men': 1, 'Women': 2, 'Kids': 3 };
+          const aPriority = priority[a] || 99;
+          const bPriority = priority[b] || 99;
+          if (aPriority !== bPriority) return aPriority - bPriority;
+          return a.localeCompare(b);
+        });
+
+        // Add 'All' at the beginning
+        setAvailableCategories(['All', ...formattedCategories]);
+        
         // If no products found, add some sample products for testing
         if (productsList.length === 0) {
           console.log('⚠️ No products found, adding sample products for testing');
@@ -304,6 +349,15 @@ const SearchPage: React.FC = () => {
 
     fetchProducts();
   }, []);
+
+  // Helper: find seller location by sellerId
+  const getSellerLocation = (sellerId: string) => {
+    const seller = sellers.find(s => s.id === sellerId || s.userId === sellerId);
+    if (!seller) return null;
+    return seller.location && seller.location.lat && seller.location.lng
+      ? seller.location
+      : null;
+  };
 
   // Get current location
   const getCurrentLocation = () => {
@@ -442,8 +496,24 @@ const SearchPage: React.FC = () => {
       product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.category.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesCategory = selectedCategory === 'All' || 
-      product.category === selectedCategory;
+    // Match category by comparing formatted names or raw category values
+    // Special case: 'Fashion' shows both Men and Women products
+    let matchesCategory = false;
+    if (selectedCategory === 'All') {
+      matchesCategory = true;
+    } else if (selectedCategory === 'Fashion') {
+      // Fashion category includes both Men and Women
+      const productCategoryFormatted = formatCategoryName(product.category || '');
+      matchesCategory = productCategoryFormatted === 'Men' || 
+                       productCategoryFormatted === 'Women' ||
+                       product.category?.toLowerCase() === 'men' ||
+                       product.category?.toLowerCase() === 'women';
+    } else {
+      const productCategoryFormatted = formatCategoryName(product.category || '');
+      matchesCategory = productCategoryFormatted === selectedCategory ||
+                       product.category.toLowerCase() === selectedCategory.toLowerCase() ||
+                       productCategoryFormatted.toLowerCase() === selectedCategory.toLowerCase();
+    }
     
     console.log('🔍 Filtering product:', { 
       name: product.name, 
@@ -455,6 +525,27 @@ const SearchPage: React.FC = () => {
     
     return matchesSearch && matchesCategory;
   });
+
+  // If user location available, compute distance for products (based on seller location) and sort by nearest
+  const productsToRender = (() => {
+    if (!userLocation) return filteredProducts;
+    const withDistance = filteredProducts.map((p: any) => {
+      const loc = getSellerLocation(p.sellerId);
+      if (loc) {
+        const distance = calculateDistance(userLocation.lat, userLocation.lng, loc.lat, loc.lng);
+        return { ...p, _distanceKm: distance };
+      }
+      return { ...p, _distanceKm: null };
+    });
+    // Sort by distance if available
+    withDistance.sort((a: any, b: any) => {
+      if (a._distanceKm === null && b._distanceKm === null) return 0;
+      if (a._distanceKm === null) return 1;
+      if (b._distanceKm === null) return -1;
+      return a._distanceKm - b._distanceKm;
+    });
+    return withDistance;
+  })();
 
   console.log('📊 Search results:', {
     searchQuery,
@@ -519,8 +610,8 @@ const SearchPage: React.FC = () => {
             )}
           </div>
 
-          {/* Location Bar - Only show for shops */}
-          {searchType === 'shops' && (
+          {/* Location Bar - For both products and shops */}
+          {(searchType === 'shops' || searchType === 'products') && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
@@ -596,7 +687,7 @@ const SearchPage: React.FC = () => {
               </h3>
             </div>
             <div className="flex space-x-2 overflow-x-auto scrollbar-hide pb-1">
-              {categories.map((category) => (
+              {availableCategories.map((category) => (
                 <button
                   key={category}
                   onClick={() => setSelectedCategory(category)}
@@ -621,7 +712,7 @@ const SearchPage: React.FC = () => {
                   : `${filteredSellers.length} Shop${filteredSellers.length !== 1 ? 's' : ''} Found`
                 }
               </h2>
-              {searchType === 'shops' && (
+              {(searchType === 'shops' || (searchType === 'products' && userLocation)) && (
               <div className="flex items-center space-x-2 text-sm text-gray-600">
                 <TrendingUp className="w-4 h-4" />
                 <span>Sort by: Distance</span>
@@ -645,7 +736,7 @@ const SearchPage: React.FC = () => {
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-4">
-                {filteredProducts.map((product) => (
+                {productsToRender.map((product: any) => (
                   <Link key={product.id} to={`/product/${product.id}`} className="block">
                     <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-gray-100 flex flex-col cursor-pointer">
                       {/* Product Image */}
@@ -658,6 +749,11 @@ const SearchPage: React.FC = () => {
                             e.currentTarget.src = 'https://via.placeholder.com/300';
                           }}
                         />
+                        {product._distanceKm !== undefined && product._distanceKm !== null && (
+                          <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-medium text-gray-700 shadow">
+                            {product._distanceKm.toFixed(1)} km
+                          </div>
+                        )}
                         {/* Wishlist Button */}
                         <button
                           onClick={(e) => {
@@ -686,10 +782,13 @@ const SearchPage: React.FC = () => {
 
                       {/* Product Info */}
                       <div className="p-4 flex-1 flex flex-col">
-                        <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 mb-2">
+                        {/* Brand prominent, Product name smaller */}
+                        <div className="text-base font-bold text-gray-900 uppercase tracking-wide mb-1 line-clamp-1">
+                          {product.brand}
+                        </div>
+                        <div className="text-sm text-gray-700 line-clamp-2 mb-2">
                           {product.name}
-                        </h3>
-                        <p className="text-sm text-gray-500 mb-2">{product.brand}</p>
+                        </div>
                         
                         {/* Price */}
                         <div className="flex items-center space-x-2 mb-2">
@@ -730,46 +829,42 @@ const SearchPage: React.FC = () => {
           ) : (
             <div className="grid grid-cols-2 gap-3 md:gap-4">
               {filteredSellers.map((seller) => (
-                <div key={seller.id}>
+                <Link key={seller.id} to={`/seller/${seller.id}`} className="block">
                   {/* ULTIMATE Modern Card */}
                   <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 h-full flex flex-col">
                     
-                    {/* Large Profile Picture Header - Takes Half the Card */}
-                    <div className="relative h-32 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center">
-                      <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-xl border-4 border-white overflow-hidden">
-                        {(seller.profileImage || seller.businessImage) ? (
-                          <img 
-                            src={seller.profileImage || seller.businessImage} 
-                            alt={seller.businessName}
-                            className="w-full h-full object-cover rounded-full"
-                            onError={(e) => {
-                              // Fallback to initial if image fails to load
-                              e.currentTarget.style.display = 'none';
-                              const parent = e.currentTarget.parentElement;
-                              if (parent) {
-                                const fallback = document.createElement('span');
-                                fallback.className = 'text-3xl font-bold text-gray-700';
-                                fallback.textContent = seller.businessName.charAt(0).toUpperCase();
-                                parent.appendChild(fallback);
-                              }
-                            }}
-                          />
-                        ) : (
-                          <span className="text-3xl font-bold text-gray-700">
-                            {seller.businessName.charAt(0).toUpperCase()}
-                          </span>
-                        )}
-                      </div>
-                      
+                    {/* Square Header with Full Image */}
+                    <div className="relative aspect-square bg-gray-100">
+                      {(seller.profileImage || seller.businessImage) ? (
+                        <img
+                          src={seller.profileImage || seller.businessImage}
+                          alt={seller.businessName}
+                          className="absolute inset-0 w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            const parent = e.currentTarget.parentElement;
+                            if (parent) {
+                              const fallback = document.createElement('div');
+                              fallback.className = 'w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 text-white text-4xl font-bold';
+                              fallback.textContent = seller.businessName.charAt(0).toUpperCase();
+                              parent.appendChild(fallback);
+                            }
+                          }}
+                        />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 text-white text-4xl font-bold">
+                          {seller.businessName.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+
                       {/* Distance Badge */}
                       {seller.distance && (
-                        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-medium text-gray-700">
+                        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-medium text-gray-700 shadow">
                           {(seller.distance || 0).toFixed(1)} km away
                         </div>
                       )}
-                      
                       {/* Status Badge */}
-                      <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-medium text-green-700">
+                      <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-medium text-green-700 shadow">
                         Active
                       </div>
                     </div>
@@ -793,7 +888,9 @@ const SearchPage: React.FC = () => {
                           <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed flex-1">{seller.address}</p>
                           {seller.location && (
                             <button
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
                                 const { lat, lng } = seller.location;
                                 window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
                               }}
@@ -811,17 +908,10 @@ const SearchPage: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Action Button */}
-                      <Link
-                        to={`/seller/${seller.id}`}
-                        className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-xl text-sm font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-200 flex items-center justify-center shadow-md hover:shadow-lg"
-                      >
-                        <Store className="w-4 h-4 mr-2" />
-                        Visit Store
-                      </Link>
+                      {/* Removed Visit Store Button as requested */}
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
             )

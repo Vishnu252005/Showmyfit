@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Instagram, Youtube, Facebook } from 'lucide-react';
 
 const Footer: React.FC = () => {
+  const [showAbout, setShowAbout] = useState(false);
   return (
     <footer className="bg-gradient-to-br from-orange-500 via-red-500 to-yellow-500 py-12 mb-16 md:mb-0 relative overflow-hidden">
       {/* Diwali Sparkles */}
@@ -30,6 +31,22 @@ const Footer: React.FC = () => {
             <a href="#" className="hover:text-yellow-200 uppercase tracking-wider font-medium transition-colors">Contact</a>
           </div>
           
+          {/* Know more dropdown */}
+          <div className="mb-6">
+            <button
+              onClick={() => setShowAbout(!showAbout)}
+              className="mx-auto flex items-center justify-center px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg text-sm font-semibold transition-colors"
+              aria-controls="footer-about"
+            >
+              {showAbout ? 'Hide about Showmyfit' : 'Know more about Showmyfit'}
+            </button>
+            {showAbout && (
+              <div id="footer-about" className="mt-3 max-w-2xl mx-auto text-white/90 text-sm leading-relaxed bg-white/10 rounded-xl p-4">
+                Showmyfit connects shoppers with nearby sellers and boutiques. Browse real inventory, reserve items you love, and pick up in-store. Our mission is to boost local commerce with a fast, delightful shopping experience.
+              </div>
+            )}
+          </div>
+
           {/* Social Media Links - Diwali Theme */}
           <div className="flex justify-center space-x-6 mb-6">
             <a 

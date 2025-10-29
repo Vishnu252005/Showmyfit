@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import bannerImage5 from '../../assets/images/banner/men/5.jpg';
 
 interface BannerSlide {
   id: number;
@@ -9,62 +10,97 @@ interface BannerSlide {
 }
 
 const SlidingBanner: React.FC = () => {
-  const [currentSlide, setCurrentSlide] = useState(0);
+  const [currentSlide, setCurrentSlide] = useState(1); // Start at 1 because we duplicate first slide
+  const [isTransitioning, setIsTransitioning] = useState(true);
 
   const slides: BannerSlide[] = [
     {
       id: 1,
+      image: bannerImage5,
+      title: 'Summer Fashion',
+      subtitle: 'DISCOVER STYLE'
+    },
+    {
+      id: 2,
       image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&h=400&fit=crop&crop=center',
       title: 'New Collection',
       subtitle: 'TRENDING NOW'
     },
     {
-      id: 2,
+      id: 3,
       image: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=800&h=400&fit=crop&crop=center',
       title: 'Premium Style',
       subtitle: 'ELEGANT FASHION'
-    },
-    {
-      id: 3,
-      image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=800&h=400&fit=crop&crop=center',
-      title: 'Exclusive Deals',
-      subtitle: 'LIMITED TIME'
     }
   ];
 
-  // Auto-slide functionality
+  // Create infinite loop by duplicating first and last slides
+  const infiniteSlides = [
+    slides[slides.length - 1], // Last slide at the beginning
+    ...slides,                   // Original slides
+    slides[0]                   // First slide at the end
+  ];
+
+  // Auto-slide functionality with seamless loop
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentSlide((prevSlide) => 
-        prevSlide === slides.length - 1 ? 0 : prevSlide + 1
-      );
+      setCurrentSlide((prevSlide) => {
+        const nextSlide = prevSlide + 1;
+        
+        // If we've reached the duplicate last slide, the useEffect will handle the jump
+        if (nextSlide >= infiniteSlides.length - 1) {
+          return infiniteSlides.length - 1;
+        }
+        
+        return nextSlide;
+      });
     }, 4000); // Change slide every 4 seconds
 
     return () => clearInterval(interval);
-  }, [slides.length]);
+  }, [infiniteSlides.length]);
 
-  const goToSlide = (slideIndex: number) => {
-    setCurrentSlide(slideIndex);
-  };
-
-  const goToPrevious = () => {
-    setCurrentSlide(currentSlide === 0 ? slides.length - 1 : currentSlide - 1);
-  };
+  // Handle seamless loop transition
+  useEffect(() => {
+    if (currentSlide === infiniteSlides.length - 1) {
+      // When we reach the duplicate last slide, instantly jump to real first slide
+      const timer = setTimeout(() => {
+        setIsTransitioning(false); // Disable transition for instant jump
+        setCurrentSlide(1);
+        setTimeout(() => setIsTransitioning(true), 50); // Re-enable after jump
+      }, 500); // Wait for transition to complete
+      return () => clearInterval(timer);
+    }
+  }, [currentSlide, infiniteSlides.length]);
 
   const goToNext = () => {
-    setCurrentSlide(currentSlide === slides.length - 1 ? 0 : currentSlide + 1);
+    setCurrentSlide((prev) => {
+      const next = prev + 1;
+      if (next >= infiniteSlides.length) {
+        setTimeout(() => setCurrentSlide(1), 500);
+        return infiniteSlides.length - 1;
+      }
+      return next;
+    });
+  };
+
+  const goToSlide = (slideIndex: number) => {
+    setCurrentSlide(slideIndex + 1); // +1 because of duplicate first slide
   };
 
   return (
     <div className="relative w-full h-64 md:h-80 lg:h-96 overflow-hidden bg-gradient-to-r from-gray-900 to-gray-800">
       {/* Slide Container */}
-      <div className="flex transition-transform duration-500 ease-in-out h-full" style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
-        {slides.map((slide) => (
-          <div key={slide.id} className="w-full h-full flex-shrink-0 relative">
+      <div 
+        className={`flex h-full ${isTransitioning ? 'transition-transform duration-500 ease-in-out' : ''}`} 
+        style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+      >
+        {infiniteSlides.map((slide, index) => (
+          <div key={`slide-${index}-${slide.id}`} className="w-full h-full flex-shrink-0 relative">
             {/* Background Image */}
             <div 
               className="w-full h-full bg-cover bg-center bg-no-repeat"
               style={{ backgroundImage: `url(${slide.image})` }}
+              loading="eager"
             >
               {/* Overlay */}
               <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent"></div>
@@ -91,7 +127,7 @@ const SlidingBanner: React.FC = () => {
 
       {/* Navigation Arrows */}
       <button
-        onClick={goToPrevious}
+        onClick={goToNext}
         className="absolute left-2 md:left-4 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-2 md:p-3 rounded-full transition-all duration-300 backdrop-blur-sm"
         aria-label="Previous slide"
       >
@@ -108,18 +144,24 @@ const SlidingBanner: React.FC = () => {
 
       {/* Slide Indicators */}
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-        {slides.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => goToSlide(index)}
-            className={`w-2 h-2 md:w-3 md:h-3 rounded-full transition-all duration-300 ${
-              index === currentSlide 
-                ? 'bg-white scale-125' 
-                : 'bg-white/50 hover:bg-white/75'
-            }`}
-            aria-label={`Go to slide ${index + 1}`}
-          />
-        ))}
+        {slides.map((_, index) => {
+          // Calculate the real slide index (accounting for duplicate)
+          const realIndex = currentSlide === 0 ? slides.length - 1 : 
+                          currentSlide === infiniteSlides.length - 1 ? 0 : 
+                          currentSlide - 1;
+          return (
+            <button
+              key={index}
+              onClick={() => goToSlide(index)}
+              className={`w-2 h-2 md:w-3 md:h-3 rounded-full transition-all duration-300 ${
+                index === realIndex 
+                  ? 'bg-white scale-125' 
+                  : 'bg-white/50 hover:bg-white/75'
+              }`}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          );
+        })}
       </div>
 
       {/* AD Badge */}
