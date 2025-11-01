@@ -115,7 +115,7 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
   ];
 
   // Dynamic form fields based on category
-  const getCategorySpecificFields = (category: string) => {
+  const getCategorySpecificFields = (category: string, categoryData?: Record<string, any>) => {
     switch (category) {
       case 'women':
         return {
@@ -142,9 +142,27 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
           fit: { type: 'select', options: ['Slim Fit', 'Regular Fit', 'Loose Fit', 'Oversized'], label: 'Fit Type' }
         };
       case 'footwear':
+        // Check subcategory to determine appropriate sizes
+        const footwearSubcategory = (categoryData || categorySpecificData)?.subcategory;
+        const isFootwearKids = footwearSubcategory === 'Kids Footwear';
+        const isFootwearMen = footwearSubcategory === 'Men\'s Footwear';
+        const isFootwearWomen = footwearSubcategory === 'Women\'s Footwear';
+        
+        let footwearSizes: string[];
+        if (isFootwearKids) {
+          footwearSizes = ['S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S12', 'S13', 'Other'];
+        } else if (isFootwearMen) {
+          footwearSizes = ['6', '7', '8', '9', '10', '11', '12', '13', '14', '15', 'Other'];
+        } else if (isFootwearWomen) {
+          footwearSizes = ['4', '5', '6', '7', '8', '9', '10', '11', '12', 'Other'];
+        } else {
+          // Default sizes for other footwear subcategories
+          footwearSizes = ['5', '6', '7', '8', '9', '10', '11', '12', 'Other'];
+        }
+        
         return {
-          subcategory: { type: 'select', options: ['Men’s Footwear', 'Women’s Footwear', 'Kids Footwear', 'Sandals & Slippers', 'Sneakers & Sports Shoes', 'Formal Shoes', 'Casual Shoes'], label: 'Subcategory' },
-          sizes: { type: 'multi-select', options: ['5', '6', '7', '8', '9', '10', '11', '12', 'Other'], label: 'Available Sizes' },
+          subcategory: { type: 'select', options: ['Men\'s Footwear', 'Women\'s Footwear', 'Kids Footwear', 'Sandals & Slippers', 'Sneakers & Sports Shoes', 'Formal Shoes', 'Casual Shoes'], label: 'Subcategory' },
+          sizes: { type: 'multi-select', options: footwearSizes, label: 'Available Sizes' },
           sizeOther: { type: 'text', label: 'Custom Sizes', placeholder: 'Enter custom sizes separated by commas (e.g., Free Size, One Size, etc.)' },
           colors: { type: 'multi-text', label: 'Available Colors', placeholder: 'Enter colors separated by commas' },
           material: { type: 'text', label: 'Upper Material' },
@@ -186,10 +204,18 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
           features: { type: 'multi-text', label: 'Features', placeholder: 'e.g., Date display, chronograph, GPS' }
         };
       case 'kids':
+        // Check if subcategory is Footwear to show kids shoe sizes
+        const isKidsFootwear = (categoryData || categorySpecificData)?.subcategory === 'Footwear';
         return {
           subcategory: { type: 'select', options: ['Baby Clothes', 'Toys', 'School Supplies', 'Footwear', 'Accessories'], label: 'Subcategory' },
           ageGroup: { type: 'select', options: ['0-2 years', '3-5 years', '6-8 years', '9-12 years', '13+ years'], label: 'Age Group' },
-          sizes: { type: 'multi-select', options: ['XS', 'S', 'M', 'L', 'XL'], label: 'Available Sizes' },
+          sizes: { 
+            type: 'multi-select', 
+            options: isKidsFootwear 
+              ? ['S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S12', 'S13', 'Other'] 
+              : ['XS', 'S', 'M', 'L', 'XL'], 
+            label: 'Available Sizes' 
+          },
           colors: { type: 'multi-text', label: 'Available Colors', placeholder: 'Enter colors separated by commas' },
           gender: { type: 'select', options: ['Boys', 'Girls', 'Unisex'], label: 'Gender' },
           occasion: { type: 'select', options: ['Casual', 'School', 'Party', 'Sports'], label: 'Occasion' },
@@ -494,6 +520,27 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
   };
 
   // Tags feature removed per request
+
+  // Validation function to check if form is valid
+  const isFormValid = (): boolean => {
+    // Check required fields
+    const hasName = formData.name.trim() !== '';
+    const hasBrand = formData.brand.trim() !== '';
+    const hasPrice = formData.price > 0;
+    const hasOriginalPrice = formData.originalPrice > 0;
+    const hasCategory = formData.category !== '';
+    const hasStock = formData.stock >= 1;
+    const hasImage = formData.image.trim() !== ''; // At least one image must be loaded
+    
+    // Check if at least one size is selected (for categories that have sizes)
+    const categoryFields = getCategorySpecificFields(formData.category, categorySpecificData);
+    const hasSizesField = 'sizes' in categoryFields && categoryFields.sizes?.type === 'multi-select';
+    const hasSizes = hasSizesField 
+      ? (categorySpecificData.sizes && Array.isArray(categorySpecificData.sizes) && categorySpecificData.sizes.length > 0)
+      : true; // If category doesn't have sizes field, skip this check
+    
+    return hasName && hasBrand && hasPrice && hasOriginalPrice && hasCategory && hasStock && hasImage && hasSizes;
+  };
 
   // Edit existing product: prefill the form and open modal
   const handleEditProduct = (product: Product) => {
@@ -1187,7 +1234,7 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Brand
+                        Brand *
                       </label>
                       <input
                         type="text"
@@ -1195,6 +1242,7 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
                         onChange={(e) => setFormData({...formData, brand: e.target.value})}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                         placeholder="Enter brand name"
+                        required
                       />
                     </div>
 
@@ -1220,7 +1268,7 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Original Price (MRP) (₹)
+                        Original Price (MRP) (₹) *
                       </label>
                       <input
                         type="number"
@@ -1232,9 +1280,10 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
                           setFormData({...formData, originalPrice: value});
                         }}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        placeholder="Enter original price / MRP (optional)"
+                        placeholder="Enter original price / MRP"
+                        required
                       />
-                      <p className="text-xs text-gray-500 mt-1">Enter MRP for discount calculation (optional)</p>
+                      <p className="text-xs text-gray-500 mt-1">Enter MRP for discount calculation</p>
                     </div>
 
                     <div>
@@ -1474,11 +1523,31 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
                         {categories.find(c => c.value === formData.category)?.icon} {categories.find(c => c.value === formData.category)?.label} Specific Details
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {Object.entries(getCategorySpecificFields(formData.category)).map(([key, field]) => (
-                          <div key={key} className={field.type === 'multi-text' ? 'md:col-span-2' : ''}>
+                        {Object.entries(getCategorySpecificFields(formData.category, categorySpecificData)).map(([key, field]) => {
+                          // Re-check sizes for footwear subcategories
+                          let sizeOptions: string[] | undefined;
+                          
+                          if (key === 'sizes') {
+                            if (formData.category === 'kids' && categorySpecificData?.subcategory === 'Footwear') {
+                              sizeOptions = ['S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S12', 'S13', 'Other'];
+                            } else if (formData.category === 'footwear') {
+                              const subcategory = categorySpecificData?.subcategory;
+                              if (subcategory === 'Kids Footwear') {
+                                sizeOptions = ['S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11', 'S12', 'S13', 'Other'];
+                              } else if (subcategory === 'Men\'s Footwear') {
+                                sizeOptions = ['6', '7', '8', '9', '10', '11', '12', '13', '14', '15', 'Other'];
+                              } else if (subcategory === 'Women\'s Footwear') {
+                                sizeOptions = ['4', '5', '6', '7', '8', '9', '10', '11', '12', 'Other'];
+                              }
+                            }
+                          }
+                          
+                          const currentField = sizeOptions ? { ...field, options: sizeOptions } : field;
+                          return (
+                          <div key={key} className={currentField.type === 'multi-text' ? 'md:col-span-2' : ''}>
                             <label htmlFor={`category-${key}`} className="block text-sm font-medium text-gray-700 mb-2">
-                              {field.label}
-                              {field.type === 'multi-select' && <span className="text-red-500 ml-1">*</span>}
+                              {currentField.label}
+                              {currentField.type === 'multi-select' && <span className="text-red-500 ml-1">*</span>}
                             </label>
                             
                           {key === 'subcategory' ? (
@@ -1499,7 +1568,7 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
                               </button>
                               {subcategoryDropdownOpen && (
                                 <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                                  {field.options.map((option: string) => (
+                                  {currentField.options.map((option: string) => (
                                     <button
                                       key={option}
                                       type="button"
@@ -1515,22 +1584,22 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
                                 </div>
                               )}
                             </div>
-                          ) : field.type === 'select' ? (
+                          ) : currentField.type === 'select' ? (
                               <select
                                 id={`category-${key}`}
                                 value={categorySpecificData[key] || ''}
                                 onChange={(e) => setCategorySpecificData({...categorySpecificData, [key]: e.target.value})}
                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                               >
-                                <option value="">Select {field.label}</option>
-                                {field.options.map((option: string) => (
+                                <option value="">Select {currentField.label}</option>
+                                {currentField.options.map((option: string) => (
                                   <option key={option} value={option}>{option}</option>
                                 ))}
                               </select>
-                            ) : field.type === 'multi-select' ? (
+                            ) : currentField.type === 'multi-select' ? (
                               <div className="space-y-2">
                                 <div className="flex flex-wrap gap-2">
-                                  {field.options.map((option: string) => {
+                                  {currentField.options.map((option: string) => {
                                     const isSelected = (categorySpecificData[key] || []).includes(option);
                                     return (
                                       <button
@@ -1567,7 +1636,7 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
                                   />
                                 )}
                               </div>
-                            ) : field.type === 'multi-text' ? (
+                            ) : currentField.type === 'multi-text' ? (
                               <div>
                                 {key === 'colors' && (
                                   <div className="mb-3">
@@ -1608,12 +1677,12 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
                                   value={categorySpecificData[key] || ''}
                                   onChange={(e) => setCategorySpecificData({...categorySpecificData, [key]: e.target.value})}
                                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                  placeholder={key === 'colors' ? 'Enter additional colors separated by commas (e.g., Lavender, Mint)' : (field.placeholder || `Enter ${field.label.toLowerCase()}`)}
+                                  placeholder={key === 'colors' ? 'Enter additional colors separated by commas (e.g., Lavender, Mint)' : (currentField.placeholder || `Enter ${currentField.label.toLowerCase()}`)}
                                   rows={3}
                                 />
                                 <p className="text-xs text-gray-500 mt-1">Separate multiple items with commas</p>
                               </div>
-                            ) : field.type === 'number' ? (
+                            ) : currentField.type === 'number' ? (
                               <input
                                 type="number"
                                 min="0"
@@ -1624,7 +1693,7 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
                                   setCategorySpecificData({...categorySpecificData, [key]: value});
                                 }}
                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+                                placeholder={currentField.placeholder || `Enter ${currentField.label.toLowerCase()}`}
                               />
                             ) : (
                               <input
@@ -1632,11 +1701,12 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
                                 value={categorySpecificData[key] || ''}
                                 onChange={(e) => setCategorySpecificData({...categorySpecificData, [key]: e.target.value})}
                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+                                placeholder={currentField.placeholder || `Enter ${currentField.label.toLowerCase()}`}
                               />
                             )}
                           </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -1656,6 +1726,32 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
 
                   {/* Tags and Featured Product removed per request */}
 
+                  {/* Validation Message */}
+                  {!isFormValid() && (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                      <p className="text-sm font-medium text-yellow-800 mb-2">
+                        Please complete all required fields to continue:
+                      </p>
+                      <ul className="text-xs text-yellow-700 space-y-1 list-disc list-inside">
+                        {formData.name.trim() === '' && <li>Product Name is required</li>}
+                        {formData.brand.trim() === '' && <li>Brand Name is required</li>}
+                        {formData.price <= 0 && <li>Selling Price must be greater than 0</li>}
+                        {formData.originalPrice <= 0 && <li>Original Price (MRP) must be greater than 0</li>}
+                        {formData.category === '' && <li>Category must be selected</li>}
+                        {formData.stock < 1 && <li>Stock Quantity must be at least 1</li>}
+                        {formData.image.trim() === '' && <li>At least one product image must be uploaded</li>}
+                        {(() => {
+                          const categoryFields = getCategorySpecificFields(formData.category, categorySpecificData);
+                          const hasSizesField = 'sizes' in categoryFields && categoryFields.sizes?.type === 'multi-select';
+                          const hasSizes = hasSizesField 
+                            ? (categorySpecificData.sizes && Array.isArray(categorySpecificData.sizes) && categorySpecificData.sizes.length > 0)
+                            : true;
+                          return hasSizesField && !hasSizes && <li>At least one size must be selected</li>;
+                        })()}
+                      </ul>
+                    </div>
+                  )}
+
                   <div className="flex justify-end space-x-4 pt-6 pb-8 border-t border-gray-200">
                     <Button
                       type="button"
@@ -1671,7 +1767,8 @@ const SellerProfilePage: React.FC<SellerProfilePageProps> = ({ currentUser, user
                     <Button
                       type="submit"
                       variant="primary"
-                      className="bg-green-600 hover:bg-green-700"
+                      className={`${!isFormValid() ? 'bg-gray-400 cursor-not-allowed hover:bg-gray-400 opacity-60' : 'bg-green-600 hover:bg-green-700'}`}
+                      disabled={!isFormValid()}
                     >
                       <Save className="w-4 h-4 mr-2" />
                       {editingProduct ? 'Update Product' : 'Add Product'}

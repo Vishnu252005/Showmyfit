@@ -14,12 +14,15 @@ import { getCurrentLocationWithDetails, sortStoresByDistance, parseAddressToCoor
 import { useWishlist } from '../contexts/WishlistContext';
 import { useSEO, SEOConfigs } from '../hooks/useSEO';
 import { preloadImage } from '../utils/imageOptimization';
+import OptimizedImage from '../components/common/OptimizedImage';
 import circleFashionImage from '../assets/images/banner/men/circle_fashion.jpg';
 import shoeImage from '../assets/images/shoe.jpg';
 import kidsImage from '../assets/images/kids.jpg';
 import accessoriesImage from '../assets/images/accessories .jpg';
 import sportsImage from '../assets/images/sports.jpg';
 import electronicsImage from '../assets/images/electronic .jpg';
+import menImage from '../assets/images/men.jpg';
+import womenImage from '../assets/images/woemn.jpg';
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -483,7 +486,7 @@ const HomePage: React.FC = () => {
     }
   };
 
-  // Render section background gradient based on type - Diwali Theme
+  // Render section background gradient based on type
   const getSectionGradient = (type: string) => {
     switch (type) {
       case 'featured':
@@ -518,13 +521,13 @@ const HomePage: React.FC = () => {
 
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 transition-all duration-1000 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+    <div className={`min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 transition-all duration-1000 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
       {/* Main Content */}
-      <div className="main-content pt-10 md:pt-12">
+      <div className="main-content pt-6 md:pt-12">
         {/* Plain Text Category Bar - Above Circular Categories */}
-        <section className="bg-white border-b border-gray-200 sticky top-0 z-20 shadow-sm">
-          <div className="max-w-7xl mx-auto px-3 md:px-4 py-3">
-            <div className="flex items-center space-x-4 md:space-x-6 overflow-x-auto scrollbar-hide">
+        <section className="bg-white/95 backdrop-blur-sm sticky top-0 z-20 border-b border-gray-100">
+          <div className="max-w-7xl mx-auto px-3 md:px-6 py-2 md:py-4">
+            <div className="flex items-center space-x-3 md:space-x-8 overflow-x-auto scrollbar-hide">
               {['All', 'Men', 'Women', 'Kids', 'Watches'].map((category) => (
                 <button
                   key={category}
@@ -540,26 +543,26 @@ const HomePage: React.FC = () => {
                       }, 100);
                     }
                   }}
-                  className={`relative flex-shrink-0 pb-2.5 px-3 md:px-4 font-semibold transition-all duration-300 whitespace-nowrap border-b-2 ${
+                  className={`relative flex-shrink-0 pb-2 md:pb-3 px-2 md:px-5 font-semibold text-xs md:text-base transition-all duration-300 whitespace-nowrap border-b-2 ${
                     selectedCategory === category
-                      ? 'text-red-600 border-red-600 scale-105' 
-                      : 'text-gray-700 hover:text-red-500 border-transparent hover:border-red-300'
+                      ? 'text-[#2874F0] border-[#2874F0] scale-105' 
+                      : 'text-gray-600 hover:text-[#2874F0] border-transparent hover:border-[#2874F0]/30'
                   }`}
                 >
                   {category}
                   {selectedCategory === category && (
-                    <span className="absolute -bottom-0.5 left-0 right-0 h-0.5 bg-red-600 rounded-full animate-pulse"></span>
+                    <span className="absolute -bottom-0.5 left-0 right-0 h-0.5 md:h-1 bg-gradient-to-r from-[#2874F0] to-[#3B82F6] rounded-full"></span>
                   )}
                 </button>
               ))}
               {/* Grid icon on the right */}
               <button
                 onClick={() => navigate('/categories')}
-                className="ml-auto flex-shrink-0 p-2 rounded-full text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200"
+                className="ml-auto flex-shrink-0 p-1.5 md:p-2.5 rounded-lg md:rounded-xl text-gray-500 hover:text-[#2874F0] hover:bg-blue-50 transition-all duration-200 active:scale-95"
                 title="View all categories"
                 aria-label="View all categories"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                   <path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
                 </svg>
               </button>
@@ -568,9 +571,9 @@ const HomePage: React.FC = () => {
         </section>
 
         {/* Mobile Category Bar Only */}
-        <section className="bg-white border-b border-gray-200 md:hidden">
-          <div className="max-w-7xl mx-auto px-3 py-2">
-            <div className="flex items-center space-x-6 overflow-x-auto scrollbar-hide pb-1">
+        <section className="bg-white/95 backdrop-blur-sm md:hidden py-2 md:py-4">
+          <div className="max-w-7xl mx-auto px-3 md:px-4">
+            <div className="flex items-center space-x-3 md:space-x-6 overflow-x-auto scrollbar-hide pb-1 md:pb-2">
               {[
                 { name: 'Fashion', image: circleFashionImage, color: 'bg-blue-100' },
                 { name: 'Kids', image: kidsImage, color: 'bg-yellow-100' },
@@ -583,19 +586,19 @@ const HomePage: React.FC = () => {
                 <button
                   key={index}
                   onClick={() => navigate(`/browse?category=${encodeURIComponent(category.name)}`)}
-                  className="flex flex-col items-center space-y-1 flex-shrink-0 group"
+                  className="flex flex-col items-center space-y-1 md:space-y-2 flex-shrink-0 group active:scale-95 transition-all duration-200"
                 >
-                  <div className={`w-20 h-20 rounded-full ${category.color} flex items-center justify-center group-hover:scale-110 transition-transform duration-200 overflow-hidden shadow-lg border-4 border-white`}>
+                  <div className={`w-16 h-16 md:w-24 md:h-24 rounded-xl md:rounded-2xl ${category.color} flex items-center justify-center group-hover:scale-110 transition-all duration-300 overflow-hidden shadow-sm md:shadow-md hover:shadow-xl border-2 border-white group-hover:border-[#2874F0]/30`}>
                     <img 
                       src={category.image} 
                       alt={category.name}
-                      className="w-full h-full object-cover rounded-full"
+                      className="w-full h-full object-cover rounded-xl md:rounded-2xl"
                       onError={(e) => {
                         e.currentTarget.src = 'https://via.placeholder.com/100x100';
                       }}
                     />
                   </div>
-                  <span className="text-sm text-gray-700 group-hover:text-blue-600 transition-colors font-semibold">{category.name}</span>
+                  <span className="text-[10px] md:text-sm text-gray-700 group-hover:text-[#2874F0] transition-colors font-medium md:font-semibold">{category.name}</span>
                 </button>
               ))}
             </div>
@@ -603,9 +606,9 @@ const HomePage: React.FC = () => {
         </section>
 
         {/* Enhanced Quick Category Bar - Desktop */}
-        <section className="bg-white border-b border-gray-200 hidden md:block">
-          <div className="max-w-7xl mx-auto px-4 py-2">
-            <div className="flex items-center space-x-10 overflow-x-auto scrollbar-hide pb-1">
+        <section className="bg-white/95 backdrop-blur-sm hidden md:block py-3">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="flex items-center space-x-8 md:space-x-10 overflow-x-auto scrollbar-hide pb-2">
               {[
                 { name: 'Fashion', image: circleFashionImage, color: 'bg-blue-100' },
                 { name: 'Kids', image: kidsImage, color: 'bg-yellow-100' },
@@ -618,19 +621,19 @@ const HomePage: React.FC = () => {
                 <button
                   key={index}
                   onClick={() => navigate(`/browse?category=${encodeURIComponent(category.name)}`)}
-                  className="flex flex-col items-center space-y-1 flex-shrink-0 group"
+                  className="flex flex-col items-center space-y-2 flex-shrink-0 group active:scale-95 transition-all duration-200"
                 >
-                  <div className={`w-24 h-24 rounded-full ${category.color} flex items-center justify-center group-hover:scale-110 transition-transform duration-200 overflow-hidden shadow-xl border-4 border-white`}>
+                  <div className={`w-24 h-24 rounded-2xl ${category.color} flex items-center justify-center group-hover:scale-110 transition-all duration-300 overflow-hidden shadow-lg hover:shadow-xl border-2 border-white group-hover:border-[#2874F0]/30`}>
                     <img 
                       src={category.image} 
                       alt={category.name}
-                      className="w-full h-full object-cover rounded-full"
+                      className="w-full h-full object-cover rounded-2xl"
                       onError={(e) => {
                         e.currentTarget.src = 'https://via.placeholder.com/120x120';
                       }}
                     />
                   </div>
-                  <span className="text-base text-gray-700 group-hover:text-blue-600 transition-colors font-semibold">{category.name}</span>
+                  <span className="text-sm md:text-base text-gray-700 group-hover:text-[#2874F0] transition-colors font-semibold">{category.name}</span>
                 </button>
               ))}
             </div>
@@ -644,25 +647,25 @@ const HomePage: React.FC = () => {
         {selectedCategory !== 'All' && (
           <div id="category-products-section" className="animate-fadeIn">
             {/* Banner for Category */}
-            <section className="relative bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 py-10 md:py-16 my-6 overflow-hidden">
+            <section className="relative bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 py-6 md:py-10 my-3 md:my-4 overflow-hidden">
               {/* Animated background elements */}
               <div className="absolute inset-0 opacity-20">
                 <div className="absolute top-0 left-0 w-72 h-72 bg-white rounded-full blur-3xl animate-pulse"></div>
                 <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse delay-1000"></div>
               </div>
               <div className="relative max-w-7xl mx-auto px-4 text-center">
-                <div className="inline-block mb-3">
+                <div className="inline-block mb-2">
                   <span className="bg-white/20 backdrop-blur-sm text-white px-4 py-1 rounded-full text-sm font-medium">
-                    🛍️ {filteredProducts.length} Products Available
+                    {filteredProducts.length} Products Available
                   </span>
                 </div>
-                <h2 className="text-3xl md:text-5xl font-bold text-white mb-3 drop-shadow-lg">
+                <h2 className="text-2xl md:text-4xl font-bold text-white mb-2 drop-shadow-lg">
                   Explore {selectedCategory} Collection
                 </h2>
-                <p className="text-blue-50 text-base md:text-lg max-w-2xl mx-auto">
+                <p className="text-blue-50 text-sm md:text-base max-w-2xl mx-auto">
                   Discover amazing {selectedCategory.toLowerCase()} products handpicked just for you
                 </p>
-                <div className="mt-6 flex justify-center">
+                <div className="mt-4 md:mt-5 flex justify-center">
                   <div className="flex space-x-2">
                     <div className="w-2 h-2 bg-white/50 rounded-full animate-bounce"></div>
                     <div className="w-2 h-2 bg-white/50 rounded-full animate-bounce [animation-delay:0.2s]"></div>
@@ -673,8 +676,8 @@ const HomePage: React.FC = () => {
             </section>
 
             {/* Filtered Products Grid */}
-            <section className="max-w-7xl mx-auto px-4 py-8">
-              <div className="flex items-center justify-between mb-6">
+            <section className="max-w-7xl mx-auto px-4 py-4 md:py-6">
+              <div className="flex items-center justify-between mb-4 md:mb-6">
                 <div>
                   <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">
                     {selectedCategory} Products
@@ -710,27 +713,25 @@ const HomePage: React.FC = () => {
                     return (
                       <div
                         key={product.id}
-                        className={`group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer border border-gray-200 hover:border-blue-400 transform hover:-translate-y-1 animate-fadeIn`}
+                        className={`group bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-gray-100 hover:border-[#2874F0]/30 transform hover:-translate-y-2 animate-fadeIn`}
                         onClick={() => navigate(`/product/${product.id}`)}
                       >
                         {/* Product Image */}
                         <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
-                          <img
+                          <OptimizedImage
                             src={product.image}
                             alt={product.name}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                            onError={(e) => {
-                              e.currentTarget.src = 'https://via.placeholder.com/300x300';
-                            }}
+                            className="w-full h-full group-hover:scale-110 transition-transform duration-500"
+                            loading="lazy"
                           />
                           {/* Discount Badge */}
                           {discount > 0 && (
-                            <div className="absolute top-3 left-3 bg-gradient-to-r from-red-500 to-orange-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg transform group-hover:scale-110 transition-transform">
-                              🎉 {discount}% OFF
+                            <div className="absolute top-2 md:top-3 left-2 md:left-3 bg-gradient-to-r from-red-500 to-orange-500 text-white px-2 md:px-3 py-1 md:py-1.5 rounded-full text-[10px] md:text-xs font-bold shadow-xl transform group-hover:scale-110 transition-transform z-10">
+                              {discount}% OFF
                             </div>
                           )}
                           {/* Category Badge */}
-                          <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-white px-2.5 py-1 rounded-lg text-xs font-medium">
+                          <div className="absolute top-2 md:top-3 right-2 md:right-3 bg-black/70 backdrop-blur-md text-white px-2 md:px-3 py-1 md:py-1.5 rounded-lg md:rounded-xl text-[10px] md:text-xs font-semibold shadow-lg">
                             {formatCategoryName(product.category)}
                           </div>
                           {/* Wishlist Button */}
@@ -753,12 +754,12 @@ const HomePage: React.FC = () => {
                                 });
                               }
                             }}
-                            className="absolute bottom-3 right-3 w-10 h-10 bg-white/95 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 group-hover:scale-110"
+                            className="absolute bottom-2 md:bottom-3 right-2 md:right-3 w-8 h-8 md:w-10 md:h-10 bg-white/95 hover:bg-white rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl transition-all duration-200 group-hover:scale-110 active:scale-95"
                             title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
                             aria-label={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
                           >
                             <Heart
-                              className={`w-5 h-5 transition-all ${
+                              className={`w-4 h-4 md:w-5 md:h-5 transition-all ${
                                 isInWishlist(product.id) ? 'text-red-500 fill-current animate-pulse' : 'text-gray-600 group-hover:text-red-500'
                               }`}
                             />
@@ -768,23 +769,11 @@ const HomePage: React.FC = () => {
                         </div>
 
                         {/* Product Info */}
-                        <div className="p-4">
-                          <h3 className="font-bold text-gray-900 text-sm line-clamp-2 mb-1.5 min-h-[2.5rem] group-hover:text-blue-600 transition-colors">
+                        <div className="p-2 md:p-4">
+                          <h3 className="font-bold text-gray-900 text-xs md:text-sm line-clamp-2 mb-1 md:mb-1.5 min-h-[2rem] md:min-h-[2.5rem] group-hover:text-blue-600 transition-colors">
                             {product.name}
                           </h3>
-                          <p className="text-xs text-gray-500 mb-3 font-medium">{product.brand}</p>
-
-                          {/* Price */}
-                          <div className="flex items-baseline space-x-2 mb-3">
-                            <span className="text-xl font-bold text-gray-900">
-                              ₹{product.price?.toLocaleString() || 0}
-                            </span>
-                            {product.originalPrice && product.originalPrice > product.price && (
-                              <span className="text-sm text-gray-400 line-through">
-                                ₹{product.originalPrice.toLocaleString()}
-                              </span>
-                            )}
-                          </div>
+                          <p className="text-[10px] md:text-xs text-gray-600 font-medium">{product.brand}</p>
 
                           {/* View Details Button */}
                           <button
@@ -792,7 +781,7 @@ const HomePage: React.FC = () => {
                               e.stopPropagation();
                               navigate(`/product/${product.id}`);
                             }}
-                            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2.5 rounded-lg text-sm font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+                            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-1.5 md:py-2.5 rounded-lg text-xs md:text-sm font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
                           >
                             View Details
                           </button>
@@ -807,19 +796,27 @@ const HomePage: React.FC = () => {
         )}
 
         {/* Featured Deals Section - Below Categories */}
-        <section className="bg-gradient-to-r from-orange-50 to-yellow-50 py-4 md:py-6">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl md:text-2xl font-bold text-gray-900">🔥 Today's Hot Deals</h2>
-              <button 
-                onClick={() => navigate('/browse')}
-                className="text-orange-600 text-sm font-medium hover:text-orange-700 transition-colors"
-              >
-                View All →
-              </button>
-          </div>
-            
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        <section className="py-3 md:py-4 px-4">
+          <div className="max-w-7xl mx-auto">
+            <div className="relative bg-gradient-to-br from-red-50 via-pink-50 to-rose-50 rounded-2xl p-4 md:p-6 shadow-lg border border-red-100/50">
+              {/* Decorative background pattern */}
+              <div className="absolute inset-0 opacity-20 overflow-hidden rounded-2xl">
+                <div className="absolute top-0 right-0 w-40 h-40 bg-red-200 rounded-full blur-3xl"></div>
+                <div className="absolute bottom-0 left-0 w-32 h-32 bg-pink-200 rounded-full blur-2xl"></div>
+              </div>
+              
+              <div className="relative">
+                <div className="flex items-center justify-between mb-3 md:mb-4">
+                  <h2 className="text-xl md:text-2xl font-bold text-red-900">Today's Hot Deals</h2>
+                  <button 
+                    onClick={() => navigate('/browse')}
+                    className="text-red-700 text-sm font-semibold hover:text-red-800 transition-colors bg-white/60 hover:bg-white/80 px-3 py-1.5 rounded-lg shadow-sm"
+                  >
+                    View All →
+                  </button>
+                </div>
+                
+                <div className="flex space-x-3 md:space-x-4 overflow-x-auto scrollbar-hide pb-2 gap-3">
               {[
                 {
                   id: 1,
@@ -827,7 +824,7 @@ const HomePage: React.FC = () => {
                   brand: 'Fashion Hub',
                   price: 899,
                   originalPrice: 1499,
-                  image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=300&h=300&fit=crop',
+                  image: menImage,
                   category: 'Men'
                 },
                 {
@@ -836,7 +833,7 @@ const HomePage: React.FC = () => {
                   brand: 'Style Queen',
                   price: 1299,
                   originalPrice: 2499,
-                  image: 'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=300&h=300&fit=crop',
+                  image: womenImage,
                   category: 'Women'
                 },
                 {
@@ -863,65 +860,48 @@ const HomePage: React.FC = () => {
                 return (
                   <div 
                     key={product.id}
-                    className="bg-white rounded-lg shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer border-2 border-orange-200 hover:border-orange-300"
+                    className="flex-shrink-0 w-[46%] min-w-[180px] md:w-72 bg-white rounded-xl md:rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer border border-orange-200 hover:border-orange-400 transform hover:-translate-y-1"
                     onClick={() => navigate('/browse')}
                   >
                     {/* Product Image */}
                     <div className="relative aspect-square overflow-hidden bg-gray-100">
-                      <img 
-                        src={product.image} 
+                      <OptimizedImage
+                        src={product.image}
                         alt={product.name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.currentTarget.src = 'https://via.placeholder.com/300x300';
-                        }}
+                        className="w-full h-full hover:scale-110 transition-transform duration-500"
+                        loading="lazy"
                       />
                       {/* Discount Badge */}
-                      <div className="absolute top-2 left-2 bg-gradient-to-r from-red-500 to-orange-500 text-white px-2 py-1 rounded text-xs font-bold shadow-md">
-                        🎉 {discount}% OFF
-                  </div>
+                      <div className="absolute top-2 left-2 bg-gradient-to-r from-red-500 to-orange-500 text-white px-2.5 py-1 rounded-full text-xs md:text-sm font-bold shadow-xl">
+                        {discount}% OFF
+                      </div>
                       {/* Category Badge */}
-                      <div className="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-xs font-medium">
+                      <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-md text-white px-2.5 py-1 rounded-xl text-xs font-semibold shadow-lg">
                         {product.category}
-                  </div>
-                </div>
+                      </div>
+                    </div>
 
                     {/* Product Info */}
-                    <div className="p-3">
-                      <h3 className="font-semibold text-gray-900 text-sm line-clamp-1 mb-1">
+                    <div className="p-3 md:p-4">
+                      <h3 className="font-bold text-gray-900 text-sm md:text-base line-clamp-2 mb-1.5">
                         {product.name}
                       </h3>
-                      <p className="text-xs text-gray-600 mb-2">{product.brand}</p>
-                      
-                      {/* Price */}
-                      <div className="flex items-center space-x-2">
-                        <span className="text-lg font-bold text-gray-900">₹{product.price.toLocaleString()}</span>
-                        <span className="text-sm text-gray-500 line-through">₹{product.originalPrice.toLocaleString()}</span>
-                      </div>
-                      
-                      {/* Quick Add Button */}
-                <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate('/browse');
-                        }}
-                        className="w-full mt-2 bg-gradient-to-r from-orange-500 to-red-500 text-white py-2 rounded-lg text-sm font-medium hover:from-orange-600 hover:to-red-600 transition-colors"
-                      >
-                        Quick View
-                </button>
-              </div>
-              </div>
+                      <p className="text-xs md:text-sm text-gray-600 font-semibold">{product.brand}</p>
+                    </div>
+                  </div>
                 );
               })}
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* Suggestions for You - Mobile Optimized */}
-        <section className="py-3 md:py-4 bg-gradient-to-r from-red-50 to-pink-50">
+        {/* Recommended for You - Mobile Optimized */}
+        <section className="py-2 md:py-3 bg-gradient-to-r from-red-50 to-pink-50">
           <div className="px-4">
-            <div className="flex items-center justify-between mb-3 md:mb-4">
-              <h2 className="text-lg md:text-xl font-bold text-gray-900">Suggestions for You</h2>
+            <div className="flex items-center justify-between mb-2 md:mb-3">
+              <h2 className="text-lg md:text-xl font-bold text-gray-900">Recommended for You</h2>
               <button 
                 onClick={() => navigate('/browse')}
                 className="text-blue-600 text-sm font-medium hover:text-blue-700 transition-colors"
@@ -945,18 +925,16 @@ const HomePage: React.FC = () => {
                       <div className="bg-white rounded-lg shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border-2 border-orange-200 hover:border-yellow-300">
                         {/* Product Image */}
                         <div className="relative aspect-square overflow-hidden bg-gray-100">
-                          <img 
-                            src={product.image || `https://images.unsplash.com/photo-${1500000000000 + index * 1000000}?w=300&h=300&fit=crop`} 
+                          <OptimizedImage
+                            src={product.image || `https://images.unsplash.com/photo-${1500000000000 + index * 1000000}?w=300&h=300&fit=crop`}
                             alt={product.name}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              e.currentTarget.src = `https://images.unsplash.com/photo-${1500000000000 + index * 1000000}?w=300&h=300&fit=crop`;
-                            }}
+                            className="w-full h-full"
+                            loading="lazy"
                           />
                           {/* Discount Badge */}
                           {discount > 0 && (
                             <div className="absolute top-1 left-1 bg-gradient-to-r from-red-500 to-orange-500 text-white px-1 py-0.5 rounded text-xs font-bold shadow-md">
-                              🎉 {discount}%
+                              {discount}% OFF
                             </div>
                           )}
                           {/* Wishlist Button */}
@@ -973,15 +951,7 @@ const HomePage: React.FC = () => {
                           <h3 className="text-xs font-semibold text-gray-900 line-clamp-1 mb-1">
                             {product.name}
                           </h3>
-                          <p className="text-xs text-gray-500 mb-1">{product.brand}</p>
-                          
-                          {/* Price */}
-                          <div className="flex items-center space-x-1">
-                            <span className="text-sm font-bold text-gray-900">₹{product.price}</span>
-                            {product.originalPrice && product.originalPrice > product.price && (
-                              <span className="text-xs text-gray-400 line-through">₹{product.originalPrice}</span>
-                            )}
-                          </div>
+                          <p className="text-xs text-gray-600 font-medium">{product.brand}</p>
                         </div>
                       </div>
                     </div>
@@ -1020,51 +990,130 @@ const HomePage: React.FC = () => {
           </div>
         </section>
 
-        {/* Diwali Mega Festival Sale Banner */}
-        <section className="bg-gradient-to-br from-orange-500 via-red-500 to-yellow-500 py-8 md:py-12 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-yellow-300/20 via-orange-300/20 to-red-300/20"></div>
-          {/* Diwali Sparkles */}
-          <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute top-10 left-10 w-4 h-4 bg-yellow-300 rounded-full animate-pulse"></div>
-            <div className="absolute top-20 right-20 w-3 h-3 bg-orange-300 rounded-full animate-pulse delay-1000"></div>
-            <div className="absolute bottom-20 left-20 w-5 h-5 bg-red-300 rounded-full animate-pulse delay-2000"></div>
-            <div className="absolute bottom-10 right-10 w-2 h-2 bg-yellow-400 rounded-full animate-pulse delay-500"></div>
-            <div className="absolute top-1/2 left-1/4 w-3 h-3 bg-orange-400 rounded-full animate-pulse delay-1500"></div>
-            <div className="absolute top-1/3 right-1/3 w-4 h-4 bg-red-400 rounded-full animate-pulse delay-3000"></div>
-          </div>
-          <div className="w-full px-4 md:px-8 relative">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-              <div className="flex-1 mb-6 md:mb-0 text-center md:text-left">
-                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-3 md:mb-6 leading-tight drop-shadow-lg">
-                  🪔 DIWALI MEGA FESTIVAL SALE 🪔
-                </h1>
-                <p className="text-lg sm:text-xl md:text-2xl text-white/95 mb-3 md:mb-4 leading-relaxed drop-shadow-md">
-                  ✨ Celebrate with Amazing Deals on Fashion, Electronics & More ✨
-                </p>
-                <p className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-4 md:mb-5">Up to 70% OFF</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 mb-4 md:mb-6 max-w-md mx-auto md:mx-0">
-                  <div className="bg-white/20 backdrop-blur-sm px-4 py-3 md:px-6 md:py-4 rounded-xl border border-white/30">
-                    <p className="text-xs md:text-sm font-bold text-white">FREE DELIVERY</p>
-                    <p className="text-xs text-white/80">On orders above ₹999</p>
-                  </div>
-                  <div className="bg-white/20 backdrop-blur-sm px-4 py-3 md:px-6 md:py-4 rounded-xl border border-white/30">
-                    <p className="text-xs md:text-sm font-bold text-white">NEARBY STORES</p>
-                    <p className="text-xs text-white/80">Support your neighborhood</p>
-                  </div>
-                </div>
-                <button 
-                  onClick={() => navigate('/browse')}
-                  className="bg-white text-purple-600 px-6 py-3 md:px-8 md:py-4 rounded-xl font-bold text-base md:text-lg hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 w-full sm:w-auto mb-2"
-                >
-                  Shop Now
-                </button>
+        {/* Advertisement Banner - Category Grid */}
+        <section className="py-3 md:py-4 px-4">
+          <div className="max-w-7xl mx-auto">
+            <div className="relative bg-gradient-to-br from-[#0B1426] via-[#1a2332] to-[#0F172A] rounded-2xl overflow-hidden border-2 border-yellow-500/40 shadow-2xl shadow-yellow-500/10">
+              {/* Decorative Gold Border Pattern */}
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-yellow-400/80 to-transparent"></div>
+              
+              {/* Animated Background Pattern */}
+              <div className="absolute inset-0 opacity-10">
+                <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(234,179,8,0.3),transparent_70%)]"></div>
               </div>
-              <div className="hidden md:block">
-                <img 
-                  src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=500&h=400&fit=crop" 
-                  alt="Shopping"
-                  className="w-96 h-80 object-cover rounded-2xl shadow-2xl"
-                />
+              
+              {/* Header */}
+              <div className="relative px-4 md:px-6 py-3 md:py-4 text-center border-b border-yellow-500/30 bg-gradient-to-r from-yellow-500/5 via-transparent to-yellow-500/5">
+                <h2 className="text-xl md:text-2xl font-extrabold text-white mb-1 tracking-wider drop-shadow-lg">
+                  <span className="bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 bg-clip-text text-transparent">
+                    WARDROBE WINNERS
+                  </span>
+                </h2>
+                <p className="text-yellow-300 text-xs md:text-sm font-semibold tracking-wide">Picks Louder Than Patakas</p>
+              </div>
+
+              {/* Category Grid */}
+              <div className="relative p-3 md:p-4 space-y-4">
+                {/* First Row */}
+                <div className="flex space-x-3 md:space-x-4 overflow-x-auto scrollbar-hide pb-1 scroll-smooth">
+                  {[
+                    { name: 'JEANS', offer: 'UNDER ₹1199*', image: 'https://images.unsplash.com/photo-1542272604-787c3835535d?w=300&h=300&fit=crop', category: 'men' },
+                    { name: 'SPORTS', offer: 'MIN. 40%', image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&h=300&fit=crop', category: 'footwear' },
+                    { name: 'TOPS', offer: 'UNDER ₹599*', image: 'https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=300&h=300&fit=crop', category: 'women' },
+                    { name: 'SWEATS', offer: '40-70%', image: 'https://images.unsplash.com/photo-1521223890158-f9f7c3d5d504?w=300&h=300&fit=crop', category: 'sportswear' },
+                    { name: 'SAREES', offer: 'MIN. 60% OFF*', image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=300&h=300&fit=crop', category: 'women' },
+                    { name: 'KIDS WESTERNWEAR', offer: 'MIN. 50% OFF*', image: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=300&h=300&fit=crop', category: 'kids' },
+                    { name: 'KIDS ETHNICWEAR', offer: 'MIN. 50% OFF*', image: 'https://images.unsplash.com/photo-1515488042361-ee00e0dbc4ca?w=300&h=300&fit=crop', category: 'kids' },
+                    { name: 'MATERNITY', offer: 'MIN 40%', image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=300&h=300&fit=crop', category: 'women' },
+                  ].map((item, index) => (
+                    <div
+                      key={index}
+                      onClick={() => navigate(`/browse?category=${item.category}`)}
+                      className="flex-shrink-0 w-32 md:w-36 relative group cursor-pointer"
+                    >
+                      <div className="relative bg-gradient-to-br from-[#1a2332] via-[#1e293b] to-[#0B1426] rounded-xl border-2 border-yellow-500/50 overflow-hidden transition-all duration-300 hover:border-yellow-400 hover:shadow-xl hover:shadow-yellow-500/30 hover:-translate-y-1">
+                        {/* Gold Corner Accents */}
+                        <div className="absolute top-0 left-0 w-4 h-4 bg-gradient-to-br from-yellow-400/80 to-transparent opacity-70 z-10"></div>
+                        <div className="absolute top-0 right-0 w-4 h-4 bg-gradient-to-bl from-yellow-400/80 to-transparent opacity-70 z-10"></div>
+                        
+                        {/* Product Image */}
+                        <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-gray-900 to-gray-800">
+                          <img 
+                            src={item.image}
+                            alt={item.name}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            onError={(e) => {
+                              e.currentTarget.src = 'https://via.placeholder.com/300x300';
+                            }}
+                          />
+                          {/* Overlay on hover */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        </div>
+                        
+                        {/* Category Info */}
+                        <div className="p-2.5 md:p-3 text-center bg-gradient-to-b from-[#1a2332] to-[#0B1426]">
+                          <h3 className="text-xs md:text-sm font-bold text-white mb-1 uppercase tracking-wider line-clamp-1 group-hover:text-yellow-300 transition-colors">
+                            {item.name}
+                          </h3>
+                          <p className="text-yellow-400 text-xs font-bold tracking-wide group-hover:text-yellow-300 transition-colors">
+                            {item.offer}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Second Row */}
+                <div className="flex space-x-3 md:space-x-4 overflow-x-auto scrollbar-hide pb-1 scroll-smooth">
+                  {[
+                    { name: 'SHOES', offer: 'UP TO 50% OFF', image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&h=300&fit=crop', category: 'footwear' },
+                    { name: 'DRESSES', offer: 'UNDER ₹1499*', image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=300&h=300&fit=crop', category: 'women' },
+                    { name: 'SHIRTS', offer: 'UNDER ₹999*', image: 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=300&h=300&fit=crop', category: 'men' },
+                    { name: 'BAGS', offer: 'MIN. 40% OFF*', image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=300&h=300&fit=crop', category: 'accessories' },
+                    { name: 'WATCHES', offer: 'UP TO 60% OFF', image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=300&fit=crop', category: 'watches' },
+                    { name: 'JEWELLERY', offer: 'MIN. 50% OFF*', image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=300&h=300&fit=crop', category: 'jewellery' },
+                    { name: 'BEAUTY', offer: 'BUY 1 GET 1', image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=300&h=300&fit=crop', category: 'beauty' },
+                    { name: 'ACCESSORIES', offer: 'UNDER ₹499*', image: 'https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=300&h=300&fit=crop', category: 'accessories' },
+                    { name: 'PERFUMES', offer: 'UP TO 40% OFF', image: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=300&h=300&fit=crop', category: 'fragrances' },
+                  ].map((item, index) => (
+                    <div
+                      key={index}
+                      onClick={() => navigate(`/browse?category=${item.category}`)}
+                      className="flex-shrink-0 w-32 md:w-36 relative group cursor-pointer"
+                    >
+                      <div className="relative bg-gradient-to-br from-[#1a2332] via-[#1e293b] to-[#0B1426] rounded-xl border-2 border-yellow-500/50 overflow-hidden transition-all duration-300 hover:border-yellow-400 hover:shadow-xl hover:shadow-yellow-500/30 hover:-translate-y-1">
+                        {/* Gold Corner Accents */}
+                        <div className="absolute top-0 left-0 w-4 h-4 bg-gradient-to-br from-yellow-400/80 to-transparent opacity-70 z-10"></div>
+                        <div className="absolute top-0 right-0 w-4 h-4 bg-gradient-to-bl from-yellow-400/80 to-transparent opacity-70 z-10"></div>
+                        
+                        {/* Product Image */}
+                        <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-gray-900 to-gray-800">
+                          <img 
+                            src={item.image}
+                            alt={item.name}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            onError={(e) => {
+                              e.currentTarget.src = 'https://via.placeholder.com/300x300';
+                            }}
+                          />
+                          {/* Overlay on hover */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        </div>
+                        
+                        {/* Category Info */}
+                        <div className="p-2.5 md:p-3 text-center bg-gradient-to-b from-[#1a2332] to-[#0B1426]">
+                          <h3 className="text-xs md:text-sm font-bold text-white mb-1 uppercase tracking-wider line-clamp-1 group-hover:text-yellow-300 transition-colors">
+                            {item.name}
+                          </h3>
+                          <p className="text-yellow-400 text-xs font-bold tracking-wide group-hover:text-yellow-300 transition-colors">
+                            {item.offer}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -1072,9 +1121,9 @@ const HomePage: React.FC = () => {
 
         {/* Dynamic Admin-Managed Sections */}
         {loadingSections ? (
-          <section className="py-12 md:py-16 bg-gradient-to-br from-gray-50 to-white">
+          <section className="py-6 md:py-10 bg-gradient-to-br from-gray-50 to-white">
             <div className="max-w-7xl mx-auto px-3 md:px-4">
-              <div className="text-center py-8">
+              <div className="text-center py-4 md:py-6">
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mb-4">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
                 </div>
@@ -1110,122 +1159,89 @@ const HomePage: React.FC = () => {
             }
             
             return (
-              <section key={section.id} className={section.type === 'trending' ? 'py-4 md:py-6 bg-gradient-to-r from-orange-500 to-red-500' : 'py-6 bg-gradient-to-br from-yellow-50 via-orange-50 to-red-50'}>
-                <div className={section.type === 'trending' ? 'px-4' : 'max-w-7xl mx-auto px-4'}>
-                  {section.type === 'trending' ? (
-                    <div className="flex items-center justify-between mb-3 md:mb-4">
-                      <h2 className="text-lg md:text-xl font-bold text-white">{section.title}</h2>
-                      <div className="bg-white bg-opacity-20 px-3 py-1 rounded-full">
-                        <span className="text-white text-sm font-medium">HOT</span>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="mb-4">
-                      <h2 className="text-lg md:text-xl font-bold text-gray-900 text-center">🪔 {section.title} 🪔</h2>
+              <section key={section.id} className="py-3 md:py-4 px-4">
+                <div className="max-w-7xl mx-auto">
+                  <div className="relative bg-gradient-to-br from-blue-50 via-sky-50 to-blue-100 rounded-2xl overflow-hidden shadow-lg border border-blue-200/50">
+                    {/* Header */}
+                    <div className="px-4 md:px-6 py-3 md:py-4 text-left">
+                      <h2 className="text-xl md:text-2xl font-extrabold text-gray-900 mb-1 tracking-wide">
+                        {section.title}
+                      </h2>
                       {section.subtitle && (
-                        <p className="text-gray-600 text-sm text-center mt-1">{section.subtitle}</p>
+                        <p className="text-gray-600 text-sm md:text-base font-medium mt-1">{section.subtitle}</p>
                       )}
                     </div>
-                  )}
-                  
-                  <div className={section.type === 'trending' ? 'grid grid-cols-2 gap-3' : 'flex space-x-3 overflow-x-auto scrollbar-hide pb-2'}>
-                      {sectionProducts.map((product) => (
-                        <div 
-                          key={product.id} 
-                          className={`${section.type === 'trending' ? 'bg-white rounded-lg p-3 hover:shadow-lg transition-shadow touch-manipulation border-2 border-red-200' : 'flex-shrink-0 w-32 bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border-2 border-orange-200 hover:border-yellow-300'} cursor-pointer`}
-                          onClick={() => handleProductClick(product.id)}
-                        >
-                          {section.type === 'trending' ? (
-                            // Trending section style (same as hardcoded trending deals)
-                            <>
-                              <div className="relative mb-3">
-                                <img 
-                                  src={product.image} 
-                                  alt={product.name}
-                                  className="w-full h-28 object-cover rounded"
-                                />
-                                <div className="absolute top-2 left-2 bg-gradient-to-r from-orange-500 to-yellow-500 text-white px-2 py-1 rounded text-xs font-bold shadow-md">
-                                  🔥 Trending
-                                </div>
-                                <div className="absolute top-2 right-2 bg-gradient-to-r from-red-500 to-orange-500 text-white px-2 py-1 rounded text-xs font-bold shadow-md">
-                                  {section.discountPercentage ? `🎉 ${section.discountPercentage}% OFF` : '🔥 HOT'}
-                                </div>
-                              </div>
-                              <h3 className="font-semibold text-gray-900 text-sm md:text-base mb-2">{product.name}</h3>
-                              {product.sellerName && (
-                                <p className="text-xs text-blue-600 font-medium mb-2">by {product.sellerName}</p>
-                              )}
-                              <div className="flex items-center space-x-2">
-                                <span className="text-lg md:text-xl font-bold text-gray-900">₹{calculateDiscountedPrice(product, section).toLocaleString()}</span>
-                                {product.originalPrice && product.originalPrice > product.price && (
-                                  <span className="text-sm text-gray-500 line-through">₹{product.originalPrice.toLocaleString()}</span>
-                                )}
-                                {calculateDiscountedPrice(product, section) < product.price && (
-                                  <span className="text-sm text-gray-500 line-through">₹{product.price.toLocaleString()}</span>
-                                )}
-                              </div>
-                              <button 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  navigate('/browse');
-                                }}
-                                className="w-full mt-3 bg-orange-500 text-white py-2 rounded-lg font-medium hover:bg-orange-600 transition-colors"
-                              >
-                                Shop Now
-                              </button>
-                            </>
-                          ) : (
-                            <>
-                              {/* Product Image */}
-                              <div className="relative aspect-square overflow-hidden bg-gray-100">
-                                <img 
-                                  src={product.image || `https://images.unsplash.com/photo-${1500000000000 + Math.random() * 1000000}?w=300&h=300&fit=crop`} 
-                                  alt={product.name}
-                                  className="w-full h-full object-cover"
-                                  onError={(e) => {
-                                    e.currentTarget.src = `https://images.unsplash.com/photo-${1500000000000 + Math.random() * 1000000}?w=300&h=300&fit=crop`;
-                                  }}
-                                />
-                              
-                                {/* Discount Badge */}
-                                {product.originalPrice && product.originalPrice > product.price && (
-                                  <div className="absolute top-1 left-1 bg-gradient-to-r from-red-500 to-orange-500 text-white px-1 py-0.5 rounded text-xs font-bold shadow-md">
-                                    🎉 {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
-                                  </div>
-                                )}
-                                {/* Wishlist Button */}
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    toggleWishlist(product);
-                                  }}
-                                  className="absolute top-1 right-1 p-1 bg-white rounded-full shadow-md hover:shadow-lg transition-all"
-                                  aria-label={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
-                                >
-                                  <Heart className={`w-3 h-3 ${
-                                    isInWishlist(product.id) ? 'text-red-500 fill-current' : 'text-gray-600'
-                                  }`} />
-                                </button>
-                              </div>
 
-                              
-                              {/* Product Info */}
-                              <div className="p-2">
-                                <h3 className="font-semibold text-gray-900 text-xs line-clamp-1 mb-1">
-                                  {product.name}
-                                </h3>
-                                <p className="text-xs text-gray-600 mb-1">{product.brand}</p>
-                                <div className="flex items-center justify-between">
-                                  <span className="text-sm font-bold text-gray-900">₹{product.price.toLocaleString()}</span>
-                                  {product.originalPrice && product.originalPrice > product.price && (
-                                    <span className="text-xs text-gray-500 line-through">₹{product.originalPrice.toLocaleString()}</span>
+                    {/* Product Grid */}
+                    <div className="px-3 md:px-4 pb-3 md:pb-4">
+                      <div className="flex space-x-3 md:space-x-4 overflow-x-auto scrollbar-hide pb-1 scroll-smooth">
+                        {sectionProducts.map((product) => {
+                          const originalPrice = product.originalPrice || product.price * 1.5;
+                          const discount = product.originalPrice && product.originalPrice > product.price 
+                            ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100) 
+                            : section.discountPercentage || 0;
+                          const displayPrice = product.price || product.sellingPrice || 0;
+                          
+                          return (
+                            <div 
+                              key={product.id} 
+                              className="flex-shrink-0 w-36 md:w-44 relative group cursor-pointer"
+                              onClick={() => handleProductClick(product.id)}
+                            >
+                              <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 hover:border-blue-300 hover:-translate-y-1">
+                                {/* Product Image */}
+                                <div className="relative aspect-square overflow-hidden bg-gray-100">
+                                  <OptimizedImage
+                                    src={product.image || `https://images.unsplash.com/photo-${1500000000000 + Math.random() * 1000000}?w=300&h=300&fit=crop`}
+                                    alt={product.name}
+                                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                    loading="lazy"
+                                  />
+                                  
+                                  {/* Discount Badge */}
+                                  {discount > 0 && (
+                                    <div className="absolute top-2 left-2 bg-gradient-to-r from-red-500 to-orange-500 text-white px-2 py-1 rounded-lg text-xs font-bold shadow-md">
+                                      {discount}% OFF
+                                    </div>
+                                  )}
+                                  
+                                  {/* Wishlist Button */}
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toggleWishlist(product);
+                                    }}
+                                    className="absolute top-2 right-2 p-1.5 bg-white/90 hover:bg-white rounded-full shadow-sm transition-all"
+                                    aria-label={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                                  >
+                                    <Heart className={`w-4 h-4 ${
+                                      isInWishlist(product.id) ? 'text-red-500 fill-current' : 'text-gray-600'
+                                    }`} />
+                                  </button>
+                                </div>
+                                
+                                {/* Product Info */}
+                                <div className="p-3 md:p-4">
+                                  <h3 className="font-bold text-gray-900 text-sm md:text-base line-clamp-2 mb-2 group-hover:text-blue-600 transition-colors">
+                                    {product.name}
+                                  </h3>
+                                  {product.brand && (
+                                    <p className="text-xs md:text-sm text-gray-600 font-medium mb-2">
+                                      {product.brand}
+                                    </p>
+                                  )}
+                                  {displayPrice > 0 && (
+                                    <p className="text-base md:text-lg font-bold text-gray-900">
+                                      From ₹{displayPrice.toLocaleString()}*
+                                    </p>
                                   )}
                                 </div>
                               </div>
-                            </>
-                          )}
-                        </div>
-                      ))}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </section>
@@ -1254,11 +1270,12 @@ const HomePage: React.FC = () => {
                   
                   return (
                     <div key={product.id || index} className="flex-shrink-0 bg-white border border-gray-200 rounded-lg p-3 w-40 md:w-48 hover:shadow-lg transition-shadow touch-manipulation cursor-pointer" onClick={() => handleProductClick(product.id)}>
-                      <div className="relative mb-3">
-                        <img 
-                          src={product.image || product.imageUrl || `https://images.unsplash.com/photo-${1500000000000 + index * 1000000}?w=200&h=200&fit=crop`} 
+                      <div className="relative mb-3 h-24 md:h-32">
+                        <OptimizedImage
+                          src={product.image || product.imageUrl || `https://images.unsplash.com/photo-${1500000000000 + index * 1000000}?w=200&h=200&fit=crop`}
                           alt={product.name}
-                          className="w-full h-24 md:h-32 object-cover rounded"
+                          className="w-full h-full rounded"
+                          loading="lazy"
                         />
                         {discount > 0 && (
                           <div className="absolute top-1 right-1 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
@@ -1273,12 +1290,9 @@ const HomePage: React.FC = () => {
                       {product.sellerName && (
                         <p className="text-xs text-blue-600 font-medium mb-1">by {product.sellerName}</p>
                       )}
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm md:text-lg font-bold text-blue-600">₹{product.price?.toLocaleString() || '0'}</span>
-                        {originalPrice > product.price && (
-                          <span className="text-xs text-gray-500 line-through">₹{originalPrice.toLocaleString()}</span>
-                        )}
-                      </div>
+                      {product.brand && (
+                        <p className="text-xs text-gray-600 font-medium">{product.brand}</p>
+                      )}
                     </div>
                   );
                 })
@@ -1317,19 +1331,21 @@ const HomePage: React.FC = () => {
                       className="flex-shrink-0 bg-gray-50 rounded-lg p-3 w-32 md:w-40 hover:bg-gray-100 transition-colors touch-manipulation cursor-pointer"
                       onClick={() => handleProductClick(product.id)}
                     >
-                      <img 
-                        src={product.image || `https://images.unsplash.com/photo-${1500000000000 + index * 1000000}?w=150&h=150&fit=crop`} 
-                        alt={product.name}
-                        className="w-full h-20 md:h-24 object-cover rounded mb-2"
-                        onError={(e) => {
-                          e.currentTarget.src = `https://images.unsplash.com/photo-${1500000000000 + index * 1000000}?w=150&h=150&fit=crop`;
-                        }}
-                      />
+                      <div className="w-full h-20 md:h-24 mb-2">
+                        <OptimizedImage
+                          src={product.image || `https://images.unsplash.com/photo-${1500000000000 + index * 1000000}?w=150&h=150&fit=crop`}
+                          alt={product.name}
+                          className="w-full h-full rounded"
+                          loading="lazy"
+                        />
+                      </div>
                       <h3 className="font-medium text-gray-900 text-xs mb-1 line-clamp-2">{product.name}</h3>
                       {product.sellerName && (
                         <p className="text-xs text-blue-600 font-medium mb-1">by {product.sellerName}</p>
                       )}
-                      <p className="text-sm font-bold text-blue-600 mb-1">₹{product.price?.toLocaleString() || '0'}</p>
+                      {product.brand && (
+                        <p className="text-xs text-gray-600 font-medium mb-1">{product.brand}</p>
+                      )}
                       <p className="text-xs text-gray-500">{timeLabels[index] || 'Recently'}</p>
                     </div>
                   );
@@ -1415,88 +1431,113 @@ const HomePage: React.FC = () => {
         )}
 
         {/* Featured Nearby Stores - Real Sellers */}
-        <section className="py-12 bg-gradient-to-br from-blue-50 to-indigo-100">
+        <section className="py-4 md:py-6 bg-gradient-to-br from-blue-50 to-indigo-100">
           <div className="max-w-7xl mx-auto px-4">
-            <div className="text-center mb-12">
-              <div className="flex items-center justify-center space-x-3 mb-4">
-                <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
-                  <div className="text-white text-xl">🏠</div>
+            <div className="text-left mb-4 md:mb-6">
+              <div className="flex items-center space-x-2 mb-2">
+                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                  <div className="text-white text-sm">🏠</div>
                 </div>
-                <h2 className="text-3xl font-bold text-gray-900">
+                <h2 className="text-xl md:text-2xl font-bold text-gray-900">
                   {showNearbyStores ? 'All Nearby Stores' : 'Featured Nearby Stores'}
                 </h2>
-                </div>
-              <p className="text-gray-600 text-lg">Discover amazing stores and their products</p>
               </div>
+              <p className="text-gray-600 text-sm md:text-base ml-10">Discover amazing stores and their products</p>
+            </div>
 
             {loadingSellers ? (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+              <div className="flex justify-center py-6">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
               </div>
             ) : sellers.length === 0 ? (
-              <div className="text-center py-8">
-                <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No stores found</h3>
-                <p className="text-gray-600">No approved stores are available at the moment.</p>
+              <div className="text-center py-6">
+                <Package className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                <h3 className="text-base font-semibold text-gray-900 mb-1">No stores found</h3>
+                <p className="text-sm text-gray-600">No approved stores are available at the moment.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-3 md:gap-4">
-                {(showNearbyStores ? sellers.filter(seller => !nearbyStores.some(nearby => nearby.id === seller.id)) : sellers).map((seller) => (
-                  <div key={seller.id} className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 h-full flex flex-col" onClick={() => viewSellerProducts(seller)}>
-                    {/* Large Profile Picture Header - match Explore style */}
-                    <div className="relative h-24 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-start px-3">
-                      <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-xl border-4 border-white overflow-hidden">
-                        <span className="text-lg font-bold text-gray-700">{seller.businessName.charAt(0).toUpperCase()}</span>
-                      </div>
-                      <div className="ml-3 text-white">
-                        <h3 className="text-sm font-bold line-clamp-1">{seller.businessName}</h3>
-                        <p className="text-xs opacity-90 line-clamp-1">{seller.businessType}</p>
-                      </div>
-                      {/* Status Badge */}
-                      <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-medium text-green-700">Active</div>
-                    </div>
-
-                    {/* Store Info */}
-                    <div className="p-3 flex-1 flex flex-col justify-between">
-                      <div className="space-y-2">
-                        <div className="flex items-start space-x-2">
-                          <MapPin className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                          <p className="text-xs text-gray-600 line-clamp-2">{seller.address}</p>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+                {(showNearbyStores ? sellers.filter(seller => !nearbyStores.some(nearby => nearby.id === seller.id)) : sellers).slice(0, 4).map((seller) => {
+                  // Calculate distance if location is available
+                  let distance: number | undefined = undefined;
+                  if (currentLocation && seller.location && seller.location.latitude && seller.location.longitude) {
+                    // Use sortStoresByDistance logic if available
+                    if (seller.distance !== undefined) {
+                      distance = seller.distance;
+                    }
+                  }
+                  
+                  // Get product count
+                  const productCount = seller.stats?.totalProducts || 0;
+                  
+                  return (
+                    <div 
+                      key={seller.id} 
+                      className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 md:p-4 hover:shadow-md transition-all duration-300 cursor-pointer"
+                      onClick={() => viewSellerProducts(seller)}
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-sm md:text-base font-semibold text-gray-900 mb-1.5 line-clamp-1">
+                            {seller.businessName}
+                          </h3>
+                          <div className="flex items-start text-gray-600 text-xs mb-1.5">
+                            <MapPin className="w-3 h-3 mr-1 mt-0.5 flex-shrink-0" />
+                            <span className="line-clamp-2">{seller.address}</span>
+                          </div>
+                          <div className="flex items-center text-gray-600 text-xs">
+                            <Phone className="w-3 h-3 mr-1 flex-shrink-0" />
+                            <span className="truncate">{seller.phone}</span>
+                          </div>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <Phone className="w-4 h-4 text-green-600 flex-shrink-0" />
-                          <a href={`tel:${seller.phone}`} onClick={(e)=>e.stopPropagation()} className="text-xs text-gray-600 hover:text-blue-600 transition-colors">{seller.phone}</a>
+                        
+                        {distance !== undefined && (
+                          <div className="text-right ml-2 flex-shrink-0">
+                            <span className="text-sm md:text-base font-bold text-green-600">
+                              {distance.toFixed(1)}km
+                            </span>
+                            <p className="text-[10px] text-gray-500">away</p>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                        <div className="flex items-center text-gray-600 text-xs">
+                          <Package className="w-3 h-3 mr-1" />
+                          <span>{productCount}</span>
+                        </div>
+                        
+                        <div className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
+                          true // seller is approved (already filtered)
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          Active
                         </div>
                       </div>
-
-                      <div className="mt-3">
-                        <button className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-2 rounded-lg text-xs font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-200 flex items-center justify-center shadow-md hover:shadow-lg">
-                          View Store
-                        </button>
-                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
             {/* View All Stores Button */}
-            <div className="text-center mt-8">
+            <div className="text-center mt-4 md:mt-6">
               {showNearbyStores ? (
                 <button 
                   onClick={() => setShowNearbyStores(false)}
-                  className="inline-flex items-center space-x-2 bg-white text-blue-600 border-2 border-blue-600 py-3 px-8 rounded-xl font-semibold hover:bg-blue-50 transition-colors"
+                  className="inline-flex items-center space-x-2 bg-white text-blue-600 border-2 border-blue-600 py-2 px-6 rounded-lg text-sm font-semibold hover:bg-blue-50 transition-colors"
                 >
                   <span>Show All Stores</span>
-                  <ArrowRight className="w-5 h-5" />
+                  <ArrowRight className="w-4 h-4" />
                 </button>
               ) : (
                 <button 
                   onClick={() => navigate('/browse')}
-                  className="inline-flex items-center space-x-2 bg-white text-blue-600 border-2 border-blue-600 py-3 px-8 rounded-xl font-semibold hover:bg-blue-50 transition-colors"
+                  className="inline-flex items-center space-x-2 bg-white text-blue-600 border-2 border-blue-600 py-2 px-6 rounded-lg text-sm font-semibold hover:bg-blue-50 transition-colors"
                 >
                   <span>View All Stores</span>
-                  <ArrowRight className="w-5 h-5" />
+                  <ArrowRight className="w-4 h-4" />
                 </button>
               )}
             </div>
@@ -1524,11 +1565,12 @@ const HomePage: React.FC = () => {
             </div>
 
             <div className="grid md:grid-cols-2 gap-8">
-              <div>
-                <img
+              <div className="h-96">
+                <OptimizedImage
                   src={selectedProduct.image}
                   alt={selectedProduct.name}
-                  className="w-full h-96 object-cover rounded-xl"
+                  className="w-full h-full rounded-xl"
+                  loading="eager"
                 />
                     </div>
 

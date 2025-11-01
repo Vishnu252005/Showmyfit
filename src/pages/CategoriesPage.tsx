@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import Navbar from '../components/layout/Navbar';
 import ReserveButton from '../components/common/ReserveButton';
+import OptimizedImage from '../components/common/OptimizedImage';
 import { collection, query, getDocs, where, orderBy } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { useCart } from '../contexts/CartContext';
@@ -280,11 +281,12 @@ const CategoriesPage: React.FC = () => {
                     className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-gray-200 cursor-pointer"
                     onClick={() => handleProductClick(product.id)}
                   >
-                    <div className="relative">
-                      <img
+                    <div className="relative h-40">
+                      <OptimizedImage
                         src={product.image}
                         alt={product.name}
-                        className="w-full h-40 object-cover"
+                        className="w-full h-full"
+                        loading="lazy"
                       />
                       
                       {/* Badges */}

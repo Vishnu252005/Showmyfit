@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Mail, Lock, User, Phone, MapPin, ArrowLeft, Store } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, Phone, ArrowLeft, Store } from 'lucide-react';
 import Navbar from '../../components/layout/Navbar';
 import Button from '../../components/ui/Button';
 import { useAuth } from '../../contexts/AuthContext';
@@ -15,8 +15,7 @@ const AuthPage: React.FC = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    phone: '',
-    address: ''
+    phone: ''
   });
 
   const navigate = useNavigate();
@@ -48,7 +47,7 @@ const AuthPage: React.FC = () => {
         }
 
         // Handle signup
-        await signUp(formData.email, formData.password, formData.name, 'user', formData.phone, formData.address);
+        await signUp(formData.email, formData.password, formData.name, 'user', formData.phone);
         navigate('/profile');
       }
     } catch (error: any) {
@@ -67,8 +66,7 @@ const AuthPage: React.FC = () => {
       email: '',
       password: '',
       confirmPassword: '',
-      phone: '',
-      address: ''
+      phone: ''
     });
   };
 
@@ -188,27 +186,6 @@ const AuthPage: React.FC = () => {
                         required={!isLogin}
                         className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder="Enter your phone number"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* Address Field (Signup only) */}
-                {!isLogin && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Address
-                    </label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                      <input
-                        type="text"
-                        name="address"
-                        value={formData.address}
-                        onChange={handleInputChange}
-                        required={!isLogin}
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Enter your address"
                       />
                     </div>
                   </div>

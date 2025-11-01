@@ -159,7 +159,7 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
   // Don't render if auth is still loading
   if (loading) {
     return (
-      <nav className="fixed top-0 left-0 right-0 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 z-40 shadow-lg">
+      <nav className="fixed top-0 left-0 right-0 bg-gradient-to-b from-blue-700 to-blue-400 z-40 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
@@ -176,43 +176,35 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
   if (userRole === 'user') {
     return (
       <>
-        {/* Top Navigation Bar - Diwali Festival Design */}
-        <nav className="fixed top-0 left-0 right-0 bg-gradient-to-r from-orange-500 via-red-500 to-yellow-500 z-40 shadow-lg">
-          {/* Diwali Sparkles */}
-          <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute top-2 left-20 w-2 h-2 bg-yellow-300 rounded-full animate-pulse"></div>
-            <div className="absolute top-3 right-32 w-1.5 h-1.5 bg-orange-300 rounded-full animate-pulse delay-1000"></div>
-            <div className="absolute top-4 left-1/2 w-2.5 h-2.5 bg-red-300 rounded-full animate-pulse delay-2000"></div>
-            <div className="absolute top-2 right-16 w-1 h-1 bg-yellow-400 rounded-full animate-pulse delay-500"></div>
-            <div className="absolute top-3 left-1/3 w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse delay-1500"></div>
-          </div>
+        {/* Top Navigation Bar - Seamless Flipkart-style Blue Gradient */}
+        <nav className="fixed top-0 left-0 right-0 bg-gradient-to-b from-[#2874F0] via-[#3B82F6] via-[#60A5FA] via-[#93C5FD] via-[#BFDBFE] to-[#DBEAFE] z-40 shadow-xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Main Navigation Row */}
-            <div className="flex justify-between items-center h-16">
+            <div className="flex justify-between items-center h-12 md:h-16">
               {/* Left Side - Hamburger Menu + Logo */}
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-3 md:space-x-4">
                 <button
                   onClick={() => setSidebarOpen(true)}
-                  className="p-2 hover:bg-yellow-300/30 rounded-lg transition-colors"
+                  className="p-2 hover:bg-white/20 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95"
                   aria-label="Open sidebar menu"
                 >
-                  <Menu className="w-6 h-6 text-white" />
+                  <Menu className="w-5 h-5 md:w-6 md:h-6 text-white" />
                 </button>
-                <Link to="/" className="flex items-center space-x-2">
+                <Link to="/" className="flex items-center space-x-2 hover:opacity-90 transition-opacity">
                   <ShowMyFITLogo size="md" className="text-white" />
                 </Link>
               </div>
 
               {/* Right Side - User Actions */}
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2 md:space-x-3">
                 {currentUser ? (
-                  <div className="flex items-center space-x-3">
-                    <span className="text-white font-medium text-sm hidden sm:block">
+                  <div className="flex items-center space-x-2 md:space-x-3">
+                    <span className="text-white font-medium text-xs md:text-sm hidden sm:block">
                       Hi, {currentUser.displayName || currentUser.email?.split('@')[0]}
                     </span>
                     <button
                       onClick={signOut}
-                      className="text-white hover:text-yellow-200 font-medium text-sm transition-colors flex items-center space-x-1 px-3 py-2 rounded-lg hover:bg-yellow-300/30"
+                      className="text-white hover:text-blue-50 font-medium text-xs md:text-sm transition-all duration-200 flex items-center space-x-1 px-2 md:px-3 py-1.5 md:py-2 rounded-xl hover:bg-white/25 active:scale-95"
                     >
                       <LogOut className="w-4 h-4" />
                       <span className="hidden sm:block">Logout</span>
@@ -221,20 +213,20 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
                 ) : (
                   <Link
                     to="/login"
-                    className="text-white hover:text-yellow-200 font-medium text-sm transition-colors px-4 py-2 rounded-lg hover:bg-yellow-300/30"
+                    className="text-white hover:text-blue-50 font-medium text-xs md:text-sm transition-all duration-200 px-3 md:px-4 py-1.5 md:py-2 rounded-xl hover:bg-white/25 active:scale-95"
                   >
                     Login
                   </Link>
                 )}
                 <Link
                   to="/cart"
-                  className="relative text-white hover:text-yellow-200 font-medium text-sm transition-colors flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-yellow-300/30"
+                  className="relative text-white hover:text-blue-50 font-medium text-xs md:text-sm transition-all duration-200 flex items-center space-x-1.5 md:space-x-2 px-2 md:px-3 py-1.5 md:py-2 rounded-xl hover:bg-white/25 active:scale-95"
                 >
-                  <Bookmark className="w-5 h-5" />
+                  <Bookmark className="w-4 h-4 md:w-5 md:h-5" />
                   <span className="hidden md:block">Reserved</span>
                   {getCartItemCount() > 0 && (
-                    <span className={`absolute -top-1 -right-1 w-5 h-5 text-gray-900 text-xs rounded-full flex items-center justify-center font-bold transition-all duration-300 ${
-                      showAddNotification ? 'bg-green-400 animate-pulse' : 'bg-yellow-400'
+                    <span className={`absolute -top-0.5 -right-0.5 w-4 h-4 md:w-5 md:h-5 text-white text-[10px] md:text-xs rounded-full flex items-center justify-center font-bold transition-all duration-300 shadow-lg ${
+                      showAddNotification ? 'bg-green-500 animate-pulse scale-110' : 'bg-[#2874F0]'
                     }`}>
                       {getCartItemCount()}
                     </span>
@@ -242,19 +234,19 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
                 </Link>
                 <Link
                   to="/wishlist"
-                  className="relative text-white hover:text-yellow-200 font-medium text-sm transition-colors flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-yellow-300/30"
+                  className="relative text-white hover:text-blue-50 font-medium text-xs md:text-sm transition-all duration-200 flex items-center space-x-1.5 md:space-x-2 px-2 md:px-3 py-1.5 md:py-2 rounded-xl hover:bg-white/25 active:scale-95"
                 >
-                  <Heart className="w-5 h-5" />
+                  <Heart className="w-4 h-4 md:w-5 md:h-5" />
                   <span className="hidden md:block">Wishlist</span>
                   {getWishlistCount() > 0 && (
-                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-pink-400 text-gray-900 text-xs rounded-full flex items-center justify-center font-bold">
+                    <span className="absolute -top-0.5 -right-0.5 w-4 h-4 md:w-5 md:h-5 bg-pink-500 text-white text-[10px] md:text-xs rounded-full flex items-center justify-center font-bold shadow-lg">
                       {getWishlistCount()}
                     </span>
                   )}
                 </Link>
                 <Link
                   to="/shop/auth"
-                  className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-medium text-sm transition-colors px-4 py-2 rounded-lg hover:from-yellow-500 hover:to-orange-600 hidden lg:block border-2 border-yellow-300 shadow-md"
+                  className="bg-gradient-to-r from-[#2874F0] to-[#3B82F6] text-white font-medium text-xs md:text-sm transition-all duration-200 px-3 md:px-4 py-1.5 md:py-2 rounded-xl hover:from-[#1E60B8] hover:to-[#2563EB] hover:shadow-lg hidden lg:block shadow-md active:scale-95"
                 >
                   Become a Seller
                 </Link>
@@ -262,12 +254,15 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
             </div>
           </div>
           
-          {/* Search Bar Row - Diwali Theme */}
-          <div className="bg-gradient-to-r from-yellow-300/20 via-orange-300/20 to-red-300/20 backdrop-blur-sm border-t-2 border-yellow-300/30">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          {/* Search Bar Row - No border, seamlessly continues gradient */}
+          <div>
+            <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2 md:py-4">
               <div className="flex items-center justify-center">
                 <div className="w-full max-w-2xl relative" ref={searchRef}>
                   <form onSubmit={handleSearch} className="relative">
+                    <div className="absolute left-3 md:left-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                      <Search className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
+                    </div>
                     <input
                       type="text"
                       value={searchQuery}
@@ -278,24 +273,24 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
                           setShowSuggestions(true);
                         }
                       }}
-                      placeholder="🪔 Search for Diwali Deals, Products & More 🪔"
-                      className="w-full pl-4 pr-16 py-3 border-2 border-orange-300/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-sm shadow-lg bg-gradient-to-r from-yellow-50/90 to-orange-50/90 backdrop-blur-sm placeholder-orange-600"
+                      placeholder="Search for products, brands & more..."
+                      className="w-full pl-10 md:pl-12 pr-16 md:pr-20 py-2.5 md:py-4 border border-white/40 rounded-xl md:rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 text-xs md:text-base shadow-xl bg-white backdrop-blur-sm placeholder-gray-400 transition-all duration-200 hover:shadow-2xl hover:border-white/60"
                     />
                     <button 
                       type="submit"
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-md hover:from-orange-600 hover:to-red-600 transition-colors border-2 border-yellow-300 shadow-md"
+                      className="absolute right-1.5 md:right-2 top-1/2 transform -translate-y-1/2 px-3 md:px-5 py-1.5 md:py-2.5 bg-gradient-to-r from-[#2874F0] to-[#3B82F6] text-white rounded-lg md:rounded-xl hover:from-[#1E60B8] hover:to-[#2563EB] transition-all duration-200 shadow-lg hover:shadow-xl active:scale-95"
                       aria-label="Search"
                     >
-                      <Search className="w-4 h-4" />
+                      <Search className="w-3.5 h-3.5 md:w-5 md:h-5" />
                     </button>
                   </form>
 
-                  {/* Suggestions Dropdown - Diwali Theme */}
+                  {/* Suggestions Dropdown */}
                   {showSuggestions && (
-                    <div className="absolute top-full left-0 right-0 mt-2 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg shadow-2xl border-2 border-orange-200 overflow-hidden z-50 max-h-96 overflow-y-auto">
+                    <div className="absolute top-full left-0 right-0 mt-3 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 max-h-96 overflow-y-auto backdrop-blur-xl">
                       {loadingSuggestions ? (
-                        <div className="p-4 text-center text-orange-600">
-                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-500 mx-auto"></div>
+                        <div className="p-4 text-center text-blue-600">
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto"></div>
                         </div>
                       ) : suggestions.length > 0 ? (
                         <>
@@ -303,28 +298,28 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
                             <button
                               key={product.id}
                               onClick={() => handleSuggestionClick(product.id)}
-                              className="w-full flex items-center space-x-3 p-3 hover:bg-gradient-to-r hover:from-orange-100 hover:to-yellow-100 transition-colors text-left border-b border-orange-200 last:border-b-0"
+                              className="w-full flex items-center space-x-3 p-3 md:p-4 hover:bg-blue-50 active:bg-blue-100 transition-all duration-150 text-left border-b border-gray-100 last:border-b-0 group"
                             >
                               <img 
                                 src={product.image || 'https://via.placeholder.com/50'} 
                                 alt={product.name}
-                                className="w-12 h-12 object-cover rounded-md flex-shrink-0"
+                                className="w-14 h-14 md:w-16 md:h-16 object-cover rounded-xl flex-shrink-0 shadow-sm group-hover:shadow-md transition-shadow"
                                 onError={(e) => {
                                   e.currentTarget.src = 'https://via.placeholder.com/50';
                                 }}
                               />
                               <div className="flex-1 min-w-0">
-                                <h4 className="text-sm font-semibold text-gray-900 truncate">
+                                <h4 className="text-sm md:text-base font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
                                   {product.name}
                                 </h4>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs md:text-sm text-gray-500 mt-0.5">
                                   {product.brand} • {product.category}
                                 </p>
-                                <p className="text-sm font-bold text-blue-600 mt-1">
+                                <p className="text-sm md:text-base font-bold text-blue-600 mt-1.5">
                                   ₹{product.price}
                                 </p>
                               </div>
-                              <Package className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                              <Package className="w-5 h-5 text-gray-400 flex-shrink-0 group-hover:text-blue-500 transition-colors" />
                             </button>
                           ))}
                           
@@ -333,30 +328,30 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
                             onClick={() => {
                               handleSearch(new Event('submit') as any);
                             }}
-                            className="w-full flex items-center justify-center space-x-2 p-3 bg-gradient-to-r from-orange-100 to-yellow-100 hover:from-orange-200 hover:to-yellow-200 transition-colors text-orange-700 font-semibold text-sm border-t-2 border-orange-200"
+                            className="w-full flex items-center justify-center space-x-2 p-3 md:p-4 bg-gradient-to-r from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 transition-all duration-150 text-blue-700 font-semibold text-sm md:text-base border-t-2 border-gray-100 active:scale-[0.98]"
                           >
-                            <TrendingUp className="w-4 h-4" />
-                            <span>🪔 View all Diwali results for "{searchQuery}" 🪔</span>
+                            <TrendingUp className="w-4 h-4 md:w-5 md:h-5" />
+                            <span>View all results for "{searchQuery}"</span>
                           </button>
                         </>
                       ) : (
-                        <div className="p-6 text-center">
-                          <div className="text-4xl mb-3">🔍</div>
-                          <h3 className="text-lg font-semibold text-gray-800 mb-2">No products found</h3>
-                          <p className="text-sm text-gray-600 mb-3">
+                        <div className="p-6 md:p-8 text-center">
+                          <div className="text-5xl mb-4">🔍</div>
+                          <h3 className="text-lg md:text-xl font-semibold text-gray-800 mb-2">No products found</h3>
+                          <p className="text-sm md:text-base text-gray-600 mb-4">
                             We couldn't find any products matching "{searchQuery}"
                           </p>
-                          <div className="text-xs text-gray-500 mb-4">
-                            Try searching for:
-                            <br />• Product names (e.g., "shirt", "shoes")
-                            <br />• Brands (e.g., "nike", "adidas") 
-                            <br />• Categories (e.g., "clothing", "accessories")
+                          <div className="text-xs md:text-sm text-gray-500 mb-5 space-y-1">
+                            <p className="font-medium">Try searching for:</p>
+                            <p>• Product names (e.g., "shirt", "shoes")</p>
+                            <p>• Brands (e.g., "nike", "adidas")</p>
+                            <p>• Categories (e.g., "clothing", "accessories")</p>
                           </div>
                           <button
                             onClick={() => {
                               handleSearch(new Event('submit') as any);
                             }}
-                            className="px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 transition-colors text-sm font-medium"
+                            className="px-5 py-2.5 bg-gradient-to-r from-[#2874F0] to-[#3B82F6] text-white rounded-xl hover:from-[#1E60B8] hover:to-[#2563EB] transition-all duration-200 text-sm md:text-base font-medium shadow-lg hover:shadow-xl active:scale-95"
                           >
                             Search anyway
                           </button>
@@ -380,16 +375,10 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
     );
   }
 
-  // Top navigation for shop/admin - Diwali Theme
+  // Top navigation for shop/admin
   return (
     <>
-      <nav className="bg-gradient-to-r from-orange-500 via-red-500 to-yellow-500 shadow-lg sticky top-0 z-40">
-        {/* Diwali Sparkles */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-2 left-20 w-2 h-2 bg-yellow-300 rounded-full animate-pulse"></div>
-          <div className="absolute top-3 right-32 w-1.5 h-1.5 bg-orange-300 rounded-full animate-pulse delay-1000"></div>
-          <div className="absolute top-4 left-1/2 w-2.5 h-2.5 bg-red-300 rounded-full animate-pulse delay-2000"></div>
-        </div>
+      <nav className="bg-gradient-to-b from-[#2874F0] via-[#3B82F6] via-[#60A5FA] to-[#93C5FD] shadow-xl sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Main Navigation Row */}
           <div className="flex justify-between items-center h-16">
@@ -412,7 +401,7 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
               {userRole === 'shop' && (
                 <Link
                   to="/shop/dashboard"
-                  className="text-white hover:text-yellow-200 font-medium text-sm transition-colors flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-yellow-300/30"
+                  className="text-white hover:text-blue-100 font-medium text-sm transition-colors flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-white/20"
                 >
                   <Store className="w-5 h-5" />
                   <span>Dashboard</span>
@@ -422,7 +411,7 @@ const Navbar: React.FC<NavbarProps> = ({ userRole = 'user' }) => {
               {userRole === 'admin' && (
                 <Link
                   to="/admin"
-                  className="text-white hover:text-yellow-200 font-medium text-sm transition-colors flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-yellow-300/30"
+                  className="text-white hover:text-blue-100 font-medium text-sm transition-colors flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-white/20"
                 >
                   <Shield className="w-5 h-5" />
                   <span>Admin</span>

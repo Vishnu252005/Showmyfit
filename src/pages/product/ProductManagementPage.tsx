@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import Navbar from '../../components/layout/Navbar';
 import Button from '../../components/ui/Button';
+import ImageUpload from '../../components/common/ImageUpload';
 import { useAuth } from '../../contexts/AuthContext';
 import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy } from 'firebase/firestore';
 import { db } from '../../firebase/config';
@@ -694,15 +695,76 @@ const ProductManagementPage: React.FC = () => {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Image URL
+                        Main Image *
                       </label>
-                      <input
-                        type="url"
-                        value={formData.image}
-                        onChange={(e) => setFormData({...formData, image: e.target.value})}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                        placeholder="https://example.com/image.jpg"
+                      <ImageUpload
+                        onImageUpload={(url) => {
+                          console.log('🖼️ ProductManagementPage: Image uploaded, setting formData.image to:', url);
+                          setFormData({...formData, image: url});
+                        }}
+                        onImageRemove={() => {
+                          console.log('🖼️ ProductManagementPage: Image removed, clearing formData.image');
+                          setFormData({...formData, image: ''});
+                        }}
+                        currentImage={formData.image}
+                        maxSize={10}
+                        className="w-full"
                       />
+                      <p className="text-xs text-gray-500 mt-1">Upload the primary product image (max 10MB)</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Additional Images
+                      </label>
+                      <div className="space-y-4">
+                        {(formData.images || []).map((image, index) => (
+                          <div key={index} className="relative">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm text-gray-600">Image {index + 1}</span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newImages = (formData.images || []).filter((_, i) => i !== index);
+                                  setFormData({...formData, images: newImages});
+                                }}
+                                className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors duration-200"
+                                title={`Remove image ${index + 1}`}
+                                aria-label={`Remove image ${index + 1}`}
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                            <ImageUpload
+                              onImageUpload={(url) => {
+                                const newImages = [...(formData.images || [])];
+                                newImages[index] = url;
+                                setFormData({...formData, images: newImages});
+                              }}
+                              onImageRemove={() => {
+                                const newImages = (formData.images || []).filter((_, i) => i !== index);
+                                setFormData({...formData, images: newImages});
+                              }}
+                              currentImage={image}
+                              maxSize={10}
+                              className="w-full"
+                            />
+                          </div>
+                        ))}
+                        {(formData.images || []).length < 5 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFormData({...formData, images: [...(formData.images || []), '']});
+                            }}
+                            className="w-full px-4 py-6 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-red-500 hover:text-red-600 transition-colors duration-200 flex flex-col items-center justify-center"
+                          >
+                            <Plus className="w-6 h-6 mb-2" />
+                            <span>Add Additional Image</span>
+                          </button>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">Add up to 5 additional product images (max 10MB each)</p>
                     </div>
 
                     <div>
@@ -919,9 +981,32 @@ const ProductManagementPage: React.FC = () => {
 
             {/* Products List */}
             <div className="bg-white rounded-2xl shadow-xl p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                Products ({filteredProducts.length})
-              </h2>
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+                <h2 className="text-2xl font-bold text-gray-900">
+                  Products ({filteredProducts.length})
+                </h2>
+                
+                {/* Search Bar */}
+                <div className="relative flex-1 md:max-w-md">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
+                    type="text"
+                    placeholder="Search products by name, brand, or description..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200 hover:border-gray-400 shadow-sm hover:shadow-md"
+                  />
+                  {searchTerm && (
+                    <button
+                      onClick={() => setSearchTerm('')}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                      aria-label="Clear search"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
 
               {loading ? (
                 <div className="flex justify-center py-8">

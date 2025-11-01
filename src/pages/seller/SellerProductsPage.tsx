@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useCart } from '../../contexts/CartContext';
 import { useWishlist } from '../../contexts/WishlistContext';
+import OptimizedImage from '../../components/common/OptimizedImage';
 import { collection, query, getDocs, where, doc, getDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 
@@ -420,11 +421,14 @@ const SellerProductsPage: React.FC = () => {
                       <div className="p-4">
                         <div className="relative mb-3 group">
                           <Link to={`/product/${product.id}`}>
-                            <img
-                              src={product.image}
-                              alt={product.name}
-                              className="w-full h-48 object-cover rounded-xl group-hover:scale-[1.02] transition-transform"
-                            />
+                            <div className="w-full h-48">
+                              <OptimizedImage
+                                src={product.image}
+                                alt={product.name}
+                                className="w-full h-full rounded-xl group-hover:scale-[1.02] transition-transform"
+                                loading="lazy"
+                              />
+                            </div>
                           </Link>
                           
                           {/* Wishlist Button */}
