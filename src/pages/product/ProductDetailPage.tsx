@@ -12,6 +12,7 @@ import { useWishlist } from '../../contexts/WishlistContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { doc, getDoc, collection, query, where, getDocs, addDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
+import OptimizedImage from '../../components/common/OptimizedImage';
 
 interface Product {
   id: string;
@@ -470,9 +471,10 @@ const ProductDetailPage: React.FC = () => {
               {/* Main Image */}
               <div className="relative group">
                 <div className="aspect-[3/4] sm:aspect-[4/5] md:aspect-square bg-gradient-to-br from-gray-50 to-gray-100 rounded-3xl overflow-hidden shadow-2xl border-4 border-white">
-                  <img
+                  <OptimizedImage
                     src={allImages[selectedImageIndex]}
                     alt={product.name}
+                    loading="lazy"
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                   />
                 </div>
@@ -536,9 +538,10 @@ const ProductDetailPage: React.FC = () => {
                       title={`View image ${index + 1}`}
                       aria-label={`View image ${index + 1}`}
                     >
-                      <img
+                      <OptimizedImage
                         src={image}
                         alt={`${product.name} ${index + 1}`}
+                        loading="lazy"
                         className="w-full h-full object-cover"
                       />
                     </button>
@@ -1000,7 +1003,7 @@ const ProductDetailPage: React.FC = () => {
                       <div className="bg-white rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
                         <div className="aspect-[4/5] bg-gray-50 rounded-t-xl overflow-hidden">
                           {imageSrc ? (
-                            <img src={imageSrc} alt={(sp as any).name} className="w-full h-full object-cover" />
+                            <OptimizedImage src={imageSrc} alt={(sp as any).name} loading="lazy" className="w-full h-full object-cover" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
                           )}

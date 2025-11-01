@@ -1,7 +1,8 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { Upload, X, Image as ImageIcon, AlertCircle, CheckCircle, Wand2 } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, AlertCircle, CheckCircle, Wand2, Zap } from 'lucide-react';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../../firebase/config';
+import { compressImageSmart } from '../../utils/imageCompression';
 
 interface ImageUploadProps {
   onImageUpload: (url: string) => void;
@@ -28,6 +29,9 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   const [isDragOver, setIsDragOver] = useState(false);
   const [isProcessingBackground, setIsProcessingBackground] = useState(false);
   const [backgroundRemovedMessage, setBackgroundRemovedMessage] = useState('');
+  const [isCompressing, setIsCompressing] = useState(false);
+  const [compressionProgress, setCompressionProgress] = useState(0);
+  const [compressionInfo, setCompressionInfo] = useState<{ original: string; compressed: string; savings: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const validateFile = (file: File): string | null => {
@@ -53,9 +57,51 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
       throw new Error(validationError);
     }
 
+    let fileToUpload = file;
+    const originalSize = file.size;
+
+    // Compress image before uploading
+    try {
+      setIsCompressing(true);
+      setCompressionProgress(30);
+      
+      console.log('🗜️ ImageUpload: Compressing image...');
+      fileToUpload = await compressImageSmart(file);
+      
+      setCompressionProgress(100);
+      
+      // Calculate compression info
+      const compressedSize = fileToUpload.size;
+      const savings = ((originalSize - compressedSize) / 1024 / 1024).toFixed(2);
+      const originalSizeMB = (originalSize / 1024 / 1024).toFixed(2);
+      const compressedSizeMB = (compressedSize / 1024 / 1024).toFixed(2);
+      
+      setCompressionInfo({
+        original: `${originalSizeMB} MB`,
+        compressed: `${compressedSizeMB} MB`,
+        savings: `${savings} MB saved`
+      });
+      
+      console.log('✅ ImageUpload: Compression completed:', {
+        original: `${originalSizeMB} MB`,
+        compressed: `${compressedSizeMB} MB`,
+        savings: `${savings} MB`
+      });
+      
+      // Clear compression info after 5 seconds
+      setTimeout(() => setCompressionInfo(null), 5000);
+    } catch (compressError: any) {
+      console.warn('⚠️ ImageUpload: Compression failed, uploading original:', compressError);
+      // Continue with original file if compression fails
+      fileToUpload = file;
+    } finally {
+      setIsCompressing(false);
+      setCompressionProgress(0);
+    }
+
     // Create a unique filename
     const timestamp = Date.now();
-    const fileName = `products/${timestamp}_${file.name}`;
+    const fileName = `products/${timestamp}_${fileToUpload.name}`;
     console.log('🖼️ ImageUpload: Uploading to path:', fileName);
     
     const storageRef = ref(storage, fileName);
@@ -63,7 +109,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     try {
       // Upload file to Firebase Storage
       console.log('🖼️ ImageUpload: Starting uploadBytes...');
-      const snapshot = await uploadBytes(storageRef, file);
+      const snapshot = await uploadBytes(storageRef, fileToUpload);
       console.log('🖼️ ImageUpload: Upload completed, getting download URL...');
       
       // Get download URL
@@ -84,20 +130,11 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     setUploadProgress(0);
 
     try {
-      // Simulate progress (Firebase doesn't provide real-time progress for uploadBytes)
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return 90;
-          }
-          return prev + 10;
-        });
-      }, 100);
+      // Show initial progress for compression
+      setUploadProgress(5);
 
       const imageUrl = await uploadImage(file);
       
-      clearInterval(progressInterval);
       setUploadProgress(100);
       
       // Small delay to show 100% progress
@@ -106,12 +143,16 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
         onImageUpload(imageUrl);
         setIsUploading(false);
         setUploadProgress(0);
+        setIsCompressing(false);
+        setCompressionProgress(0);
       }, 500);
 
     } catch (error: any) {
       setError(error.message);
       setIsUploading(false);
       setUploadProgress(0);
+      setIsCompressing(false);
+      setCompressionProgress(0);
     }
   }, [disabled, onImageUpload, maxSize, acceptedTypes]);
 
@@ -287,22 +328,34 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
           `}
         >
           <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
-            {isUploading ? (
+            {isUploading || isCompressing ? (
               <div className="text-center">
                 <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-2"></div>
-                <p className="text-sm text-gray-600 mb-2">Uploading...</p>
+                <p className="text-sm text-gray-600 mb-2">
+                  {isCompressing ? 'Compressing image...' : 'Uploading...'}
+                </p>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                 <div 
-                  className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${uploadProgress}%` }}
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    isCompressing ? 'bg-purple-500' : 'bg-blue-500'
+                  }`}
+                  style={{ width: `${isCompressing ? compressionProgress : uploadProgress}%` }}
                   role="progressbar"
-                  aria-valuenow={Math.round(uploadProgress)}
+                  aria-valuenow={Math.round(isCompressing ? compressionProgress : uploadProgress)}
                   aria-valuemin="0"
                   aria-valuemax="100"
-                  aria-label={`Upload progress: ${uploadProgress}%`}
+                  aria-label={`${isCompressing ? 'Compression' : 'Upload'} progress: ${Math.round(isCompressing ? compressionProgress : uploadProgress)}%`}
                 ></div>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">{uploadProgress}%</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {isCompressing ? compressionProgress : uploadProgress}%
+                </p>
+                {isCompressing && (
+                  <p className="text-xs text-purple-600 mt-1 flex items-center justify-center">
+                    <Zap className="w-3 h-3 mr-1" />
+                    Optimizing quality...
+                  </p>
+                )}
               </div>
             ) : (
               <div className="text-center">
@@ -331,9 +384,19 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 
       {/* Success Message */}
       {currentImage && !isUploading && !error && (
-        <div className="mt-2 flex items-center text-green-600 text-sm">
-          <CheckCircle className="w-4 h-4 mr-1" />
-          Image uploaded successfully
+        <div className="mt-2 space-y-1">
+          <div className="flex items-center text-green-600 text-sm">
+            <CheckCircle className="w-4 h-4 mr-1" />
+            Image uploaded successfully
+          </div>
+          {compressionInfo && (
+            <div className="flex items-center text-purple-600 text-xs bg-purple-50 px-2 py-1 rounded">
+              <Zap className="w-3 h-3 mr-1" />
+              <span>
+                Compressed: {compressionInfo.original} → {compressionInfo.compressed} ({compressionInfo.savings})
+              </span>
+            </div>
+          )}
         </div>
       )}
 

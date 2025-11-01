@@ -12,6 +12,7 @@
   "dependencies": {
     "@firebasegen/default-connector": "file:dataconnect-generated/js/default-connector",
     "@supabase/supabase-js": "^2.57.4",
+    "browser-image-compression": "^2.0.2",
     "firebase": "^12.3.0",
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",

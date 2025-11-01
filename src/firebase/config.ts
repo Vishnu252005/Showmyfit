@@ -29,7 +29,21 @@ export const db = getFirestore(app);
 // Initialize Firebase Storage and get a reference to the service
 export const storage = getStorage(app);
 
-// Initialize Analytics (only in browser environment)
-export const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
+// Initialize Analytics (only in browser environment and if available)
+let analytics: any = null;
+if (typeof window !== 'undefined') {
+  try {
+    // Only initialize analytics if measurementId is present and valid
+    if (firebaseConfig.measurementId && firebaseConfig.measurementId !== '') {
+      analytics = getAnalytics(app);
+    }
+  } catch (error) {
+    // Silently fail if analytics can't be initialized
+    // This prevents 404 errors from breaking the app
+    console.warn('Firebase Analytics initialization failed (this is OK):', error);
+    analytics = null;
+  }
+}
+export { analytics };
 
 export default app;

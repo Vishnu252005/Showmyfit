@@ -12,7 +12,8 @@ import {
   Eye,
   CheckCircle,
   AlertCircle,
-  Clock
+  Clock,
+  Zap
 } from 'lucide-react';
 import Navbar from '../../components/layout/Navbar';
 import Button from '../../components/ui/Button';
@@ -183,6 +184,14 @@ const AdminDashboard: React.FC = () => {
       icon: Settings,
       link: '/admin/settings',
       color: 'bg-gray-500',
+      stats: null
+    },
+    {
+      title: 'Image Migration',
+      description: 'Compress existing product images',
+      icon: Zap,
+      link: '/admin/image-migration',
+      color: 'bg-purple-500',
       stats: null
     }
   ];

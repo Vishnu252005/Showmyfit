@@ -26,6 +26,7 @@ import AdminSettingsPage from './pages/admin/AdminSettingsPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import HomePageManagement from './pages/admin/HomePageManagement';
 import AdminReservedProducts from './components/admin/AdminReservedProducts';
+import ImageMigrationPage from './pages/admin/ImageMigrationPage';
 import AboutUsPage from './pages/AboutUsPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsOfServicePage from './pages/TermsOfServicePage';
@@ -102,6 +103,7 @@ function App() {
               <Route path="/admin/homepage" element={<HomePageManagement />} />
               <Route path="/admin/reserved-products" element={<AdminReservedProducts />} />
               <Route path="/admin/settings" element={<AdminSettingsPage />} />
+              <Route path="/admin/image-migration" element={<ImageMigrationPage />} />
             </Routes>
             
                 {/* Chatbot - Hidden for now */}

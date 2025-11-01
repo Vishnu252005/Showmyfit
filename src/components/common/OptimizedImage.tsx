@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { optimizeImageUrl, getOptimizedImageUrl } from '../../utils/imageOptimization';
+import { resolveOptimizedUrlWithCache } from '../../utils/imageCache';
 
 interface OptimizedImageProps {
   src: string;
@@ -73,7 +74,15 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
 
   const loadImage = async () => {
     try {
-      const optimizedUrl = await getOptimizedImageUrl(src, width, height);
+      const optimizedUrl = await resolveOptimizedUrlWithCache(
+        src,
+        width,
+        height,
+        (freshUrl) => {
+          // If a fresher URL arrives after initial paint, update source seamlessly
+          setImgSrc((current) => (current !== freshUrl ? freshUrl : current));
+        }
+      );
       setImgSrc(optimizedUrl);
       setIsLoaded(true);
     } catch (err) {
