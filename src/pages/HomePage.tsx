@@ -527,7 +527,7 @@ const HomePage: React.FC = () => {
         {/* Plain Text Category Bar - Above Circular Categories */}
         <section className="bg-white/95 backdrop-blur-sm sticky top-0 z-20 border-b border-gray-100">
           <div className="max-w-7xl mx-auto px-3 md:px-6 py-2 md:py-4">
-            <div className="flex items-center space-x-3 md:space-x-8 overflow-x-auto scrollbar-hide">
+            <div className="flex items-center justify-between w-full">
               {['All', 'Men', 'Women', 'Kids', 'Watches'].map((category) => (
                 <button
                   key={category}
@@ -543,7 +543,7 @@ const HomePage: React.FC = () => {
                       }, 100);
                     }
                   }}
-                  className={`relative flex-shrink-0 pb-2 md:pb-3 px-2 md:px-5 font-semibold text-xs md:text-base transition-all duration-300 whitespace-nowrap border-b-2 ${
+                  className={`relative flex-1 pb-2 md:pb-3 px-2 md:px-5 font-semibold text-xs md:text-base transition-all duration-300 whitespace-nowrap border-b-2 ${
                     selectedCategory === category
                       ? 'text-[#2874F0] border-[#2874F0] scale-105' 
                       : 'text-gray-600 hover:text-[#2874F0] border-transparent hover:border-[#2874F0]/30'
