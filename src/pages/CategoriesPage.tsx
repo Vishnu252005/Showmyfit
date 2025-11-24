@@ -261,7 +261,7 @@ const CategoriesPage: React.FC = () => {
         <div className="px-4 py-6">
           {loading ? (
             <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
               <p className="text-gray-600 mt-4">Loading products...</p>
             </div>
           ) : filteredProducts.length === 0 ? (
@@ -308,14 +308,14 @@ const CategoriesPage: React.FC = () => {
                       {/* Seller Info */}
                       {seller && (
                         <div className="flex items-center space-x-2 mb-3">
-                          <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                          <div className="w-6 h-6 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
                             <span className="text-white text-xs font-bold">
                               {seller.businessName.charAt(0).toUpperCase()}
                             </span>
                           </div>
                           <Link
                             to={`/seller/${seller.id}`}
-                            className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center"
+                            className="text-sm text-purple-600 hover:text-purple-700 font-medium flex items-center"
                           >
                             {seller.businessName}
                             <ExternalLink className="w-3 h-3 ml-1" />
@@ -404,7 +404,7 @@ const CategoriesPage: React.FC = () => {
       <div className="px-4 pb-20">
         {loading ? (
           <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
             <p className="text-gray-600 mt-4">Loading categories...</p>
           </div>
         ) : (

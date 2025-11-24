@@ -545,20 +545,20 @@ const HomePage: React.FC = () => {
                   }}
                   className={`relative flex-1 pb-2 md:pb-3 px-2 md:px-5 font-semibold text-xs md:text-base transition-all duration-300 whitespace-nowrap border-b-2 ${
                     selectedCategory === category
-                      ? 'text-[#2874F0] border-[#2874F0] scale-105' 
-                      : 'text-gray-600 hover:text-[#2874F0] border-transparent hover:border-[#2874F0]/30'
+                      ? 'text-purple-600 border-purple-600 scale-105' 
+                      : 'text-gray-600 hover:text-purple-600 border-transparent hover:border-purple-600/30'
                   }`}
                 >
                   {category}
                   {selectedCategory === category && (
-                    <span className="absolute -bottom-0.5 left-0 right-0 h-0.5 md:h-1 bg-gradient-to-r from-[#2874F0] to-[#3B82F6] rounded-full"></span>
+                    <span className="absolute -bottom-0.5 left-0 right-0 h-0.5 md:h-1 bg-gradient-to-r from-purple-600 to-purple-700 rounded-full"></span>
                   )}
                 </button>
               ))}
               {/* Grid icon on the right */}
               <button
                 onClick={() => navigate('/categories')}
-                className="ml-auto flex-shrink-0 p-1.5 md:p-2.5 rounded-lg md:rounded-xl text-gray-500 hover:text-[#2874F0] hover:bg-blue-50 transition-all duration-200 active:scale-95"
+                className="ml-auto flex-shrink-0 p-1.5 md:p-2.5 rounded-lg md:rounded-xl text-gray-500 hover:text-purple-600 hover:bg-purple-50 transition-all duration-200 active:scale-95"
                 title="View all categories"
                 aria-label="View all categories"
               >
@@ -575,7 +575,7 @@ const HomePage: React.FC = () => {
           <div className="max-w-7xl mx-auto px-3 md:px-4">
             <div className="flex items-center space-x-3 md:space-x-6 overflow-x-auto scrollbar-hide pb-1 md:pb-2">
               {[
-                { name: 'Fashion', image: circleFashionImage, color: 'bg-blue-100' },
+                { name: 'Fashion', image: circleFashionImage, color: 'bg-purple-100' },
                 { name: 'Kids', image: kidsImage, color: 'bg-yellow-100' },
                 { name: 'Footwear', image: shoeImage, color: 'bg-amber-100' },
                 { name: 'Accessories', image: accessoriesImage, color: 'bg-pink-100' },
@@ -588,7 +588,7 @@ const HomePage: React.FC = () => {
                   onClick={() => navigate(`/browse?category=${encodeURIComponent(category.name)}`)}
                   className="flex flex-col items-center space-y-1 md:space-y-2 flex-shrink-0 group active:scale-95 transition-all duration-200"
                 >
-                  <div className={`w-16 h-16 md:w-24 md:h-24 rounded-xl md:rounded-2xl ${category.color} flex items-center justify-center group-hover:scale-110 transition-all duration-300 overflow-hidden shadow-sm md:shadow-md hover:shadow-xl border-2 border-white group-hover:border-[#2874F0]/30`}>
+                  <div className={`w-16 h-16 md:w-24 md:h-24 rounded-xl md:rounded-2xl ${category.color} flex items-center justify-center group-hover:scale-110 transition-all duration-300 overflow-hidden shadow-sm md:shadow-md hover:shadow-xl border-2 border-white group-hover:border-purple-600/30`}>
                     <img 
                       src={category.image} 
                       alt={category.name}
@@ -598,7 +598,7 @@ const HomePage: React.FC = () => {
                       }}
                     />
                   </div>
-                  <span className="text-[10px] md:text-sm text-gray-700 group-hover:text-[#2874F0] transition-colors font-medium md:font-semibold">{category.name}</span>
+                  <span className="text-[10px] md:text-sm text-gray-700 group-hover:text-purple-600 transition-colors font-medium md:font-semibold">{category.name}</span>
                 </button>
               ))}
             </div>
@@ -610,7 +610,7 @@ const HomePage: React.FC = () => {
           <div className="max-w-7xl mx-auto px-6">
             <div className="flex items-center space-x-8 md:space-x-10 overflow-x-auto scrollbar-hide pb-2">
               {[
-                { name: 'Fashion', image: circleFashionImage, color: 'bg-blue-100' },
+                { name: 'Fashion', image: circleFashionImage, color: 'bg-purple-100' },
                 { name: 'Kids', image: kidsImage, color: 'bg-yellow-100' },
                 { name: 'Footwear', image: shoeImage, color: 'bg-amber-100' },
                 { name: 'Accessories', image: accessoriesImage, color: 'bg-pink-100' },
@@ -623,7 +623,7 @@ const HomePage: React.FC = () => {
                   onClick={() => navigate(`/browse?category=${encodeURIComponent(category.name)}`)}
                   className="flex flex-col items-center space-y-2 flex-shrink-0 group active:scale-95 transition-all duration-200"
                 >
-                  <div className={`w-24 h-24 rounded-2xl ${category.color} flex items-center justify-center group-hover:scale-110 transition-all duration-300 overflow-hidden shadow-lg hover:shadow-xl border-2 border-white group-hover:border-[#2874F0]/30`}>
+                  <div className={`w-24 h-24 rounded-2xl ${category.color} flex items-center justify-center group-hover:scale-110 transition-all duration-300 overflow-hidden shadow-lg hover:shadow-xl border-2 border-white group-hover:border-purple-600/30`}>
                     <img 
                       src={category.image} 
                       alt={category.name}
@@ -633,7 +633,7 @@ const HomePage: React.FC = () => {
                       }}
                     />
                   </div>
-                  <span className="text-sm md:text-base text-gray-700 group-hover:text-[#2874F0] transition-colors font-semibold">{category.name}</span>
+                  <span className="text-sm md:text-base text-gray-700 group-hover:text-purple-600 transition-colors font-semibold">{category.name}</span>
                 </button>
               ))}
             </div>
@@ -647,7 +647,7 @@ const HomePage: React.FC = () => {
         {selectedCategory !== 'All' && (
           <div id="category-products-section" className="animate-fadeIn">
             {/* Banner for Category */}
-            <section className="relative bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 py-6 md:py-10 my-3 md:my-4 overflow-hidden">
+            <section className="relative bg-gradient-to-r from-purple-600 via-purple-700 to-pink-600 py-6 md:py-10 my-3 md:my-4 overflow-hidden">
               {/* Animated background elements */}
               <div className="absolute inset-0 opacity-20">
                 <div className="absolute top-0 left-0 w-72 h-72 bg-white rounded-full blur-3xl animate-pulse"></div>
@@ -697,7 +697,7 @@ const HomePage: React.FC = () => {
                   <p className="text-gray-600 mb-6">No products available in {selectedCategory} category yet.</p>
                   <button
                     onClick={() => setSelectedCategory('All')}
-                    className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                    className="px-6 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg font-medium hover:from-purple-700 hover:to-purple-800 transition-all duration-200 shadow-md hover:shadow-lg"
                   >
                     View All Products
                   </button>
@@ -713,7 +713,7 @@ const HomePage: React.FC = () => {
                     return (
                       <div
                         key={product.id}
-                        className={`group bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-gray-100 hover:border-[#2874F0]/30 transform hover:-translate-y-2 animate-fadeIn`}
+                        className={`group bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-gray-100 hover:border-purple-600/30 transform hover:-translate-y-2 animate-fadeIn`}
                         onClick={() => navigate(`/product/${product.id}`)}
                       >
                         {/* Product Image */}
@@ -770,7 +770,7 @@ const HomePage: React.FC = () => {
 
                         {/* Product Info */}
                         <div className="p-2 md:p-4">
-                          <h3 className="font-bold text-gray-900 text-xs md:text-sm line-clamp-2 mb-1 md:mb-1.5 min-h-[2rem] md:min-h-[2.5rem] group-hover:text-blue-600 transition-colors">
+                          <h3 className="font-bold text-gray-900 text-xs md:text-sm line-clamp-2 mb-1 md:mb-1.5 min-h-[2rem] md:min-h-[2.5rem] group-hover:text-purple-600 transition-colors">
                             {product.name}
                           </h3>
                           <p className="text-[10px] md:text-xs text-gray-600 font-medium">{product.brand}</p>
@@ -781,7 +781,7 @@ const HomePage: React.FC = () => {
                               e.stopPropagation();
                               navigate(`/product/${product.id}`);
                             }}
-                            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-1.5 md:py-2.5 rounded-lg text-xs md:text-sm font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+                            className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-1.5 md:py-2.5 rounded-lg text-xs md:text-sm font-semibold hover:from-purple-700 hover:to-purple-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
                           >
                             View Details
                           </button>
@@ -904,7 +904,7 @@ const HomePage: React.FC = () => {
               <h2 className="text-lg md:text-xl font-bold text-gray-900">Recommended for You</h2>
               <button 
                 onClick={() => navigate('/browse')}
-                className="text-blue-600 text-sm font-medium hover:text-blue-700 transition-colors"
+                className="text-purple-600 text-sm font-medium hover:text-purple-700 transition-colors"
               >
                 View All →
               </button>
@@ -1161,7 +1161,7 @@ const HomePage: React.FC = () => {
             return (
               <section key={section.id} className="py-3 md:py-4 px-4">
                 <div className="max-w-7xl mx-auto">
-                  <div className="relative bg-gradient-to-br from-blue-50 via-sky-50 to-blue-100 rounded-2xl overflow-hidden shadow-lg border border-blue-200/50">
+                  <div className="relative bg-gradient-to-br from-purple-50 via-purple-50 to-purple-100 rounded-2xl overflow-hidden shadow-lg border border-purple-200/50">
                     {/* Header */}
                     <div className="px-4 md:px-6 py-3 md:py-4 text-left">
                       <h2 className="text-xl md:text-2xl font-extrabold text-gray-900 mb-1 tracking-wide">
@@ -1188,7 +1188,7 @@ const HomePage: React.FC = () => {
                               className="flex-shrink-0 w-36 md:w-44 relative group cursor-pointer"
                               onClick={() => handleProductClick(product.id)}
                             >
-                              <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 hover:border-blue-300 hover:-translate-y-1">
+                              <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 hover:border-purple-300 hover:-translate-y-1">
                                 {/* Product Image */}
                                 <div className="relative aspect-square overflow-hidden bg-gray-100">
                                   <OptimizedImage
@@ -1222,7 +1222,7 @@ const HomePage: React.FC = () => {
                                 
                                 {/* Product Info */}
                                 <div className="p-3 md:p-4">
-                                  <h3 className="font-bold text-gray-900 text-sm md:text-base line-clamp-2 mb-2 group-hover:text-blue-600 transition-colors">
+                                  <h3 className="font-bold text-gray-900 text-sm md:text-base line-clamp-2 mb-2 group-hover:text-purple-600 transition-colors">
                                     {product.name}
                                   </h3>
                                   {product.brand && (
@@ -1256,7 +1256,7 @@ const HomePage: React.FC = () => {
               <h2 className="text-xl md:text-2xl font-bold text-gray-900">Random Products</h2>
               <button 
                 onClick={() => navigate('/browse')}
-                className="text-blue-600 text-sm font-medium hover:text-blue-700 transition-colors"
+                className="text-purple-600 text-sm font-medium hover:text-purple-700 transition-colors"
               >
                 Refresh →
               </button>
@@ -1284,11 +1284,11 @@ const HomePage: React.FC = () => {
                         )}
                       </div>
                       <div className="mb-2">
-                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">{product.category || 'General'}</span>
+                        <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">{product.category || 'General'}</span>
                       </div>
                       <h3 className="font-semibold text-gray-900 text-xs md:text-sm mb-1 line-clamp-2">{product.name}</h3>
                       {product.sellerName && (
-                        <p className="text-xs text-blue-600 font-medium mb-1">by {product.sellerName}</p>
+                        <p className="text-xs text-purple-600 font-medium mb-1">by {product.sellerName}</p>
                       )}
                       {product.brand && (
                         <p className="text-xs text-gray-600 font-medium">{product.brand}</p>
@@ -1314,7 +1314,7 @@ const HomePage: React.FC = () => {
               <h2 className="text-xl md:text-2xl font-bold text-gray-900">Recently Viewed</h2>
               <button 
                 onClick={() => navigate('/browse')}
-                className="text-blue-600 text-sm font-medium hover:text-blue-700 transition-colors"
+                className="text-purple-600 text-sm font-medium hover:text-purple-700 transition-colors"
               >
                 Clear All
               </button>
@@ -1341,7 +1341,7 @@ const HomePage: React.FC = () => {
                       </div>
                       <h3 className="font-medium text-gray-900 text-xs mb-1 line-clamp-2">{product.name}</h3>
                       {product.sellerName && (
-                        <p className="text-xs text-blue-600 font-medium mb-1">by {product.sellerName}</p>
+                        <p className="text-xs text-purple-600 font-medium mb-1">by {product.sellerName}</p>
                       )}
                       {product.brand && (
                         <p className="text-xs text-gray-600 font-medium mb-1">{product.brand}</p>
@@ -1402,7 +1402,7 @@ const HomePage: React.FC = () => {
                     <div className="p-3">
                       <div className="space-y-1.5 mb-3">
                         <div className="flex items-start space-x-2">
-                          <MapPin className="w-3.5 h-3.5 text-blue-600 mt-0.5 flex-shrink-0" />
+                          <MapPin className="w-3.5 h-3.5 text-purple-600 mt-0.5 flex-shrink-0" />
                           <p className="text-xs text-gray-600 line-clamp-2">{seller.address}</p>
                         </div>
                         <div className="flex items-center space-x-2">
@@ -1431,11 +1431,11 @@ const HomePage: React.FC = () => {
         )}
 
         {/* Featured Nearby Stores - Real Sellers */}
-        <section className="py-4 md:py-6 bg-gradient-to-br from-blue-50 to-indigo-100">
+        <section className="py-4 md:py-6 bg-gradient-to-br from-purple-50 to-purple-100">
           <div className="max-w-7xl mx-auto px-4">
             <div className="text-left mb-4 md:mb-6">
               <div className="flex items-center space-x-2 mb-2">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
                   <div className="text-white text-sm">🏠</div>
                 </div>
                 <h2 className="text-xl md:text-2xl font-bold text-gray-900">
@@ -1447,7 +1447,7 @@ const HomePage: React.FC = () => {
 
             {loadingSellers ? (
               <div className="flex justify-center py-6">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
               </div>
             ) : sellers.length === 0 ? (
               <div className="text-center py-6">
@@ -1526,7 +1526,7 @@ const HomePage: React.FC = () => {
               {showNearbyStores ? (
                 <button 
                   onClick={() => setShowNearbyStores(false)}
-                  className="inline-flex items-center space-x-2 bg-white text-blue-600 border-2 border-blue-600 py-2 px-6 rounded-lg text-sm font-semibold hover:bg-blue-50 transition-colors"
+                  className="inline-flex items-center space-x-2 bg-white text-purple-600 border-2 border-purple-600 py-2 px-6 rounded-lg text-sm font-semibold hover:bg-purple-50 transition-colors"
                 >
                   <span>Show All Stores</span>
                   <ArrowRight className="w-4 h-4" />
@@ -1534,7 +1534,7 @@ const HomePage: React.FC = () => {
               ) : (
                 <button 
                   onClick={() => navigate('/browse')}
-                  className="inline-flex items-center space-x-2 bg-white text-blue-600 border-2 border-blue-600 py-2 px-6 rounded-lg text-sm font-semibold hover:bg-blue-50 transition-colors"
+                  className="inline-flex items-center space-x-2 bg-white text-purple-600 border-2 border-purple-600 py-2 px-6 rounded-lg text-sm font-semibold hover:bg-purple-50 transition-colors"
                 >
                   <span>View All Stores</span>
                   <ArrowRight className="w-4 h-4" />
@@ -1612,7 +1612,7 @@ const HomePage: React.FC = () => {
                 <div className="flex space-x-4">
                         <button 
                     onClick={() => addToCart(selectedProduct)}
-                    className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-6 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 flex items-center justify-center font-semibold"
+                    className="flex-1 bg-gradient-to-r from-purple-600 to-purple-700 text-white py-3 px-6 rounded-xl hover:from-purple-700 hover:to-purple-800 transition-all duration-300 flex items-center justify-center font-semibold"
                         >
                     <ShoppingCart className="w-5 h-5 mr-2" />
                     Reserve
@@ -1645,14 +1645,14 @@ const HomePage: React.FC = () => {
         </div>
         
         {/* Floating Elements */}
-        <div className="absolute top-20 left-10 w-20 h-20 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full blur-xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-10 w-32 h-32 bg-gradient-to-r from-pink-500/20 to-blue-500/20 rounded-full blur-xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute top-20 left-10 w-20 h-20 bg-gradient-to-r from-purple-500/20 to-purple-600/20 rounded-full blur-xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-10 w-32 h-32 bg-gradient-to-r from-pink-500/20 to-purple-500/20 rounded-full blur-xl animate-pulse" style={{ animationDelay: '1s' }}></div>
         
         <div className="relative px-4 py-20">
           <div className="max-w-7xl mx-auto">
             {/* Premium Header Section */}
             <div className="text-center mb-16">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl mb-6 shadow-2xl">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-purple-600 to-purple-700 rounded-3xl mb-6 shadow-2xl">
                 <span className="text-white font-bold text-2xl">S</span>
               </div>
               <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent mb-4">
@@ -1679,7 +1679,7 @@ const HomePage: React.FC = () => {
                 <div>
                   <h4 className="text-lg font-semibold mb-4">Follow Us</h4>
                   <div className="flex space-x-4">
-                    <a href="https://www.facebook.com/showmyfitofficial?mibextid=ZbWKwL" target="_blank" rel="noopener noreferrer" className="group w-12 h-12 bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl flex items-center justify-center hover:from-blue-500 hover:to-blue-600 transition-all duration-300 hover:scale-110 hover:shadow-lg" title="Facebook">
+                    <a href="https://www.facebook.com/showmyfitofficial?mibextid=ZbWKwL" target="_blank" rel="noopener noreferrer" className="group w-12 h-12 bg-gradient-to-r from-purple-600 to-purple-700 rounded-2xl flex items-center justify-center hover:from-purple-500 hover:to-purple-600 transition-all duration-300 hover:scale-110 hover:shadow-lg" title="Facebook">
                       <svg className="w-6 h-6 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                       </svg>
@@ -1701,7 +1701,7 @@ const HomePage: React.FC = () => {
               {/* Quick Links - Enhanced */}
               <div>
                 <h4 className="text-xl font-bold text-white mb-6 flex items-center">
-                  <span className="w-2 h-2 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full mr-3"></span>
+                  <span className="w-2 h-2 bg-gradient-to-r from-purple-400 to-purple-500 rounded-full mr-3"></span>
                   Quick Links
                 </h4>
                 <ul className="space-y-4">
@@ -1731,7 +1731,7 @@ const HomePage: React.FC = () => {
               {/* Customer Service - Enhanced */}
               <div>
                 <h4 className="text-xl font-bold text-white mb-6 flex items-center">
-                  <span className="w-2 h-2 bg-gradient-to-r from-green-400 to-blue-400 rounded-full mr-3"></span>
+                  <span className="w-2 h-2 bg-gradient-to-r from-green-400 to-purple-400 rounded-full mr-3"></span>
                   Support
                 </h4>
                 <ul className="space-y-4">
@@ -1788,7 +1788,7 @@ const HomePage: React.FC = () => {
                 
                 {/* Social Media Links */}
                 <div className="flex justify-center space-x-6 mb-8">
-                  <a href="https://www.facebook.com/showmyfitofficial?mibextid=ZbWKwL" target="_blank" rel="noopener noreferrer" className="group w-16 h-16 bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl flex items-center justify-center hover:from-blue-500 hover:to-blue-600 transition-all duration-300 hover:scale-110 hover:shadow-xl" title="Facebook">
+                  <a href="https://www.facebook.com/showmyfitofficial?mibextid=ZbWKwL" target="_blank" rel="noopener noreferrer" className="group w-16 h-16 bg-gradient-to-r from-purple-600 to-purple-700 rounded-2xl flex items-center justify-center hover:from-purple-500 hover:to-purple-600 transition-all duration-300 hover:scale-110 hover:shadow-xl" title="Facebook">
                     <svg className="w-8 h-8 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                     </svg>
@@ -1809,9 +1809,9 @@ const HomePage: React.FC = () => {
             </div>
 
             {/* Premium Newsletter Section */}
-            <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-sm rounded-3xl p-8 mb-12 border border-white/10">
+            <div className="bg-gradient-to-r from-purple-600/20 to-purple-700/20 backdrop-blur-sm rounded-3xl p-8 mb-12 border border-white/10">
               <div className="max-w-4xl mx-auto text-center">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mb-6">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-600 to-purple-700 rounded-2xl mb-6">
                   <span className="text-white text-2xl">📧</span>
                 </div>
                 <h3 className="text-3xl font-bold text-white mb-4">Stay in the Loop</h3>
@@ -1825,7 +1825,7 @@ const HomePage: React.FC = () => {
                     placeholder="Enter your email address"
                     className="flex-1 px-6 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
                   />
-                  <button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-2xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
+                  <button className="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-8 py-4 rounded-2xl font-semibold hover:from-purple-700 hover:to-purple-800 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
                     Subscribe
                   </button>
                 </div>
@@ -1838,7 +1838,7 @@ const HomePage: React.FC = () => {
             {/* Become a Seller Section */}
             <div className="bg-gradient-to-r from-green-600/20 to-blue-600/20 backdrop-blur-sm rounded-3xl p-8 mb-12 border border-white/10">
               <div className="max-w-4xl mx-auto text-center">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-green-500 to-blue-600 rounded-2xl mb-6">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-green-500 to-purple-600 rounded-2xl mb-6">
                   <span className="text-white text-2xl">🏪</span>
                 </div>
                 <h3 className="text-3xl font-bold text-white mb-4">Ready to Start Selling?</h3>
@@ -1868,7 +1868,7 @@ const HomePage: React.FC = () => {
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Link
                     to="/shop/auth"
-                    className="bg-gradient-to-r from-green-600 to-blue-600 text-white px-8 py-4 rounded-2xl font-semibold hover:from-green-700 hover:to-blue-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                    className="bg-gradient-to-r from-green-600 to-purple-600 text-white px-8 py-4 rounded-2xl font-semibold hover:from-green-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
                   >
                     Become a Seller Now
                   </Link>

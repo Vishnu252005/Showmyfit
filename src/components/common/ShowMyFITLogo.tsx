@@ -1,4 +1,5 @@
 import React from 'react';
+import logo from '../../assets/logo.png';
 
 interface ShowMyFITLogoProps {
   size?: 'sm' | 'md' | 'lg';
@@ -21,7 +22,7 @@ const ShowMyFITLogo: React.FC<ShowMyFITLogoProps> = ({ size = 'md', className = 
   return (
     <div className="relative">
       <img 
-        src="/src/assets/showmyfit-logo.png" 
+        src={logo} 
         alt="ShowMyFIT" 
         className={`${sizeClasses[size]} ${className}`}
         onError={(e) => {

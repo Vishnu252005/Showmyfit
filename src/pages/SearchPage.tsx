@@ -560,7 +560,7 @@ const SearchPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading search results...</p>
         </div>
       </div>
@@ -578,7 +578,7 @@ const SearchPage: React.FC = () => {
                 onClick={() => setSearchType('products')}
                 className={`px-6 py-2 rounded-md font-medium transition-all ${
                   searchType === 'products'
-                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md'
+                    ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-md'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -591,7 +591,7 @@ const SearchPage: React.FC = () => {
                 onClick={() => setSearchType('shops')}
                 className={`px-6 py-2 rounded-md font-medium transition-all ${
                   searchType === 'shops'
-                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md'
+                    ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-md'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -616,7 +616,7 @@ const SearchPage: React.FC = () => {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <MapPin className="w-5 h-5 text-blue-600" />
+                  <MapPin className="w-5 h-5 text-purple-600" />
                   <span className="text-gray-700">
                     {currentLocation || 'No location found'}
                   </span>
@@ -624,7 +624,7 @@ const SearchPage: React.FC = () => {
                 <button
                   onClick={getCurrentLocation}
                   disabled={isGettingLocation}
-                  className="flex items-center space-x-1 bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                  className="flex items-center space-x-1 bg-purple-600 text-white px-3 py-1.5 rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                 >
                   {isGettingLocation ? (
                     <>
@@ -671,7 +671,7 @@ const SearchPage: React.FC = () => {
                   className="w-full pl-8 pr-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                 />
               </div>
-              <button className="bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-1 text-sm">
+              <button className="bg-purple-600 text-white px-3 py-1.5 rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-1 text-sm">
                 <Search className="w-4 h-4" />
                 <span>Search</span>
               </button>
@@ -693,7 +693,7 @@ const SearchPage: React.FC = () => {
                   onClick={() => setSelectedCategory(category)}
                   className={`px-2 py-1 rounded-lg font-medium transition-all whitespace-nowrap text-xs ${
                     selectedCategory === category
-                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md'
+                      ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-md'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
@@ -726,7 +726,7 @@ const SearchPage: React.FC = () => {
             // Products View
             loadingProducts ? (
               <div className="flex justify-center py-4">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
               </div>
             ) : filteredProducts.length === 0 ? (
               <div className="text-center py-4">
@@ -818,7 +818,7 @@ const SearchPage: React.FC = () => {
             // Shops View
             loadingSellers ? (
             <div className="flex justify-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
             </div>
           ) : filteredSellers.length === 0 ? (
             <div className="text-center py-12">
@@ -845,14 +845,14 @@ const SearchPage: React.FC = () => {
                             const parent = e.currentTarget.parentElement;
                             if (parent) {
                               const fallback = document.createElement('div');
-                              fallback.className = 'w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 text-white text-4xl font-bold';
+                              fallback.className = 'w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-500 via-purple-600 to-pink-500 text-white text-4xl font-bold';
                               fallback.textContent = seller.businessName.charAt(0).toUpperCase();
                               parent.appendChild(fallback);
                             }
                           }}
                         />
                       ) : (
-                        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 text-white text-4xl font-bold">
+                        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-500 via-purple-600 to-pink-500 text-white text-4xl font-bold">
                           {seller.businessName.charAt(0).toUpperCase()}
                         </div>
                       )}
@@ -874,7 +874,7 @@ const SearchPage: React.FC = () => {
                       <div>
                         <h3 className="text-lg font-bold text-gray-900 line-clamp-1 mb-2">{seller.businessName}</h3>
                         <div className="flex items-center mb-3">
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700">
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-purple-100 to-purple-200 text-purple-700">
                             <Store className="w-3 h-3 mr-1" />
                             {seller.businessType}
                           </span>
@@ -884,7 +884,7 @@ const SearchPage: React.FC = () => {
                       {/* Store Details */}
                       <div className="space-y-2">
                         <div className="flex items-start space-x-2">
-                          <MapPin className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                          <MapPin className="w-4 h-4 text-purple-600 mt-0.5 flex-shrink-0" />
                           <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed flex-1">{seller.address}</p>
                           {seller.location && (
                             <button
@@ -894,17 +894,17 @@ const SearchPage: React.FC = () => {
                                 const { lat, lng } = seller.location;
                                 window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
                               }}
-                              className="bg-blue-100 hover:bg-blue-200 rounded-lg p-1.5 transition-colors flex-shrink-0"
+                              className="bg-purple-100 hover:bg-purple-200 rounded-lg p-1.5 transition-colors flex-shrink-0"
                               title="Open in Google Maps"
                             >
-                              <Map className="w-4 h-4 text-blue-600" />
+                              <Map className="w-4 h-4 text-purple-600" />
                             </button>
                           )}
                         </div>
                         
                         <div className="flex items-center space-x-2">
                           <Phone className="w-4 h-4 text-green-600 flex-shrink-0" />
-                          <a href={`tel:${seller.phone}`} className="text-xs text-gray-600 hover:text-blue-600 transition-colors">{seller.phone}</a>
+                          <a href={`tel:${seller.phone}`} className="text-xs text-gray-600 hover:text-purple-600 transition-colors">{seller.phone}</a>
                         </div>
                       </div>
 

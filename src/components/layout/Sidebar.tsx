@@ -47,7 +47,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, userRole }) => {
       title: "New Collection",
       description: "Discover trending fashion",
       image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=200&fit=crop&crop=center",
-      gradient: "from-blue-500 to-cyan-500"
+      gradient: "from-purple-500 to-purple-600"
     },
     {
       id: 3,
@@ -72,19 +72,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, userRole }) => {
     { icon: Search, label: 'Browse', path: '/browse', color: 'from-purple-500 to-pink-500' },
     { icon: ShoppingBag, label: 'My Cart', path: '/cart', color: 'from-green-500 to-emerald-500' },
     { icon: Heart, label: 'Wishlist', path: '/wishlist', color: 'from-red-500 to-rose-500' },
-    { icon: User, label: 'Profile', path: '/profile', color: 'from-indigo-500 to-blue-500' },
+    { icon: User, label: 'Profile', path: '/profile', color: 'from-purple-500 to-purple-600' },
   ];
 
   const shopMenuItems = [
     { icon: Store, label: 'My Store', path: '/shop/dashboard', color: 'from-orange-500 to-red-500' },
     { icon: TrendingUp, label: 'Analytics', path: '/shop/analytics', color: 'from-green-500 to-emerald-500' },
-    { icon: Package, label: 'Products', path: '/shop/products', color: 'from-blue-500 to-cyan-500' },
+    { icon: Package, label: 'Products', path: '/shop/products', color: 'from-purple-500 to-purple-600' },
     { icon: Bell, label: 'Orders', path: '/shop/orders', color: 'from-purple-500 to-pink-500' },
   ];
 
   const adminMenuItems = [
     { icon: Shield, label: 'Admin Panel', path: '/admin', color: 'from-red-500 to-rose-500' },
-    { icon: Users, label: 'Users', path: '/admin/users', color: 'from-blue-500 to-cyan-500' },
+    { icon: Users, label: 'Users', path: '/admin/users', color: 'from-purple-500 to-purple-600' },
     { icon: Store, label: 'Stores', path: '/admin/stores', color: 'from-green-500 to-emerald-500' },
     { icon: BarChart, label: 'Analytics', path: '/admin/analytics', color: 'from-purple-500 to-pink-500' },
   ];
@@ -93,7 +93,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, userRole }) => {
     { icon: Gift, label: 'Offers', path: '/offers', color: 'from-yellow-500 to-amber-500' },
     { icon: Star, label: 'Reviews', path: '/reviews', color: 'from-orange-500 to-red-500' },
     { icon: MapPin, label: 'Store Locator', path: '/stores', color: 'from-green-500 to-emerald-500' },
-    { icon: HelpCircle, label: 'Help Center', path: '/help', color: 'from-blue-500 to-cyan-500' },
+    { icon: HelpCircle, label: 'Help Center', path: '/help', color: 'from-purple-500 to-purple-600' },
     { icon: Settings, label: 'Settings', path: '/settings', color: 'from-gray-500 to-slate-500' },
   ];
 
