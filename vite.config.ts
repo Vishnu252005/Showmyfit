@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 2300,
+    port: 2301,
     host: true, // This allows access from other devices on your network
     historyApiFallback: true, // This fixes the routing issue when refreshing on client-side routes
   },
