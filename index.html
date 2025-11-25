@@ -51,9 +51,17 @@
     <link rel="canonical" href="https://showmyfit.com/" />
     
     <!-- Preconnect to external domains for performance -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+    <link rel="dns-prefetch" href="https://images.unsplash.com" />
+    <link rel="dns-prefetch" href="https://firebasestorage.googleapis.com" />
+    <link rel="dns-prefetch" href="https://firebasestorage.app" />
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://images.unsplash.com" />
+    <link rel="preconnect" href="https://firebasestorage.googleapis.com" />
+    <link rel="preconnect" href="https://firebasestorage.app" />
     
     <!-- Favicon -->
     <link rel="manifest" href="/site.webmanifest" />
@@ -132,7 +140,10 @@
     }
     </script>
     
-    <!-- Google Analytics 4 -->
+    <!-- Preload critical logo for LCP -->
+    <link rel="preload" as="image" href="/logo.jpg" />
+    
+    <!-- Google Analytics 4 - Defer to improve FCP -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -159,8 +170,8 @@
     <!-- Google Search Console Verification -->
     <meta name="google-site-verification" content="-kW1ykb8YJ_SU8VQUbYl8cqXceMqceI3WwnMk7GmHH8" />
     
-    <!-- Advanced SEO Scripts -->
-    <script>
+    <!-- Advanced SEO Scripts - Defer execution -->
+    <script defer>
       // Core Web Vitals tracking
       if ('performance' in window) {
         window.addEventListener('load', function() {

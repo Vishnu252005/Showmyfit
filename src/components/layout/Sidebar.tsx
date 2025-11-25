@@ -7,14 +7,10 @@ import {
   Heart, 
   User, 
   Store, 
-  Settings, 
-  HelpCircle, 
   Bell, 
-  Gift, 
-  Star,
+  Gift,
   TrendingUp,
   Shield,
-  MapPin,
   Sparkles,
   Package,
   Users,
@@ -22,6 +18,10 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
+import { useWishlist } from '../../contexts/WishlistContext';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '../../firebase/config';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -32,6 +32,10 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, userRole }) => {
   const location = useLocation();
   const [currentSlide, setCurrentSlide] = useState(0);
+  const { currentUser, userData } = useAuth();
+  const { getWishlistCount } = useWishlist();
+  const [ordersCount, setOrdersCount] = useState(0);
+  const [loadingOrders, setLoadingOrders] = useState(true);
 
   // Sample promotional images/slides
   const promotionalSlides = [
@@ -57,6 +61,36 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, userRole }) => {
       gradient: "from-purple-500 to-indigo-500"
     }
   ];
+
+  // Fetch orders count for current user
+  useEffect(() => {
+    const fetchOrdersCount = async () => {
+      if (!currentUser) {
+        setOrdersCount(0);
+        setLoadingOrders(false);
+        return;
+      }
+
+      try {
+        setLoadingOrders(true);
+        const ordersQuery = query(
+          collection(db, 'orders'),
+          where('customerId', '==', currentUser.uid)
+        );
+        const snapshot = await getDocs(ordersQuery);
+        setOrdersCount(snapshot.docs.length);
+      } catch (error) {
+        console.error('Error fetching orders count:', error);
+        setOrdersCount(0);
+      } finally {
+        setLoadingOrders(false);
+      }
+    };
+
+    if (isOpen && currentUser) {
+      fetchOrdersCount();
+    }
+  }, [isOpen, currentUser]);
 
   // Auto-slide functionality
   useEffect(() => {
@@ -89,13 +123,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, userRole }) => {
     { icon: BarChart, label: 'Analytics', path: '/admin/analytics', color: 'from-purple-500 to-pink-500' },
   ];
 
-  const commonMenuItems = [
-    { icon: Gift, label: 'Offers', path: '/offers', color: 'from-yellow-500 to-amber-500' },
-    { icon: Star, label: 'Reviews', path: '/reviews', color: 'from-orange-500 to-red-500' },
-    { icon: MapPin, label: 'Store Locator', path: '/stores', color: 'from-green-500 to-emerald-500' },
-    { icon: HelpCircle, label: 'Help Center', path: '/help', color: 'from-purple-500 to-purple-600' },
-    { icon: Settings, label: 'Settings', path: '/settings', color: 'from-gray-500 to-slate-500' },
-  ];
+  // Removed hardcoded menu items that don't have pages:
+  // - Offers (/offers)
+  // - Reviews (/reviews)
+  // - Store Locator (/stores)
+  // - Help Center (/help)
+  // - Settings (/settings)
+  const commonMenuItems: any[] = [];
 
   const getMenuItems = () => {
     switch (userRole) {
@@ -162,18 +196,36 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, userRole }) => {
           {/* User Info */}
             <div className="flex items-center space-x-4 bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
               <div className="w-14 h-14 bg-gradient-to-r from-white/30 to-white/20 rounded-2xl flex items-center justify-center shadow-lg">
-                <User className="w-7 h-7" />
+                {userData?.profileImage ? (
+                  <img 
+                    src={userData.profileImage} 
+                    alt={userData.displayName || 'User'} 
+                    className="w-full h-full rounded-2xl object-cover"
+                  />
+                ) : (
+                  <User className="w-7 h-7" />
+                )}
               </div>
               <div className="flex-1">
-                <p className="font-bold text-lg">John Doe</p>
+                <p className="font-bold text-lg">
+                  {userData?.displayName || currentUser?.displayName || 'User'}
+                </p>
                 <div className="flex items-center space-x-2">
                   <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
-                  <p className="text-sm text-white/90 font-medium">Premium Member</p>
+                  <p className="text-sm text-white/90 font-medium">
+                    {userData?.role === 'admin' ? 'Admin' : 
+                     userData?.role === 'shop' ? 'Seller' : 
+                     'Member'}
+                  </p>
                 </div>
               </div>
               <div className="text-right">
                 <div className="text-xs text-white/70">Level</div>
-                <div className="text-lg font-bold">VIP</div>
+                <div className="text-lg font-bold">
+                  {userData?.role === 'admin' ? 'ADMIN' : 
+                   userData?.role === 'shop' ? 'SELLER' : 
+                   'USER'}
+                </div>
             </div>
             </div>
           </div>
@@ -220,11 +272,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, userRole }) => {
               <h3 className="font-semibold text-gray-900 mb-4">Quick Stats</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-primary-600">12</div>
+                  <div className="text-2xl font-bold text-primary-600">
+                    {loadingOrders ? '...' : ordersCount}
+                  </div>
                   <div className="text-sm text-gray-600">Orders</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-secondary-600">5</div>
+                  <div className="text-2xl font-bold text-secondary-600">
+                    {getWishlistCount()}
+                  </div>
                   <div className="text-sm text-gray-600">Favorites</div>
                 </div>
               </div>

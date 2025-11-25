@@ -101,7 +101,14 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
     if (onError) onError();
   };
 
-  const containerStyle: React.CSSProperties = width && height ? { width, height } : {};
+  // Calculate aspect ratio container to prevent CLS
+  const aspectRatio = width && height ? (height / width) * 100 : undefined;
+  const containerStyle: React.CSSProperties = {
+    ...(width && height ? { width, height } : {}),
+    ...(aspectRatio && !width && !height ? { paddingBottom: `${aspectRatio}%` } : {}),
+    position: 'relative',
+    overflow: 'hidden'
+  };
 
   return (
     <div className={`relative ${className}`} style={containerStyle}>
@@ -118,6 +125,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
         height={height}
         loading={loading}
         decoding="async"
+        fetchPriority={priority ? 'high' : 'auto'}
         className={`transition-opacity duration-300 ${
           isLoaded && !error ? 'opacity-100' : 'opacity-0'
         }`}
@@ -125,8 +133,9 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
         onError={handleError}
         style={{
           width: '100%',
-          height: '100%',
-          objectFit: 'cover'
+          height: width && height ? '100%' : 'auto',
+          objectFit: 'cover',
+          display: 'block'
         }}
       />
       {!isLoaded && !error && (
