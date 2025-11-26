@@ -173,29 +173,123 @@ Password: test123
 
 ```
 src/
-├── components/              # Reusable UI components
-│   ├── auth/               # Authentication components
-│   ├── common/             # Shared components (EmptyState, StatsCard)
-│   ├── layout/             # Layout components (Navbar, Footer)
-│   ├── product/            # Product-related components
-│   └── ui/                 # Base UI components (Button, Modal)
-├── context/                # React Context providers
-│   ├── AppContext.tsx      # Global application state
-│   └── AuthContext.tsx     # Authentication state
-├── firebase/               # Firebase configuration and utilities
-│   ├── auth.ts            # Authentication functions
-│   ├── config.ts          # Firebase configuration
-│   └── adminSetup.ts      # Admin setup utilities
-├── hooks/                  # Custom React hooks
-│   └── useToast.ts        # Toast notification hook
-├── pages/                  # Main application pages
-│   ├── admin/             # Admin dashboard and management
-│   ├── auth/              # Authentication pages
-│   ├── product/           # Product management
-│   ├── seller/            # Seller dashboard and tools
-│   └── user/              # Customer-facing pages
-└── utils/                  # Utility functions
-    └── distance.ts        # Location and distance calculations
+├── assets/                # Static assets
+│   └── images/            # Image assets
+│       ├── banner/        # Banner images
+│       └── *.jpg         # Product category images
+├── components/            # Reusable UI components
+│   ├── admin/            # Admin-specific components
+│   │   └── AdminReservedProducts.tsx
+│   ├── auth/             # Authentication components
+│   │   └── AuthModal.tsx
+│   ├── common/           # Shared components
+│   │   ├── CartNotification.tsx
+│   │   ├── Chatbot.tsx
+│   │   ├── EmptyState.tsx
+│   │   ├── ErrorBoundary.tsx
+│   │   ├── GoogleMapLocation.tsx
+│   │   ├── ImageUpload.tsx
+│   │   ├── OptimizedImage.tsx
+│   │   ├── ReserveButton.tsx
+│   │   ├── ShowMyFITLogo.tsx
+│   │   ├── SlidingBanner.tsx
+│   │   └── StatsCard.tsx
+│   ├── layout/           # Layout components
+│   │   ├── AppLayout.tsx
+│   │   ├── Footer.tsx
+│   │   ├── Navbar.tsx
+│   │   ├── PageTransition.tsx
+│   │   ├── ScrollToTop.tsx
+│   │   └── Sidebar.tsx
+│   ├── product/         # Product-related components
+│   │   ├── CategoryFilter.tsx
+│   │   ├── ProductCard.tsx
+│   │   ├── SearchBar.tsx
+│   │   └── ShopCard.tsx
+│   ├── seller/          # Seller components
+│   │   ├── ReservedProducts.tsx
+│   │   └── SellerDashboard.tsx
+│   ├── seo/             # SEO components
+│   │   ├── BreadcrumbSEO.tsx
+│   │   ├── ProductSEO.tsx
+│   │   ├── SellerSEO.tsx
+│   │   ├── SEOAudit.tsx
+│   │   └── SEOHead.tsx
+│   └── ui/              # Base UI components
+│       ├── Button.tsx
+│       ├── FormInput.tsx
+│       ├── LoadingSpinner.tsx
+│       ├── Modal.tsx
+│       ├── Toast.tsx
+│       └── ToastContainer.tsx
+├── contexts/            # React Context providers
+│   ├── AppContext.tsx   # Global application state
+│   ├── AuthContext.tsx  # Authentication state
+│   ├── CartContext.tsx  # Shopping cart state
+│   └── WishlistContext.tsx # Wishlist state
+├── firebase/           # Firebase configuration and utilities
+│   ├── adminSetup.ts   # Admin setup utilities
+│   ├── auth.ts         # Authentication functions
+│   ├── config.ts       # Firebase configuration
+│   ├── fixAdminEmail.ts # Admin email fix utility
+│   └── sellerSetup.ts  # Seller setup utilities
+├── hooks/              # Custom React hooks
+│   ├── useSEO.ts       # SEO management hook
+│   └── useToast.ts     # Toast notification hook
+├── pages/              # Main application pages
+│   ├── admin/          # Admin pages
+│   │   ├── AdminDashboard.tsx
+│   │   ├── AdminSettingsPage.tsx
+│   │   ├── AdminSetupPage.tsx
+│   │   ├── AdminTestPage.tsx
+│   │   ├── DebugAdminPage.tsx
+│   │   ├── FixAdminEmailPage.tsx
+│   │   ├── HomePageManagement.tsx
+│   │   ├── ImageMigrationPage.tsx
+│   │   └── ManageAdminsPage.tsx
+│   ├── api/            # API routes
+│   │   └── sitemap.tsx # Sitemap generation
+│   ├── auth/           # Authentication pages
+│   │   └── AuthPage.tsx
+│   ├── order/          # Order management
+│   │   └── OrderManagementPage.tsx
+│   ├── product/        # Product pages
+│   │   ├── ProductDetailPage.tsx
+│   │   └── ProductManagementPage.tsx
+│   ├── profile/        # Profile pages
+│   │   ├── AdminProfilePage.tsx
+│   │   ├── ProfilePage.tsx
+│   │   └── SellerProfilePage.tsx
+│   ├── seller/         # Seller pages
+│   │   ├── BecomeSellerPage.tsx
+│   │   ├── SellerManagementPage.tsx
+│   │   ├── SellerProductsPage.tsx
+│   │   ├── ShopAuth.tsx
+│   │   └── ShopDashboard.tsx
+│   ├── user/           # User pages
+│   │   ├── CreateUserPage.tsx
+│   │   ├── UserBrowse.tsx
+│   │   └── UserManagementPage.tsx
+│   ├── AboutUsPage.tsx
+│   ├── CartPage.tsx
+│   ├── CategoriesPage.tsx
+│   ├── HomePage.tsx
+│   ├── PrivacyPolicyPage.tsx
+│   ├── SearchPage.tsx
+│   ├── TermsOfServicePage.tsx
+│   └── WishlistPage.tsx
+├── types/              # TypeScript type definitions
+│   └── google-maps.d.ts # Google Maps types
+└── utils/              # Utility functions
+    ├── distance.ts     # Location and distance calculations
+    ├── imageCache.ts   # Image caching utilities
+    ├── imageCompression.ts # Image compression
+    ├── imageMigration.ts # Image migration utilities
+    ├── imageOptimization.ts # Image optimization
+    ├── performanceMonitoring.ts # Performance monitoring
+    ├── sampleData.ts   # Sample data generation
+    ├── seoEnhancements.ts # SEO enhancement utilities
+    └── sitemapGenerator.ts # Sitemap generation
 ```
 
 ---
