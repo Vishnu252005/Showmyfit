@@ -411,14 +411,6 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ---
 
-## 📞 **Support & Contact**
-
-- **Email**: hello@showmyfit.com
-- **Website**: [showmyfit.com](https://showmyfit.com)
-- **Documentation**: [docs.showmyfit.com](https://docs.showmyfit.com)
-
----
-
 <div align="center">
   <h3>🌟 Star this repository if you found it helpful!</h3>
   <p>Built with ❤️ using React, TypeScript, and Firebase</p>
