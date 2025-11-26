@@ -593,34 +593,6 @@ This breakdown shows exactly what work was done and when, making the pricing com
 
 ---
 
-## 💡 **PRICING STRATEGY TIPS**
-
-### **Pricing Strategy:**
-
-1. **Don't Undersell:**
-   - Your time is valuable
-   - This is a complex project
-   - Market rates justify higher prices
-
-2. **Value-Based Pricing:**
-   - Focus on value delivered
-   - Not just hours worked
-   - Client saves time & money
-
-3. **Additional Services (Optional):**
-   - Maintenance: ₹20,000-30,000/month
-   - Feature additions: ₹1,500/hour
-   - Bug fixes: Included for 3 months
-   - Training: ₹15,000-25,000
-
-5. **Payment Terms:**
-   - 30% upfront
-   - 40% on milestone completion
-   - 30% on final delivery
-   - Or: 50% upfront, 50% on delivery
-
----
-
 ## 📈 **COMPARISON WITH MARKET RATES**
 
 | Service Provider | Similar Project Cost |
